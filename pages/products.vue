@@ -105,7 +105,6 @@
   $text: #333;
   
   .products-page {
-    padding: 3rem 1.5rem;
   
     .container {
       max-width: 1000px;

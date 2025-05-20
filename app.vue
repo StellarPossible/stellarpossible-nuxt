@@ -19,7 +19,7 @@
 
   }
   .layout-wrapper {
-    background-color: $primary;
+    background-color: $light;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -29,10 +29,6 @@
   
   .main-content {
     flex: 1;
-    padding: 4rem 1.5rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     transition: all 0.3s ease;
