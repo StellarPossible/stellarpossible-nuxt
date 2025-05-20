@@ -25,4 +25,10 @@ export default defineNuxtConfig({
       date: '2025-05-20',
     },
   },
+  runtimeConfig: {
+    wpAppPassword: process.env.WP_APP_PASSWORD, // 👈 server-only
+    public: {
+      wpUser: process.env.WP_USER,              // 👈 exposed to client
+    },
+  },
 })
