@@ -1,75 +1,34 @@
-# Nuxt Minimal Starter
+# Stellar Possible — Headless Nuxt 3 + TypeScript Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+This project is a fully headless, API-driven frontend for a **tech solutions website**, built using **Nuxt 3 with TypeScript**. It connects to a secure **WordPress + WPGraphQL** backend and renders content using authenticated GraphQL requests.
 
-## Setup
+- ⚙️ Powered by [Nuxt 3](https://nuxt.com/) + [TypeScript](https://www.typescriptlang.org/)
+- 🔐 Authenticated GraphQL via [Apollo Client](https://www.apollographql.com/docs/react/)
+- 📸 Optimized image delivery with `@nuxt/image-edge`
+- 🎨 SCSS theming with modular variables and global styles
+- 🧠 Dynamic content routing via WordPress slugs
 
-Make sure to install dependencies:
+---
 
-```bash
-# npm
-npm install
+## 🧱 Tech Stack
 
-# pnpm
-pnpm install
+| Tech                | Role                                 |
+|---------------------|--------------------------------------|
+| Nuxt 3              | Application framework (SSR/SSG)      |
+| TypeScript          | Type-safe development                |
+| WordPress + WPGraphQL| CMS and content API                 |
+| Apollo Client       | Secure GraphQL data fetching         |
+| SCSS                | Custom styles and theming            |
+| @nuxt/image-edge    | Optimized, responsive images         |
 
-# yarn
-yarn install
+---
 
-# bun
-bun install
-```
+## 🔐 Authentication
 
-## Development Server
+This frontend uses **Basic Auth via WP Application Passwords** to securely query the WordPress GraphQL API.
 
-Start the development server on `http://localhost:3000`:
+Create a `.env` file in the project root:
 
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+```env
+WP_USER=your_wp_username
+WP_APP_PASSWORD=your_app_password
