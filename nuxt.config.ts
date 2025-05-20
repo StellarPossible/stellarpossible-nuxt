@@ -31,4 +31,5 @@ export default defineNuxtConfig({
       wpUser: process.env.WP_USER,              // 👈 exposed to client
     },
   },
+  
 })
