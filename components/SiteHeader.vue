@@ -3,7 +3,7 @@
       <div class="container">
         <NuxtLink to="/" class="logo">
           <img
-            src="~/public/images/primary/spicon.svg"
+            src="~/public/images/primary/spicon.png"
             alt="Stellar Possible logo"
           />
         </NuxtLink>
@@ -47,10 +47,9 @@
   @use '@/assets/scss/variables.scss' as *;
   
   .site-header {
-    position: fixed;
     top: 0;
     width: 100%;
-    background: $primary;
+    background: rgba(255, 255, 255, 0.5);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
   
@@ -58,14 +57,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      max-width: 1200px;
       margin: auto;
-      padding: 1rem 2rem;
     }
   
     .logo {
       display: flex;
       align-items: center;
+      margin: 0 1rem;
   
       img {
         display: block;
@@ -114,7 +112,7 @@
       a {
         margin-left: 1.5rem;
         text-decoration: none;
-        color: $white;
+        color: $primary;
         font-weight: 500;
         transition: color 0.2s;
   
@@ -145,16 +143,14 @@
         top: 0;
         right: 0;
         height: 100vh;
-        width: 70vw;
-        max-width: 320px;
         background: $primary;
         flex-direction: column;
         align-items: flex-start;
-        padding: 6rem 2rem 2rem 2rem;
         box-shadow: -2px 0 10px rgba(0,0,0,0.1);
         transform: translateX(100%);
         transition: transform 0.3s;
         z-index: 1050;
+        width: 100vh;
   
         a {
           margin: 1rem 0;
