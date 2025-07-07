@@ -1,7 +1,6 @@
 <template>
   <div>
     <header v-if="data?.generalSettings">
-      <h1>{{ data.generalSettings.title }}</h1>
       <p v-if="data.generalSettings.description">{{ data.generalSettings.description }}</p>
     </header>
     
