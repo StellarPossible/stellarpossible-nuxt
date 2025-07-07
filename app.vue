@@ -36,7 +36,6 @@
   
   @media (max-width: 768px) {
     .main-content {
-      padding: 3rem 1rem 1.5rem;
       border-radius: 0;
     }
   }
