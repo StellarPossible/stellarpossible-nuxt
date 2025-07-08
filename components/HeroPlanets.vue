@@ -129,15 +129,42 @@
   }
   </script>
   
-  <style scoped>
-  .hero {
-    position: relative;
-    height: 100vh;
-    background: url('/images/primary/galaxyBackground.webp') no-repeat center center;
-    background-size: cover;
-    overflow: hidden;
-  }
+  <style scoped lang="scss">
   
+  .hero {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+
+  // Apply radial fade-out mask
+  mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 1) 45%,
+    rgba(0, 0, 0, 0.6) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 1) 45%,
+    rgba(0, 0, 0, 0.6) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+
+  // Remove composite lines (unnecessary for your use case)
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-in;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
+    background-size: cover;
+  }
+}
+
   .galactic-network {
     width: 100%;
     height: 100%;
