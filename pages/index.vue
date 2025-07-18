@@ -25,7 +25,7 @@ const { result: data, loading: pending, error } = useQuery(GET_SITE_INFO)
     <div v-if="error" class="error">Error: {{ error.message }}</div>
 
     <main>
-      <HeroPlanets />
+      <!-- <HeroPlanets /> -->
     </main>
   </div>
 </template>

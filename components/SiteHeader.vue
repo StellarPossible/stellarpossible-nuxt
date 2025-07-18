@@ -1,7 +1,11 @@
 <template>
     <header class="site-header">
       <div class="container">
-        <NuxtLink to="/" class="logo">
+        <NuxtLink 
+          to="/" 
+          class="logo"
+          :class="{ 'logo-hidden': isHomePage }"
+        >
           <img
             src="~/public/images/primary/spicon.png"
             alt="Stellar Possible logo"
@@ -34,9 +38,12 @@
   </template>
   
   <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, computed } from 'vue'
 
   const isMenuOpen = ref(false)
+  const route = useRoute()
+
+  const isHomePage = computed(() => route.path === '/')
 
   function closeMenu() {
     isMenuOpen.value = false
@@ -47,10 +54,11 @@
   @use '@/assets/scss/variables.scss' as *;
   
   .site-header {
+    position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
     z-index: 1000;
   
     .container {
@@ -58,16 +66,24 @@
       justify-content: space-between;
       align-items: center;
       margin: auto;
+      max-width: 1200px;
+      padding: 0 2rem;
     }
   
     .logo {
       display: flex;
       align-items: center;
-      margin: 0 1rem;
+      transition: opacity 0.3s ease;
+
+      &.logo-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
   
       img {
         display: block;
-        width: 8rem;
+        max-width: 10rem;
+        width: 1rem;
       }
     }
   
@@ -82,10 +98,11 @@
       border: none;
       cursor: pointer;
       z-index: 1100;
+      margin: 1rem;
   
       span {
         display: block;
-        width: 2rem;
+        width: 2.5rem;
         height: 0.25rem;
         margin: 0.25rem 0;
         background: $white;
@@ -108,12 +125,13 @@
     .nav {
       display: flex;
       align-items: center;
+      opacity: .8;
   
       a {
         margin-left: 1.5rem;
         text-decoration: none;
-        color: $primary;
-        font-weight: 500;
+        color: white;
+        font-weight: 600;
         transition: color 0.2s;
   
         &:hover,
@@ -123,22 +141,13 @@
       }
     }
   
-    // Responsive styles
-    @media (max-width: 900px) {
-      .container {
-        padding: 1rem;
-      }
-      .logo img {
-        width: 6rem;
-      }
-    }
-  
     @media (max-width: 700px) {
-      .menu-toggle {
-        display: flex;
+      
+        .menu-toggle {
+          display: flex;
       }
-  
       .nav {
+        margin: 0;
         position: fixed;
         top: 0;
         right: 0;
