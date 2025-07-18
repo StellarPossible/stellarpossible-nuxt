@@ -60,7 +60,6 @@
     width: 100%;
     background: transparent;
     z-index: 1000;
-    padding: 1rem 0;
   
     .container {
       display: flex;
@@ -84,6 +83,7 @@
       img {
         display: block;
         max-width: 10rem;
+        width: 1rem;
       }
     }
   
@@ -142,10 +142,10 @@
     }
   
     @media (max-width: 700px) {
-      .menu-toggle {
-        display: flex;
+      
+        .menu-toggle {
+          display: flex;
       }
-  
       .nav {
         margin: 0;
         position: fixed;

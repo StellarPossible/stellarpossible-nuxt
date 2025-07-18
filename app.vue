@@ -1,5 +1,5 @@
 <template>
-    <div class="layout-wrapper">
+    <div class="layout-wrapper" :class="{ 'show-logo': isHomePage }">
       <SiteHeader />
       <main class="main-content">
         <NuxtPage />
@@ -8,7 +8,10 @@
   </template>
   
   <script setup lang="ts">
-  // Global layout
+  import { computed } from 'vue'
+  
+  const route = useRoute()
+  const isHomePage = computed(() => route.path === '/')
   </script>
   
   <style lang="scss">
@@ -30,6 +33,22 @@
     background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
     background-size: cover;
     background-attachment: fixed;
+
+    // Logo overlay - only visible on homepage
+    &.show-logo::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20rem;
+      height: 20rem;
+      background: url('~/public/images/primary/spicon.png') no-repeat center center;
+      background-size: contain;
+      z-index: 1;
+      pointer-events: none;
+      border-radius: 10rem;
+    }
   }
   
   .main-content {
