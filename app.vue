@@ -19,7 +19,7 @@
 
   }
   .layout-wrapper {
-    background-color: $light;
+    background-color: black;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
