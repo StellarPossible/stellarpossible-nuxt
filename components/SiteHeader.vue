@@ -49,8 +49,7 @@
   .site-header {
     top: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
     z-index: 1000;
   
     .container {
@@ -108,12 +107,14 @@
     .nav {
       display: flex;
       align-items: center;
+      margin: 1rem;
+      opacity: .8;
   
       a {
         margin-left: 1.5rem;
         text-decoration: none;
-        color: $primary;
-        font-weight: 500;
+        color: $dark;
+        font-weight: 600;
         transition: color 0.2s;
   
         &:hover,
