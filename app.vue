@@ -29,8 +29,9 @@
     color: $white;
     position: relative;
     
-    // Galaxy background - try different approaches
-    background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
+    // Galaxy background - shifted 8px to the right
+    background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat;
+    background-position: calc(50% + 5px) center; // 8px right of center
     background-size: cover;
     background-attachment: fixed;
 

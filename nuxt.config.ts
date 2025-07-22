@@ -21,6 +21,11 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: ['/sitemap.xml'],
+      failOnError: false // This will ignore prerender errors
+    },
     compatibility: {
       date: '2025-05-20',
     },

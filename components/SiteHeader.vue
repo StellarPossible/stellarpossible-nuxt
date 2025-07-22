@@ -1,6 +1,6 @@
 <template>
     <header class="site-header">
-      <div class="container">
+      <div class="container" :class="{ 'home-layout': isHomePage }">
         <NuxtLink 
           to="/" 
           class="logo"
@@ -55,25 +55,36 @@
   
   .site-header {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
+    right: 0;
     width: 100%;
     background: transparent;
+    backdrop-filter: blur(5px);
     z-index: 1000;
   
     .container {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
       margin: auto;
-      max-width: 1200px;
-      padding: 0 2rem;
+
+      &.home-layout {
+        justify-content: center;
+        padding: 1rem;
+        
+        .logo {
+          display: none;
+        }
+      }
     }
   
     .logo {
       display: flex;
       align-items: center;
       transition: opacity 0.3s ease;
+      width: 0;
+      height: 6rem;
 
       &.logo-hidden {
         opacity: 0;
@@ -82,12 +93,12 @@
   
       img {
         display: block;
-        max-width: 10rem;
-        width: 1rem;
+        max-width: 7rem;
       }
     }
   
     .menu-toggle {
+      margin-left: 0rem;
       display: none;
       flex-direction: column;
       justify-content: center;
@@ -126,6 +137,9 @@
       display: flex;
       align-items: center;
       opacity: .8;
+      padding: 1rem;
+      font-size: 1.5rem;
+      margin-left: -3rem;
   
       a {
         margin-left: 1.5rem;
@@ -147,9 +161,11 @@
           display: flex;
       }
       .nav {
+        padding: 0;
         margin: 0;
+        margin-top: 4rem;
         position: fixed;
-        top: 0;
+        bottom: 0;
         right: 0;
         height: 100vh;
         background: $primary;
@@ -160,6 +176,7 @@
         transition: transform 0.3s;
         z-index: 1050;
         width: 100vh;
+        padding-top: 2rem;
   
         a {
           margin: 1rem 0;
