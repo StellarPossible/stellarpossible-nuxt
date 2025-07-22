@@ -28,15 +28,30 @@
     font-family: 'Inter', sans-serif;
     color: $white;
     position: relative;
-    
-    // Galaxy background - shifted 8px to the right
     background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat;
-    background-position: calc(50% + 5px) center; // 8px right of center
+    background-position: calc(50% + 5px) center; // px right of center
     background-size: cover;
     background-attachment: fixed;
 
-    // Logo overlay - only visible on homepage
+    // Logo overlay with blur gradient - only visible on homepage
     &.show-logo::before {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 25rem;
+      height: 25rem;
+      background: radial-gradient(circle, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.35) 40%, transparent 70%);
+      backdrop-filter: blur(1px);
+      -webkit-backdrop-filter: blur(1px);
+      z-index: 1;
+      pointer-events: none;
+      border-radius: 12rem;
+    }
+
+    // Logo icon - positioned above the blur gradient
+    &.show-logo::after {
       content: '';
       position: fixed;
       top: 50%;
@@ -46,7 +61,7 @@
       height: 20rem;
       background: url('~/public/images/primary/spicon.png') no-repeat center center;
       background-size: contain;
-      z-index: 1;
+      z-index: 2;
       pointer-events: none;
       border-radius: 10rem;
     }

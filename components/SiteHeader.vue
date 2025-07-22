@@ -6,6 +6,7 @@
           class="logo"
           :class="{ 'logo-hidden': isHomePage }"
         >
+          <div v-if="isHomePage" class="logo-backdrop"></div>
           <img
             src="~/public/images/primary/spicon.png"
             alt="Stellar Possible logo"
@@ -85,10 +86,29 @@
       transition: opacity 0.3s ease;
       width: 0;
       height: 6rem;
+      position: relative;
 
       &.logo-hidden {
         opacity: 0;
         pointer-events: none;
+      }
+
+      .logo-backdrop {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 12rem;
+        height: 12rem;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.05) 30%,
+          transparent 70%
+        );
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        z-index: -1;
       }
   
       img {
