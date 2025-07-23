@@ -61,7 +61,7 @@
     right: 0;
     width: 100%;
     background: transparent;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(2px);
     z-index: 1000;
   
     .container {
