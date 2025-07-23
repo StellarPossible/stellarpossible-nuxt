@@ -60,11 +60,19 @@
     left: 0;
     right: 0;
     width: 100%;
-    background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
-    background-size: cover;
-    background-attachment: fixed;
-    backdrop-filter: blur(2px);
-    z-index: 2000; // Ensure it's above main-content
+    z-index: 2000;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
+      background-size: cover;
+      background-attachment: fixed;
+      filter: blur(3px);
+      z-index: -1;
+    }
   
     .container {
       display: flex;
@@ -74,7 +82,7 @@
 
       &.home-layout {
         justify-content: center;
-        padding: 1rem;
+        margin-bottom: 1rem;
         
         .logo {
           display: none;
@@ -120,7 +128,7 @@
     }
   
     .menu-toggle {
-      margin-left: 0rem;
+      position: relative;
       display: none;
       flex-direction: column;
       justify-content: center;
@@ -132,26 +140,35 @@
       cursor: pointer;
       z-index: 1100;
       margin: 1rem;
-  
+
       span {
-        display: block;
+        position: absolute;
+        left: 0;
         width: 2.5rem;
         height: 0.25rem;
-        margin: 0.25rem 0;
         background: $white;
         border-radius: 2px;
         transition: 0.3s;
       }
-  
+      span:nth-child(1) {
+        top: 0.5rem;
+      }
+      span:nth-child(2) {
+        top: 1.125rem;
+      }
+      span:nth-child(3) {
+        top: 1.75rem;
+      }
+
       // Hamburger to X animation
       & span.open:nth-child(1) {
-        transform: translateY(0.5rem) rotate(45deg);
+        transform: translateY(0.625rem) rotate(45deg);
       }
       & span.open:nth-child(2) {
         opacity: 0;
       }
       & span.open:nth-child(3) {
-        transform: translateY(-0.5rem) rotate(-45deg);
+        transform: translateY(-0.625rem) rotate(-45deg);
       }
     }
   
@@ -160,8 +177,9 @@
       align-items: center;
       opacity: .8;
       padding: 1rem;
-      font-size: 1.5rem;
+      font-size: 1rem;
       margin-left: -3rem;
+      font-family: 'Evermore', 'Inter', sans-serif;
   
       a {
         margin-left: 1.5rem;
@@ -197,11 +215,11 @@
         transform: translateX(100%);
         transition: transform 0.3s;
         z-index: 1050;
-        width: 100vh;
+        width: 100%;
         padding-top: 2rem;
   
         a {
-          margin: 1rem 0;
+          margin: 1rem;
           font-size: 1.2rem;
           width: 100%;
         }

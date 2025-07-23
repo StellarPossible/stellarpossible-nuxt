@@ -13,3 +13,10 @@ $dark: #333333;       // Default dark text
 // Utility
 $border: #dddddd;
 $shadow-color: rgba(0, 0, 0, 0.05);
+
+@font-face {
+  font-family: 'Evermore';
+  src: url('@/assets/fonts/Evermore.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
