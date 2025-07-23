@@ -1,10 +1,12 @@
 <template>
     <div class="layout-wrapper" :class="{ 'show-logo': isHomePage }">
-      <SiteHeader />
       <main class="main-content">
-        <NuxtPage />
+        <div class="page-content">
+                  <NuxtPage />
+        </div>
       </main>
     </div>
+            <SiteHeader />
   </template>
   
   <script setup lang="ts">
@@ -69,15 +71,33 @@
   
   .main-content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     transition: all 0.3s ease;
     background: transparent; // Make sure main content doesn't block the background
+    // Account for the fixed header at the bottom
+    padding-bottom: 6rem; // Adjust this value based on your header height
+  }
+
+  .page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: $primary;
+
+    // Make background transparent on homepage
+    .show-logo & {
+      background-color: transparent;
+    }
   }
   
   @media (max-width: 768px) {
     .main-content {
       border-radius: 0;
+      // You might need to adjust padding for mobile header height
+      padding-bottom: 6rem;
     }
   }
   </style>
