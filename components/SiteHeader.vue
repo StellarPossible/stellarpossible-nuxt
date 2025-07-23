@@ -60,9 +60,11 @@
     left: 0;
     right: 0;
     width: 100%;
-    background: transparent;
+    background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
+    background-size: cover;
+    background-attachment: fixed;
     backdrop-filter: blur(2px);
-    z-index: 1000;
+    z-index: 2000; // Ensure it's above main-content
   
     .container {
       display: flex;
