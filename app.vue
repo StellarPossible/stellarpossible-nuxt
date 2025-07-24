@@ -8,6 +8,7 @@
     </main>
     
   </div>
+  <SiteFooter />
 </template>
 
 <script setup lang="ts">

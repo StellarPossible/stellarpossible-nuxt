@@ -1,7 +1,6 @@
 <script setup>
 import { useQuery } from '@vue/apollo-composable'
 import { gql } from '@apollo/client/core'
-import HeroPlanets from '@/components/HeroPlanets.vue'
 
 const GET_SITE_INFO = gql`
   query GetSiteInfo {
