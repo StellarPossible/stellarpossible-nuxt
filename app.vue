@@ -67,6 +67,14 @@ const isHomePage = computed(() => route.path === '/')
     pointer-events: none;
     border-radius: 10rem;
   }
+
+  @media (min-width: 1024px) {
+    &.show-logo::after {
+      width: 32rem;
+      height: 32rem;
+      border-radius: 16rem;
+    }
+  }
 }
 
 .main-content {

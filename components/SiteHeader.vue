@@ -217,6 +217,7 @@
         z-index: 1050;
         width: 100%;
         padding-top: 2rem;
+        justify-content: center;
   
         a {
           margin: 1rem;
