@@ -67,7 +67,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.webp') no-repeat center center;
+      background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.png') no-repeat center center;
       background-size: cover;
       background-attachment: fixed;
       filter: blur(3px);
