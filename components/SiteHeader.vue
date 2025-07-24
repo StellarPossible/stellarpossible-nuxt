@@ -56,7 +56,7 @@
   
   .site-header {
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
     width: 100%;
@@ -67,7 +67,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.png') no-repeat center center;
+      background: rgba(0, 0, 0, 0.6);
       background-size: cover;
       background-attachment: fixed;
       filter: blur(3px);
@@ -79,47 +79,14 @@
       justify-content: space-around;
       align-items: center;
       margin: auto;
-
-      &.home-layout {
-        justify-content: center;
-        margin-bottom: 1rem;
-        
-        .logo {
-          display: none;
-        }
-      }
+      padding: 1rem;
     }
   
     .logo {
       display: flex;
       align-items: center;
       transition: opacity 0.3s ease;
-      width: 0;
-      height: 6rem;
       position: relative;
-
-      &.logo-hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .logo-backdrop {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 12rem;
-        height: 12rem;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          rgba(255, 255, 255, 0.05) 30%,
-          transparent 70%
-        );
-        backdrop-filter: blur(10px);
-        border-radius: 50%;
-        z-index: -1;
-      }
   
       img {
         display: block;
@@ -175,14 +142,12 @@
     .nav {
       display: flex;
       align-items: center;
+      gap: 2rem;
       opacity: .8;
-      padding: 1rem;
       font-size: 1rem;
-      margin-left: -3rem;
       font-family: 'Evermore', 'Inter', sans-serif;
   
       a {
-        margin-left: 1.5rem;
         text-decoration: none;
         color: white;
         font-weight: 600;
@@ -195,40 +160,37 @@
       }
     }
   
-    @media (max-width: 700px) {
-      
-        .menu-toggle {
-          display: flex;
-      }
-      .nav {
-        padding: 0;
-        margin: 0;
-        margin-top: 4rem;
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        height: 100vh;
-        background: $primary;
-        flex-direction: column;
-        align-items: flex-start;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-        transform: translateX(100%);
-        transition: transform 0.3s;
-        z-index: 1050;
+    @media (max-width: 768px) {
+    .menu-toggle {
+      display: flex;
+    }
+    .nav {
+      padding: 0 1rem;
+      margin: 0;
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      height: 100vh;
+      background: $primary;
+      flex-direction: column;
+      align-items: flex-start;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      z-index: 1050;
+      width: 100%;
+      justify-content: center;
+
+      a {
+        font-size: 1.2rem;
         width: 100%;
-        padding-top: 2rem;
-        justify-content: center;
-  
-        a {
-          margin: 1rem;
-          font-size: 1.2rem;
-          width: 100%;
-        }
-  
-        &.open {
-          transform: translateX(0);
-        }
+        text-align: right;
+      }
+
+      &.open {
+        transform: translateX(0);
       }
     }
+  }
   }
   </style>
