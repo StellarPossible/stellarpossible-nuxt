@@ -90,7 +90,7 @@
   
       img {
         display: block;
-        max-width: 7rem;
+        width: 7rem;
       }
     }
   
@@ -161,6 +161,9 @@
     }
   
     @media (max-width: 768px) {
+    .logo > img {
+      width: 5rem;
+    }
     .menu-toggle {
       display: flex;
     }

@@ -49,6 +49,7 @@ const isHomePage = computed(() => route.path === '/')
 }
 
 .page-content {
+  justify-content: center;
   flex: 1;
   display: flex;
   flex-direction: column;
