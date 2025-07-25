@@ -28,15 +28,18 @@ const year = new Date().getFullYear()
 @use '@/assets/scss/variables.scss' as *;
 
 .site-footer {
-  position: relative;
+  position: fixed; // changed from relative
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
-  padding: 1.5rem 0;
-  background: $primary;
+  padding: .5rem;
+  background: $primary opacify($color: #000000, $amount: 0);
   color: $white;
-  font-family: 'OrionSans', 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   text-align: center;
   font-size: 1.5rem;
-  z-index: 2000;
+  z-index: 3000; // higher than .layout-wrapper (which is 2000)
   overflow: hidden;
 
   &::before {
@@ -60,7 +63,7 @@ const year = new Date().getFullYear()
   }
 
   .copyright {
-    font-size: 1.5rem;
+    font-size: 1rem;
     letter-spacing: 0.02em;
     color: $white;
     opacity: 0.9;

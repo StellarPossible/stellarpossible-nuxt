@@ -9,24 +9,29 @@
   text-align: center;
   color: #fff;
   h1 {
-    font-family: 'OrionSans', 'Inter', sans-serif;
-    font-size: 7rem;
-    margin-bottom: 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 500;
+    line-height: 4rem;
   }
   p {
     font-size: 1.25rem;
     opacity: 0.85;
   }
 }
+
+
+
 @media screen and (max-width: 1024px) {
   .hero-content h1 {
-    font-size: 4.5rem;
+    font-size: 2.5rem;
+        line-height: 2.75rem;
+
   }
   @media screen and (max-width: 425px) {
-    .hero-content h1 {
-      font-size: 2.5rem;
-    }
-  }
-  
+  .hero-content h1 {
+      font-size: 1.75rem;
+      line-height: 2rem;    }
+}
 }
 </style>
