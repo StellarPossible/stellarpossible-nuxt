@@ -27,8 +27,6 @@ This project is a fully headless, API-driven frontend for a **tech solutions web
 
 This frontend uses **Basic Auth via WP Application Passwords** to securely query the WordPress GraphQL API.
 
-Create a `.env` file in the project root:
+### Deployment
 
-```env
-WP_USER=your_wp_username
-WP_APP_PASSWORD=your_app_password
+`npm run generate`
