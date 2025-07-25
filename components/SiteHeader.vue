@@ -1,11 +1,12 @@
 <template>
     <header class="site-header">
-      <div class="container">
+      <div class="container" :class="{ 'home-layout': isHomePage }">
         <NuxtLink 
           to="/" 
           class="logo"
           :class="{ 'logo-hidden': isHomePage }"
         >
+          <div v-if="isHomePage" class="logo-backdrop"></div>
           <img
             src="~/public/images/primary/spicon.png"
             alt="Stellar Possible logo"
@@ -57,37 +58,44 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     width: 100%;
-    background: transparent;
-    z-index: 1000;
+    z-index: 2000;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      background-size: cover;
+      background-attachment: fixed;
+      filter: blur(3px);
+      z-index: -1;
+    }
   
     .container {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
       margin: auto;
-      max-width: 1200px;
-      padding: 0 2rem;
+      padding: .5rem;
     }
   
     .logo {
       display: flex;
       align-items: center;
       transition: opacity 0.3s ease;
-
-      &.logo-hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
+      position: relative;
   
       img {
         display: block;
-        max-width: 10rem;
-        width: 1rem;
+        width: 7rem;
       }
     }
   
     .menu-toggle {
+      position: relative;
       display: none;
       flex-direction: column;
       justify-content: center;
@@ -99,36 +107,47 @@
       cursor: pointer;
       z-index: 1100;
       margin: 1rem;
-  
+
       span {
-        display: block;
+        position: absolute;
+        left: 0;
         width: 2.5rem;
         height: 0.25rem;
-        margin: 0.25rem 0;
         background: $white;
         border-radius: 2px;
         transition: 0.3s;
       }
-  
+      span:nth-child(1) {
+        top: 0.5rem;
+      }
+      span:nth-child(2) {
+        top: 1.125rem;
+      }
+      span:nth-child(3) {
+        top: 1.75rem;
+      }
+
       // Hamburger to X animation
       & span.open:nth-child(1) {
-        transform: translateY(0.5rem) rotate(45deg);
+        transform: translateY(0.625rem) rotate(45deg);
       }
       & span.open:nth-child(2) {
         opacity: 0;
       }
       & span.open:nth-child(3) {
-        transform: translateY(-0.5rem) rotate(-45deg);
+        transform: translateY(-0.625rem) rotate(-45deg);
       }
     }
   
     .nav {
       display: flex;
       align-items: center;
+      gap: 2rem;
       opacity: .8;
+      font-size: 1rem;
+      font-family: 'Evermore', 'Inter', sans-serif;
   
       a {
-        margin-left: 1.5rem;
         text-decoration: none;
         color: white;
         font-weight: 600;
@@ -141,36 +160,40 @@
       }
     }
   
-    @media (max-width: 700px) {
-      
-        .menu-toggle {
-          display: flex;
+    @media (max-width: 768px) {
+    .logo > img {
+      width: 5rem;
+    }
+    .menu-toggle {
+      display: flex;
+    }
+    .nav {
+      padding: 0 1rem;
+      margin: 0;
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      height: 100vh;
+      background: $primary;
+      flex-direction: column;
+      align-items: flex-start;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s;
+      z-index: 1050;
+      width: 100%;
+      justify-content: center;
+
+      a {
+        font-size: 1.2rem;
+        width: 100%;
+        text-align: right;
       }
-      .nav {
-        margin: 0;
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100vh;
-        background: $primary;
-        flex-direction: column;
-        align-items: flex-start;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-        transform: translateX(100%);
-        transition: transform 0.3s;
-        z-index: 1050;
-        width: 100vh;
-  
-        a {
-          margin: 1rem 0;
-          font-size: 1.2rem;
-          width: 100%;
-        }
-  
-        &.open {
-          transform: translateX(0);
-        }
+
+      &.open {
+        transform: translateX(0);
       }
     }
+  }
   }
   </style>

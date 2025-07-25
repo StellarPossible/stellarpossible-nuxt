@@ -12,7 +12,8 @@
           <h2>🟢 Current Products</h2>
           <ul class="item-grid">
             <li v-for="item in currentProducts" :key="item.name">
-              <NuxtImg :src="item.logo" :alt="item.name" width="100" height="100" />
+              <!-- <NuxtImg :src="item.logo" :alt="item.name" width="100" height="100" /> -->
+              <div class="placeholder-logo">{{ item.name.charAt(0) }}</div>
               <div>
                 <h3>{{ item.name }}</h3>
                 <p>{{ item.description }}</p>
@@ -78,7 +79,7 @@
   const pastProjects = [
     {
       name: 'EventPulse',
-      logo: '/images/products/eventpulse.png',
+      logo: '/images/primary/spicon.png',
       description: 'Live event analytics platform retired in 2023 after acquisition.',
     },
   ]
@@ -86,15 +87,15 @@
   const upcomingProducts = [
     {
       name: 'GreenStack',
-      logo: '/images/products/greenstack.png',
+      logo: '/images/primary/spicon.png',
       description: 'Sustainability metrics and carbon reporting toolkit launching Q3 2025.',
     },
   ]
   
   const clients = [
-    { name: 'Acme Corp', logo: '/images/clients/acme.png' },
-    { name: 'SoundWave', logo: '/images/clients/soundwave.png' },
-    { name: 'HealthBridge', logo: '/images/clients/healthbridge.png' },
+    { name: 'Acme Corp', logo: '/images/primary/spicon.png' },
+    { name: 'SoundWave', logo: '/images/primary/spicon.png' },
+    { name: 'HealthBridge', logo: '/images/primary/spicon.png' },
   ]
   </script>
   
