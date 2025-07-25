@@ -33,10 +33,25 @@ const isHomePage = computed(() => route.path === '/')
   color: $white;
   position: relative;
   background: var(--primary-color, #0e0f1a) url('/images/primary/galaxyBackground.png') no-repeat;
-  background-position: calc(50% + 5px) center; // px right of center
+  background-position: calc(50% + 5px) center;
   background-size: cover;
   background-attachment: fixed;
 
+  // Add this pseudo-element for the gradient fade
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    // Radial gradient: transparent in center, black at edges
+    background: radial-gradient(
+      ellipse at center,
+      rgba(0,0,0,0) 60%,
+      rgba(0,0,0,0.7) 100%
+    );
+    // Optional: smooth the fade by adjusting the percentages and opacity
+  }
 }
 
 .main-content {
