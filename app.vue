@@ -105,6 +105,8 @@ watch(isHomePage, (isHome) => {
   justify-content: center;
   position: relative;
   z-index: 2;
+  margin-bottom: 3rem;
+  margin-top: 6.5rem;
 
   .show-logo & {
     max-height: 100vh;
