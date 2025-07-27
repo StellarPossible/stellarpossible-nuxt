@@ -67,6 +67,13 @@ const year = new Date().getFullYear()
     letter-spacing: 0.02em;
     color: $white;
     opacity: 0.9;
+    
+  }
+
+@media (max-width: 768px) {
+  .copyright {
+    font-size: .5rem;
+  }
   }
 
   .social-icon {
