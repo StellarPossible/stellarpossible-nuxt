@@ -1,6 +1,6 @@
 <template>
   <section class="education-page">
-    <div class="header">
+    <div class="header fade-up">
       <h1>Education</h1>
       <p class="subtitle">
         Stay up to date with our latest articles, news, and insights
@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <div class="featured-posts">
+    <div class="featured-posts fade-up">
       <div class="post-card" v-for="post in featuredPosts" :key="post.title">
         <NuxtImg :src="post.image" :alt="post.title" class="post-img" />
         <div class="post-content">
@@ -24,13 +24,13 @@
       </div>
     </div>
 
-    <div class="newsletter">
+    <div class="newsletter fade-up">
       <h2>Never miss an insight</h2>
       <p>Subscribe to our newsletter for updates</p>
       <button class="subscribe-button">Subscribe</button>
     </div>
 
-    <div class="popular-reads">
+    <div class="popular-reads fade-up">
       <h2>Popular Reads</h2>
       <div class="post-card" v-for="post in popularReads" :key="post.title">
         <NuxtImg :src="post.image" :alt="post.title" class="post-img" />
@@ -44,6 +44,23 @@
 </template>
 
 <script setup lang="ts">
+onMounted(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  document.querySelectorAll('.fade-up').forEach((el) => {
+    observer.observe(el);
+  });
+});
+
 const featuredPosts = [
   {
     title: 'Introduction to API-Driven Web Apps',
@@ -88,7 +105,18 @@ const popularReads = [
 .education-page {
   padding: 4rem 2rem;
   color: #fff;
-  background: linear-gradient(180deg, #000, #111);
+  background: transparent;
+
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
   .header {
     text-align: center;
@@ -135,6 +163,11 @@ const popularReads = [
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.02);
+      }
 
       .post-img {
         width: 100%;
@@ -192,6 +225,7 @@ const popularReads = [
       cursor: pointer;
       color: #fff;
       transition: background 0.3s;
+      box-shadow: 0 0 10px #00aaff;
 
       &:hover {
         background: #008ecc;
@@ -215,6 +249,11 @@ const popularReads = [
       color: #000;
       border-radius: 12px;
       overflow: hidden;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.02);
+      }
 
       .post-img {
         width: 100%;
