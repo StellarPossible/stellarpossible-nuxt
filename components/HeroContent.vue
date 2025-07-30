@@ -28,7 +28,7 @@
 
   .hero-backdrop {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 1rem;
     backdrop-filter: blur(8px);
     background-color: rgba(0, 0, 0, 0.45);
     border-radius: 1rem;
