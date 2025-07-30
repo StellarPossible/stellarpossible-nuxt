@@ -1,198 +1,181 @@
 <template>
-    <section class="products-page">
-      <div class="container">
-        <h1>Our Products</h1>
-        <p class="intro">
-          We build solutions that solve real-world problems — from custom internal tools to full-scale SaaS platforms.
-        </p>
-  
-        <ClientHighlight />
-  
-        <div class="products-section">
-          <h2>🟢 Current Products</h2>
-          <ul class="item-grid">
-            <li v-for="item in currentProducts" :key="item.name">
-              <!-- <NuxtImg :src="item.logo" :alt="item.name" width="100" height="100" /> -->
-              <div class="placeholder-logo">{{ item.name.charAt(0) }}</div>
-              <div>
-                <h3>{{ item.name }}</h3>
-                <p>{{ item.description }}</p>
-              </div>
-            </li>
+  <section class="products-page">
+    <div class="hero">
+      <h1>We Build Digital Tools That Empower</h1>
+      <p>
+        From WooCommerce bundles to HIPAA dashboards, our tools help small businesses,
+        educators, and creators thrive.
+      </p>
+      <NuxtLink class="cta-button" to="/contact">Let's Talk</NuxtLink>
+    </div>
+
+    <div class="product-showcase">
+      <div class="product-card">
+        <div class="product-icon">📦</div>
+        <div class="product-text">
+          <h2>SlateBuilder</h2>
+          <ul>
+            <li>Used by 100+ WooCommerce stores</li>
+            <li>Drag-and-drop bundle builder</li>
+            <li>Optimized for growth + ease of use</li>
           </ul>
-        </div>
-  
-        <div class="products-section">
-          <h2>🕰 Past Projects</h2>
-          <ul class="item-grid">
-            <li v-for="item in pastProjects" :key="item.name">
-              <NuxtImg :src="item.logo" :alt="item.name" width="100" height="100" />
-              <div>
-                <h3>{{ item.name }}</h3>
-                <p>{{ item.description }}</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-  
-        <div class="products-section">
-          <h2>🚀 Coming Soon</h2>
-          <ul class="item-grid">
-            <li v-for="item in upcomingProducts" :key="item.name">
-              <NuxtImg :src="item.logo" :alt="item.name" width="100" height="100" />
-              <div>
-                <h3>{{ item.name }}</h3>
-                <p>{{ item.description }}</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-  
-        <div class="clients-section">
-          <h2>🤝 Trusted by Clients</h2>
-          <ul class="logo-grid">
-            <li v-for="client in clients" :key="client.name">
-              <NuxtImg :src="client.logo" :alt="client.name" width="120" height="60" />
-            </li>
-          </ul>
+          <NuxtLink class="learn-link" to="/products/slatebuilder">Learn More</NuxtLink>
         </div>
       </div>
-    </section>
-  </template>
-  
-  <script setup lang="ts">
-  import ClientHighlight from '@/components/ClientHighlight.vue'
-  
-  const currentProducts = [
-    {
-      name: 'SlateBuilder',
-      logo: '/images/products/slatebuilder.png',
-      description: 'Drag-and-drop WooCommerce bundle builder used by hundreds of stores.',
-    },
-    {
-      name: 'TherapySync',
-      logo: '/images/products/therapysync.png',
-      description: 'HIPAA-compliant mental health dashboard with scheduling and file sharing.',
-    },
-  ]
-  
-  const pastProjects = [
-    {
-      name: 'EventPulse',
-      logo: '/images/primary/spicon.png',
-      description: 'Live event analytics platform retired in 2023 after acquisition.',
-    },
-  ]
-  
-  const upcomingProducts = [
-    {
-      name: 'GreenStack',
-      logo: '/images/primary/spicon.png',
-      description: 'Sustainability metrics and carbon reporting toolkit launching Q3 2025.',
-    },
-  ]
-  
-  const clients = [
-    { name: 'Acme Corp', logo: '/images/primary/spicon.png' },
-    { name: 'SoundWave', logo: '/images/primary/spicon.png' },
-    { name: 'HealthBridge', logo: '/images/primary/spicon.png' },
-  ]
-  </script>
-  
-  <style scoped lang="scss">
-  $primary: #2b6777;
-  $secondary: #52ab98;
-  $bg-light: #f2f2f2;
-  $text: #333;
-  
-  .products-page {
-  
-    .container {
-      max-width: 1000px;
-      margin: auto;
+
+      <div class="product-card">
+        <div class="product-icon">📊</div>
+        <div class="product-text">
+          <h2>TherapySync</h2>
+          <ul>
+            <li>HIPAA-compliant dashboard for therapists</li>
+            <li>Scheduler, file sharing, and messaging</li>
+          </ul>
+          <NuxtLink class="learn-link" to="/products/therapysync">Learn More</NuxtLink>
+        </div>
+      </div>
+    </div>
+
+    <div class="final-cta">
+      <h2>Let’s Build Something Stellar Together</h2>
+      <p>
+        We specialize in tailored tech, made for humans. Let’s make your next platform unforgettable.
+      </p>
+      <NuxtLink class="cta-button" to="/contact">Schedule a Free Consult</NuxtLink>
+    </div>
+  </section>
+</template>
+
+<script setup lang="ts">
+// Simplified product listing for conversion-optimized layout
+</script>
+
+<style scoped lang="scss">
+.products-page {
+  padding: 4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(3px);
+}
+
+.hero {
+  max-width: 800px;
+  text-align: center;
+  margin-bottom: 4rem;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #eee;
+  }
+
+  .cta-button {
+    padding: 0.75rem 2rem;
+    background: #00d1ff;
+    color: #000;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+
+    &:hover {
+      background: #00a3cc;
     }
-  
-    h1 {
-      font-size: 2.25rem;
-      margin-bottom: 1rem;
-      color: $primary;
+  }
+}
+
+.product-showcase {
+  display: grid;
+  gap: 2rem;
+  max-width: 1000px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    background: #fff;
+    color: #000;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    gap: 1rem;
+
+    .product-icon {
+      font-size: 2.5rem;
     }
-  
-    .intro {
-      font-size: 1.125rem;
-      margin-bottom: 2.5rem;
-      color: $text;
-    }
-  
-    .products-section {
-      margin-top: 3rem;
-  
+
+    .product-text {
       h2 {
+        margin: 0 0 1rem;
         font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        color: $primary;
+        font-weight: 700;
       }
-    }
-  
-    .clients-section {
-      margin-top: 4rem;
-  
-      h2 {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        text-align: center;
-        color: $primary;
-      }
-    }
-  
-    .item-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-  
-      @media (min-width: 640px) {
-        grid-template-columns: 1fr 1fr;
-      }
-  
-      li {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        background: $bg-light;
-        border-radius: 8px;
-  
-        img {
-          flex-shrink: 0;
-          object-fit: contain;
-        }
-  
-        h3 {
-          margin: 0 0 0.25rem;
-          font-size: 1.125rem;
-          color: $primary;
-        }
-  
-        p {
-          margin: 0;
-          color: $text;
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1rem;
+
+        li::before {
+          content: '✔';
+          margin-right: 0.5rem;
+          color: #00d1ff;
         }
       }
-    }
-  
-    .logo-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
-  
-      li {
-        background: white;
-        padding: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.05);
+
+      .learn-link {
+        font-weight: 600;
+        color: #0077cc;
+        text-decoration: underline;
+        font-size: 0.95rem;
       }
     }
   }
-  </style>
-  
+}
+
+.final-cta {
+  margin-top: 5rem;
+  max-width: 700px;
+  text-align: center;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    color: #ddd;
+  }
+
+  .cta-button {
+    padding: 0.75rem 2rem;
+    background: #00d1ff;
+    color: #000;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+
+    &:hover {
+      background: #00a3cc;
+    }
+  }
+}
+</style>
