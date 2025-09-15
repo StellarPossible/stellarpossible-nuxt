@@ -32,7 +32,13 @@
         <NuxtLink to="/products" active-class="active" @click="closeMenu">Products</NuxtLink>
         <NuxtLink to="/blog" active-class="active" @click="closeMenu">Education</NuxtLink>
         <NuxtLink to="/contact" active-class="active" @click="closeMenu">Contact</NuxtLink>
-        <NuxtLink to="/register" active-class="active" @click="closeMenu">Login</NuxtLink>
+        
+        <!-- Authentication Links -->
+        <div v-if="user" class="auth-section">
+          <span class="welcome">Hi, {{ user.name || user.username }}!</span>
+          <button @click="logout" class="logout-btn">Logout</button>
+        </div>
+        <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">Login</NuxtLink>
       </nav>
     </div>
   </header>
@@ -45,11 +51,23 @@ defineProps<{ scrolled: boolean }>()
 
 const isMenuOpen = ref(false)
 const route = useRoute()
+const user = useState('auth.user')
 
 const isHomePage = computed(() => route.path === '/')
 
 function closeMenu() {
   isMenuOpen.value = false
+}
+
+async function logout() {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    user.value = null
+    await navigateTo('/')
+  } catch (error) {
+    console.error('Logout failed:', error)
+  }
+  closeMenu()
 }
 </script>
 
@@ -161,6 +179,41 @@ function closeMenu() {
     }
   }
 
+  .auth-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
+    .welcome {
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+
   @media (max-width: 768px) {
     .logo > img {
       width: 5rem;
@@ -195,6 +248,26 @@ function closeMenu() {
 
       &.open {
         transform: translateX(0);
+      }
+    }
+
+    .auth-section {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      width: 100%;
+      
+      .welcome {
+        text-align: right;
+        width: 100%;
+        font-size: 1rem;
+      }
+      
+      .logout-btn {
+        width: auto;
+        text-align: right;
+        font-size: 1rem;
+        padding: 0.75rem 1.5rem;
       }
     }
   }
