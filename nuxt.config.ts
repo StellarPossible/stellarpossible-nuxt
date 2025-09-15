@@ -24,18 +24,22 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       routes: ['/sitemap.xml'],
-      failOnError: false // This will ignore prerender errors
+      failOnError: false
     },
-    compatibility: {
-      date: '2025-05-20',
-    },
+    compatibilityDate: '2025-05-20',
   },
   
   runtimeConfig: {
+    // Private keys (only available on server-side)
     wpAppPassword: process.env.WP_APP_PASSWORD,
+    jwtSecret: process.env.JWT_SECRET,
+    
+    // Public keys (exposed to client-side)
     public: {
       wpUser: process.env.WP_USER,
       wpGraphqlEndpoint: process.env.WP_GRAPHQL_ENDPOINT,
+      wpRestEndpoint: process.env.WP_REST_ENDPOINT,
+      useJWT: process.env.USE_JWT || 'false'
     },
   },
 })
