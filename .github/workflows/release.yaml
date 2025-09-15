@@ -1,5 +1,5 @@
 # GitHub Actions workflow for deploying Stellar Possible Nuxt site to Hostinger
-# Triggers on GitHub releases to build and deploy the static site
+# Triggers on GitHub releases to build and deploy via SSH key authentication
 name: Deploy to Hostinger
 
 on:
@@ -44,22 +44,27 @@ jobs:
           echo "Build: ${{ github.sha }}" >> .output/public/VERSION.txt
           echo "Date: $(date -u)" >> .output/public/VERSION.txt
 
-      # Deploy generated static files to Hostinger via FTP
-      - name: Deploy to Hostinger via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
-          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
-          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
-          local-dir: '.output/public/'
-          server-dir: '/public_html/'
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.nuxt/**
-            **/.output/**
-            **/dist/**
+      # Setup SSH key for secure authentication
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 65002 -H ${{ secrets.HOSTINGER_FTP_SERVER }} >> ~/.ssh/known_hosts
+
+      # Deploy using rsync over SSH with key authentication
+      - name: Deploy to Hostinger via SSH
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
+            .output/public/ \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:/public_html/
+
+      # Clean up SSH key for security
+      - name: Cleanup SSH key
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
 
       # Log deployment completion details
       - name: Verify deployment
