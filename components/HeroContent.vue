@@ -28,13 +28,13 @@
 
   .hero-backdrop {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 1rem;
     backdrop-filter: blur(8px);
     background-color: rgba(0, 0, 0, 0.45);
     border-radius: 1rem;
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
     max-width: 900px;
-    margin: 0 auto;
+    margin-top: -8rem;
     color: #fff;
   }
 
@@ -43,7 +43,7 @@
     font-size: 3.5rem;
     font-weight: 600;
     line-height: 4rem;
-    margin-bottom: 1rem;
+    margin: 0;
   }
 
   p {

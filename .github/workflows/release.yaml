@@ -1,0 +1,70 @@
+# GitHub Actions workflow for deploying Stellar Possible Nuxt site to Hostinger
+# Triggers on GitHub releases to build and deploy the static site
+name: Deploy to Hostinger
+
+on:
+  release:
+    types:
+      - released
+
+jobs:
+  deploy:
+    name: Build and Deploy to Hostinger
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Checkout the repository code at the release tag
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js environment with caching for faster builds
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Install all project dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Build and generate static site with WordPress content
+      # Environment variables are injected during build time
+      - name: Build and Generate Static Site
+        run: npm run generate
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
+
+      # Create version tracking file for deployment verification
+      - name: Create version file
+        run: |
+          echo "${{ github.event.release.tag_name }}" > .output/public/VERSION.txt
+          echo "Build: ${{ github.sha }}" >> .output/public/VERSION.txt
+          echo "Date: $(date -u)" >> .output/public/VERSION.txt
+
+      # Deploy generated static files to Hostinger via FTP
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          local-dir: '.output/public/'
+          server-dir: '/public_html/'
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.nuxt/**
+            **/.output/**
+            **/dist/**
+
+      # Log deployment completion details
+      - name: Verify deployment
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "🚀 Site URL: https://stellarpossible.com"
+          echo "📦 Version: ${{ github.event.release.tag_name }}"
+          echo "🔨 Build SHA: ${{ github.sha }}"
