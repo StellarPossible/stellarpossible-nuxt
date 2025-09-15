@@ -9,5 +9,6 @@ export default defineNuxtPlugin(async () => {
     }
   } catch (error) {
     // User not logged in, that's okay
+    console.log('User not authenticated on app start')
   }
 })
