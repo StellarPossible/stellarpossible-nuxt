@@ -52,13 +52,33 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p 65002 -H ${{ secrets.HOSTINGER_FTP_SERVER }} >> ~/.ssh/known_hosts
 
-      # Deploy using rsync over SSH with key authentication
+      # Check available directories and permissions
+      - name: Check remote directory structure
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "pwd && ls -la"
+
+      # Try different common paths for Hostinger
       - name: Deploy to Hostinger via SSH
         run: |
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
-            .output/public/ \
-            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:/public_html/
+          PATHS=(
+            "domains/stellarpossible.com/public_html/"
+          )
+          
+          for path in "${PATHS[@]}"; do
+            echo "Trying path: $path"
+            if ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+               ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+               "test -d $path && test -w $path"; then
+              echo "Found writable directory: $path"
+              rsync -avz --delete \
+                -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
+                .output/public/ \
+                ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$path
+              break
+            fi
+          done
 
       # Clean up SSH key for security
       - name: Cleanup SSH key
