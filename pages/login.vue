@@ -48,15 +48,16 @@
         <div class="form-group">
           <input 
             v-model="registerForm.username" 
-            placeholder="Username" 
+            placeholder="Username (3+ characters)" 
             required 
             autocomplete="username"
+            minlength="3"
           />
         </div>
         <div class="form-group">
           <input 
             v-model="registerForm.email" 
-            placeholder="Email" 
+            placeholder="Email Address" 
             type="email" 
             required 
             autocomplete="email"
@@ -65,17 +66,25 @@
         <div class="form-group">
           <input 
             v-model="registerForm.password" 
-            placeholder="Password" 
+            placeholder="Password (8+ characters)" 
             type="password" 
             required 
             autocomplete="new-password"
+            minlength="8"
           />
         </div>
         <button type="submit" :disabled="isLoading" class="submit-btn">
           {{ isLoading ? 'Creating Account...' : 'Create Account' }}
         </button>
         <p v-if="error" class="error">{{ error }}</p>
+        <p v-if="success" class="success">{{ success }}</p>
       </form>
+      
+      <!-- Debug Info (Development Only) -->
+      <div v-if="showDebug" class="debug-info">
+        <button @click="loadDebugInfo" class="debug-btn">Load Debug Info</button>
+        <pre v-if="debugInfo">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
+      </div>
     </div>
   </div>
 </template>
@@ -84,6 +93,9 @@
 const isRegistering = ref(false)
 const isLoading = ref(false)
 const error = ref('')
+const success = ref('')
+const debugInfo = ref(null)
+const showDebug = process.dev // Only show in development
 
 const loginForm = ref({
   username: '',
@@ -96,9 +108,10 @@ const registerForm = ref({
   password: ''
 })
 
-// Clear error when switching forms
+// Clear messages when switching forms
 watch(isRegistering, () => {
   error.value = ''
+  success.value = ''
 })
 
 async function login() {
@@ -115,16 +128,14 @@ async function login() {
     })
 
     if (response.success) {
-      // Store user data in session
       const user = useState('auth.user')
       user.value = response.user
-      
-      // Redirect to dashboard or home
       await navigateTo('/')
     } else {
       error.value = response.message || 'Login failed'
     }
   } catch (err: any) {
+    console.error('Login error:', err)
     error.value = err?.data?.message || 'Login failed. Please try again.'
   } finally {
     isLoading.value = false
@@ -134,6 +145,7 @@ async function login() {
 async function register() {
   isLoading.value = true
   error.value = ''
+  success.value = ''
   
   try {
     const response = await $fetch('/api/auth/register', {
@@ -146,18 +158,30 @@ async function register() {
     })
 
     if (response.success) {
+      success.value = response.message || 'Registration successful!'
       // Auto-login after successful registration
-      loginForm.value.username = registerForm.value.username
-      loginForm.value.password = registerForm.value.password
-      isRegistering.value = false
-      await login()
+      setTimeout(async () => {
+        loginForm.value.username = registerForm.value.username
+        loginForm.value.password = registerForm.value.password
+        isRegistering.value = false
+        await login()
+      }, 1500)
     } else {
       error.value = response.message || 'Registration failed'
     }
   } catch (err: any) {
+    console.error('Registration error:', err)
     error.value = err?.data?.message || 'Registration failed. Please try again.'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function loadDebugInfo() {
+  try {
+    debugInfo.value = await $fetch('/api/auth/debug')
+  } catch (err) {
+    console.error('Debug info failed:', err)
   }
 }
 
@@ -276,6 +300,38 @@ if (user.value) {
   text-align: center;
   margin-top: 1rem;
   font-size: 0.9rem;
+}
+
+.success {
+  color: #28a745;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.debug-info {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  
+  .debug-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+  }
+  
+  pre {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+  }
 }
 
 @media (max-width: 480px) {

@@ -6,9 +6,9 @@ export interface WordPressUser {
   roles: string[]
   avatar_urls?: {
     [key: string]: string
-  }
-  description?: string
-  url?: string
+  } | null
+  description?: string | null
+  url?: string | null
 }
 
 export interface User {
@@ -17,10 +17,10 @@ export interface User {
   email: string
   name: string
   roles: string[]
-  avatar?: string | null
-  description?: string | null
+  avatar: string | null
+  description: string | null
   url?: string | null
-  lastValidated?: string
+  lastValidated?: string | null
 }
 
 export interface AuthResponse {
