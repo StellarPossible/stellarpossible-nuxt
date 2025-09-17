@@ -26,7 +26,7 @@ export default defineNuxtConfig({
       routes: ['/sitemap.xml'],
       failOnError: false
     },
-    compatibilityDate: '2025-05-20',
+    compatibilityDate: '2025-01-15',
   },
   
   runtimeConfig: {

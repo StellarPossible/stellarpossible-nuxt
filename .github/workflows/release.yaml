@@ -36,6 +36,7 @@ jobs:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
+          WP_REST_ENDPOINT: ${{ secrets.WP_REST_ENDPOINT }}
 
       # Create version tracking file for deployment verification
       - name: Create version file
@@ -59,26 +60,64 @@ jobs:
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "pwd && ls -la"
 
-      # Try different common paths for Hostinger
-      - name: Deploy to Hostinger via SSH
+      # Backup WordPress installation before deployment
+      - name: Backup WordPress files
         run: |
-          PATHS=(
-            "domains/stellarpossible.com/public_html/"
-          )
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
           
-          for path in "${PATHS[@]}"; do
-            echo "Trying path: $path"
-            if ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-               ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-               "test -d $path && test -w $path"; then
-              echo "Found writable directory: $path"
-              rsync -avz --delete \
-                -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
-                .output/public/ \
-                ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$path
-              break
-            fi
-          done
+          echo "Creating backup of WordPress files..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+             mkdir -p ../backups && \
+             if [ -f wp-config.php ]; then \
+               echo 'Backing up WordPress installation...' && \
+               tar -czf ../backups/wp-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+                 wp-admin wp-includes wp-content wp-config.php *.php \
+                 2>/dev/null || echo 'Some WordPress files may not exist yet'; \
+             else \
+               echo 'No WordPress installation found to backup'; \
+             fi"
+
+      # Deploy with WordPress preservation
+      - name: Deploy to Hostinger (preserving WordPress)
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          
+          echo "Deploying Nuxt frontend while preserving WordPress..."
+          
+          # Use rsync with excludes to preserve WordPress files
+          rsync -avz \
+            --exclude='wp-admin/' \
+            --exclude='wp-includes/' \
+            --exclude='wp-content/' \
+            --exclude='wp-config.php' \
+            --exclude='wp-*.php' \
+            --exclude='xmlrpc.php' \
+            --exclude='index.php' \
+            --exclude='.htaccess' \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
+            .output/public/ \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
+
+      # Verify WordPress is still intact
+      - name: Verify WordPress integrity
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          
+          echo "Checking WordPress installation integrity..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+             if [ -f wp-config.php ]; then \
+               echo '✅ WordPress configuration found'; \
+               echo '✅ WordPress admin: $(ls -la wp-admin/ 2>/dev/null | wc -l) files'; \
+               echo '✅ WordPress includes: $(ls -la wp-includes/ 2>/dev/null | wc -l) files'; \
+               echo '✅ WordPress content: $(ls -la wp-content/ 2>/dev/null | wc -l) items'; \
+             else \
+               echo '❌ WordPress installation missing!'; \
+               exit 1; \
+             fi"
 
       # Clean up SSH key for security
       - name: Cleanup SSH key
@@ -93,3 +132,4 @@ jobs:
           echo "🚀 Site URL: https://stellarpossible.com"
           echo "📦 Version: ${{ github.event.release.tag_name }}"
           echo "🔨 Build SHA: ${{ github.sha }}"
+          echo "📝 WordPress files preserved during deployment"

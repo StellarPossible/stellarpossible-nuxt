@@ -80,11 +80,14 @@
         <p v-if="success" class="success">{{ success }}</p>
       </form>
       
-      <!-- Debug Info (Development Only) -->
-      <div v-if="showDebug" class="debug-info">
-        <button @click="loadDebugInfo" class="debug-btn">Load Debug Info</button>
-        <pre v-if="debugInfo">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
-      </div>
+    <!-- Debug Info (Development Only) -->
+    <div v-if="showDebug" class="debug-info">
+      <button @click="loadDebugInfo" class="debug-btn">Load Debug Info</button>
+      <pre v-if="debugInfo">{{ JSON.stringify(debugInfo, null, 2) }}</pre>
+      
+      <!-- Add WordPress connection test -->
+      <WordPressTest />
+    </div>
     </div>
   </div>
 </template>
