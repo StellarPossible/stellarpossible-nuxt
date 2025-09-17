@@ -118,7 +118,7 @@ jobs:
           RewriteRule ^wp-includes(.*)$ wp-includes$1 [L]
 
           # WordPress REST API and AJAX
-          RewriteRule ^wp-json(.*)$ index.php [L]
+          RewriteRule ^wp-json(.*)$ index.php [L,QSA]
           RewriteRule ^wp-admin/admin-ajax\.php$ wp-admin/admin-ajax.php [L]
 
           # WordPress Core Files (for API functionality)
@@ -128,8 +128,12 @@ jobs:
           # WordPress uploads and content
           RewriteRule ^wp-content(.*)$ wp-content$1 [L]
 
+          # Force homepage to Nuxt.js (override WordPress index.php)
+          RewriteRule ^/?$ /index.html [L]
+
           # Nuxt.js Frontend - serve static files first
           RewriteCond %{REQUEST_FILENAME} -f
+          RewriteCond %{REQUEST_URI} !^/wp-
           RewriteRule ^(.*)$ $1 [L]
 
           # Nuxt.js Frontend - handle client-side routing
@@ -142,7 +146,7 @@ jobs:
           <IfModule mod_headers.c>
               Header always set X-Content-Type-Options nosniff
               Header always set X-Frame-Options DENY
-              Header always set X-XSS-Protection \"1; mode=block\"
+              Header always set X-XSS-Protection "1; mode=block"
           </IfModule>
           EOF"
 
