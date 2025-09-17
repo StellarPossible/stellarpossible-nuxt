@@ -24,168 +24,135 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
     tests: []
   }
   
-  // Test 1: Basic connectivity
+  // Test 1: Basic WordPress API connectivity
   try {
     const response = await $fetch(`${wpEndpoint}/`, {
       timeout: 10000
     })
+    
     testResults.tests.push({
-      test: 'Basic API connectivity',
+      test: 'WordPress API Basic Connectivity',
       status: 'success',
       data: {
-        name: response.name || 'Unknown',
+        name: response.name || 'WordPress Site',
         description: response.description || 'No description',
-        url: response.url || 'No URL',
-        routes: Object.keys(response.routes || {}).length
+        routes: response.routes ? Object.keys(response.routes).length : 0
       }
     })
   } catch (error: any) {
     testResults.tests.push({
-      test: 'Basic API connectivity',
+      test: 'WordPress API Basic Connectivity',
       status: 'failed',
       error: {
         message: error.message,
-        status: error.status,
-        statusCode: error.statusCode,
+        status: error.status || error.statusCode,
         cause: error.cause?.code || error.code
       }
     })
   }
   
-  // Test 2: WordPress v2 API endpoint
-  try {
-    const response = await $fetch(`${wpEndpoint}/wp/v2/`, {
-      timeout: 10000
-    })
-    testResults.tests.push({
-      test: 'WordPress v2 API endpoint',
-      status: 'success',
-      data: {
-        message: 'WordPress REST API v2 is accessible',
-        routes: Object.keys(response.routes || {}).length
-      }
-    })
-  } catch (error: any) {
-    testResults.tests.push({
-      test: 'WordPress v2 API endpoint',
-      status: 'failed',
-      error: {
-        message: error.message,
-        status: error.status,
-        statusCode: error.statusCode,
-        cause: error.cause?.code || error.code
-      }
-    })
-  }
+  // Test 2: Check credentials configuration
+  testResults.tests.push({
+    test: 'Credentials Configuration Check',
+    status: config.public.wpUser && config.wpAppPassword ? 'success' : 'failed',
+    data: {
+      hasWpUser: !!config.public.wpUser,
+      wpUser: config.public.wpUser || 'Not set',
+      hasWpAppPassword: !!config.wpAppPassword,
+      wpAppPasswordLength: config.wpAppPassword ? config.wpAppPassword.length : 0
+    }
+  })
   
-  // Test 3: Admin authentication
+  // Test 3: Authentication test with detailed error info
   if (config.public.wpUser && config.wpAppPassword) {
     try {
+      const authString = Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')
+      
+      console.log('Testing authentication with:', {
+        user: config.public.wpUser,
+        passwordLength: config.wpAppPassword.length,
+        authStringLength: authString.length
+      })
+      
       const response = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
         headers: {
-          'Authorization': `Basic ${Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'StellarPossible-Nuxt-App/1.0'
         },
         timeout: 10000
       })
+      
       testResults.tests.push({
-        test: 'Admin authentication',
+        test: 'WordPress Authentication',
         status: 'success',
         data: {
           user: response.username,
+          email: response.email,
           roles: response.roles,
           id: response.id
         }
       })
     } catch (error: any) {
       testResults.tests.push({
-        test: 'Admin authentication',
+        test: 'WordPress Authentication',
         status: 'failed',
         error: {
           message: error.message,
-          status: error.status,
-          statusCode: error.statusCode,
-          cause: error.cause?.code || error.code
+          status: error.status || error.statusCode,
+          cause: error.cause?.code || error.code,
+          authUser: config.public.wpUser,
+          passwordFormat: config.wpAppPassword ? 'Set (length: ' + config.wpAppPassword.length + ')' : 'Not set'
         }
       })
     }
-    
-    // Test 4: Users endpoint access
-    try {
-      const response = await $fetch(`${wpEndpoint}/wp/v2/users`, {
-        headers: {
-          'Authorization': `Basic ${Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')}`,
-          'Content-Type': 'application/json'
-        },
-        query: {
-          per_page: 1
-        },
-        timeout: 10000
-      })
-      testResults.tests.push({
-        test: 'Users endpoint access',
-        status: 'success',
-        data: {
-          message: `Users endpoint accessible, found ${response.length} user(s) in sample`,
-          totalUsers: response.length > 0 ? 'At least 1' : '0'
-        }
-      })
-    } catch (error: any) {
-      testResults.tests.push({
-        test: 'Users endpoint access',
-        status: 'failed',
-        error: {
-          message: error.message,
-          status: error.status,
-          statusCode: error.statusCode,
-          cause: error.cause?.code || error.code
-        }
-      })
-    }
-  } else {
-    testResults.tests.push({
-      test: 'Admin credentials check',
-      status: 'failed',
-      error: {
-        message: 'WordPress admin credentials not configured',
-        status: 0,
-        statusCode: 0
-      }
-    })
   }
   
-  // Test 5: Alternative endpoints
-  const alternativeEndpoints = [
-    'https://www.stellarpossible.com/wp-json',
-    'https://stellarpossible.com/index.php/wp-json'
-  ]
-  
-  for (const altEndpoint of alternativeEndpoints) {
-    if (altEndpoint === wpEndpoint) continue // Skip the main endpoint we already tested
+  // Test 4: Try alternative authentication formats
+  if (config.public.wpUser && config.wpAppPassword) {
+    // Test with email if username fails
+    const possibleUsernames = [
+      config.public.wpUser,
+      config.public.wpUser.toLowerCase(),
+      `${config.public.wpUser}@stellarpossible.com`
+    ]
     
-    try {
-      const response = await $fetch(`${altEndpoint}/`, {
-        timeout: 5000
-      })
-      testResults.tests.push({
-        test: `Alternative endpoint: ${altEndpoint}`,
-        status: 'success',
-        data: {
-          name: response.name || 'Unknown',
-          message: 'Alternative endpoint is accessible'
-        }
-      })
-    } catch (error: any) {
-      testResults.tests.push({
-        test: `Alternative endpoint: ${altEndpoint}`,
-        status: 'failed',
-        error: {
-          message: error.message,
-          status: error.status,
-          statusCode: error.statusCode,
-          cause: error.cause?.code || error.code
-        }
-      })
+    for (const testUser of possibleUsernames) {
+      if (testUser === config.public.wpUser) continue // Skip the one we already tested
+      
+      try {
+        const authString = Buffer.from(`${testUser}:${config.wpAppPassword}`).toString('base64')
+        
+        const response = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 5000
+        })
+        
+        testResults.tests.push({
+          test: `Alternative Auth (${testUser})`,
+          status: 'success',
+          data: {
+            user: response.username,
+            testedWith: testUser,
+            actualUsername: response.username
+          }
+        })
+        break // Stop testing if one works
+        
+      } catch (error: any) {
+        testResults.tests.push({
+          test: `Alternative Auth (${testUser})`,
+          status: 'failed',
+          error: {
+            message: error.message,
+            status: error.status || error.statusCode,
+            testedWith: testUser
+          }
+        })
+      }
     }
   }
   

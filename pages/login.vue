@@ -317,24 +317,138 @@ if (user.value) {
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+  color: #495057; // Ensure dark text
+}
+
+.debug-section {
+  margin-bottom: 1.5rem;
   
-  .debug-btn {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.debug-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.wp-test-results {
+  h4 {
+    color: #343a40; // Dark text for heading
     margin-bottom: 1rem;
   }
   
-  pre {
-    background: white;
-    padding: 1rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    overflow-x: auto;
+  p {
+    color: #495057; // Dark text for paragraphs
+    margin: 0.5rem 0;
   }
+}
+
+.test-item {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+}
+
+.test-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  
+  &.success {
+    color: #28a745;
+  }
+  
+  &.failed {
+    color: #dc3545;
+  }
+}
+
+.test-name {
+  font-size: 0.9rem;
+  color: inherit; // Inherit color from parent
+}
+
+.test-data {
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+  border: 1px solid #e9ecef;
+  
+  pre {
+    margin: 0;
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: #495057; // Dark text for code
+    font-family: 'Courier New', monospace;
+  }
+}
+
+.test-error {
+  background: #fff5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 4px solid #dc3545;
+  margin-top: 0.5rem;
+  
+  p {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    color: #721c24; // Dark red text for errors
+  }
+}
+
+pre {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #495057; // Dark text for all pre elements
+  border: 1px solid #dee2e6;
+  font-family: 'Courier New', monospace;
+}
+
+// Override any inherited styles that might be causing white text
+.debug-info * {
+  color: inherit;
+}
+
+.debug-info .test-item * {
+  color: #495057;
+}
+
+.debug-info .test-header.success * {
+  color: #28a745;
+}
+
+.debug-info .test-header.failed * {
+  color: #dc3545;
+}
+
+.debug-info .test-error * {
+  color: #721c24;
 }
 
 @media (max-width: 480px) {

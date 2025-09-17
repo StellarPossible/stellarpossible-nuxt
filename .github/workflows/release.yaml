@@ -117,8 +117,9 @@ jobs:
           RewriteRule ^wp-login\.php$ wp-login.php [L]
           RewriteRule ^wp-includes(.*)$ wp-includes$1 [L]
 
-          # WordPress REST API and AJAX
+          # WordPress REST API, GraphQL, and AJAX
           RewriteRule ^wp-json(.*)$ index.php [L,QSA]
+          RewriteRule ^graphql(.*)$ index.php [L,QSA]
           RewriteRule ^wp-admin/admin-ajax\.php$ wp-admin/admin-ajax.php [L]
 
           # WordPress Core Files (for API functionality)
@@ -134,12 +135,14 @@ jobs:
           # Nuxt.js Frontend - serve static files first
           RewriteCond %{REQUEST_FILENAME} -f
           RewriteCond %{REQUEST_URI} !^/wp-
+          RewriteCond %{REQUEST_URI} !^/graphql
           RewriteRule ^(.*)$ $1 [L]
 
           # Nuxt.js Frontend - handle client-side routing
           RewriteCond %{REQUEST_FILENAME} !-f
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteCond %{REQUEST_URI} !^/wp-
+          RewriteCond %{REQUEST_URI} !^/graphql
           RewriteRule ^(.*)$ /index.html [L]
 
           # Security headers
@@ -148,6 +151,18 @@ jobs:
               Header always set X-Frame-Options DENY
               Header always set X-XSS-Protection "1; mode=block"
           </IfModule>
+
+          # BEGIN WordPress
+          <IfModule mod_rewrite.c>
+          RewriteEngine On
+          RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+          RewriteBase /
+          RewriteRule ^index\.php$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.php [L]
+          </IfModule>
+          # END WordPress
           EOF"
 
       # Verify WordPress is still intact
