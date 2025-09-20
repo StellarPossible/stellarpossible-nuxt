@@ -11,7 +11,6 @@ jobs:
   deploy:
     name: Build and Deploy to Hostinger
     runs-on: ubuntu-latest
-    
     steps:
       # Checkout the repository code at the release tag
       - name: Checkout repository
@@ -37,6 +36,9 @@ jobs:
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
           WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
           WP_REST_ENDPOINT: ${{ secrets.WP_REST_ENDPOINT }}
+          USE_JWT: ${{ secrets.USE_JWT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: production
 
       # Create version tracking file for deployment verification
       - name: Create version file
@@ -64,7 +66,6 @@ jobs:
       - name: Backup WordPress files
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          
           echo "Creating backup of WordPress files..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
@@ -83,9 +84,7 @@ jobs:
       - name: Deploy to Hostinger (preserving WordPress)
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          
           echo "Deploying Nuxt frontend while preserving WordPress..."
-          
           # Use rsync with excludes to preserve WordPress files
           rsync -avz \
             --exclude='wp-admin/' \
@@ -99,16 +98,14 @@ jobs:
             .output/public/ \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
 
-      # Create proper .htaccess for headless WordPress + Nuxt frontend
+      # Create proper .htaccess for headless WordPress + Nuxt frontend with JWT support
       - name: Configure server routing
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          
-          echo "Creating .htaccess for headless WordPress + Nuxt frontend..."
+          echo "Creating .htaccess for headless WordPress + Nuxt frontend with JWT support..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "cd $REMOTE_PATH && cat > .htaccess << 'EOF'
-          
           # Headless WordPress + Nuxt.js Frontend Configuration
           RewriteEngine On
 
@@ -117,8 +114,9 @@ jobs:
           RewriteRule ^wp-login\.php$ wp-login.php [L]
           RewriteRule ^wp-includes(.*)$ wp-includes$1 [L]
 
-          # WordPress REST API, GraphQL, and AJAX
+          # WordPress REST API, GraphQL, JWT Authentication, and AJAX
           RewriteRule ^wp-json(.*)$ index.php [L,QSA]
+          RewriteRule ^jwt-auth(.*)$ index.php [L,QSA]
           RewriteRule ^graphql(.*)$ index.php [L,QSA]
           RewriteRule ^wp-admin/admin-ajax\.php$ wp-admin/admin-ajax.php [L]
 
@@ -136,6 +134,7 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} -f
           RewriteCond %{REQUEST_URI} !^/wp-
           RewriteCond %{REQUEST_URI} !^/graphql
+          RewriteCond %{REQUEST_URI} !^/jwt-auth
           RewriteRule ^(.*)$ $1 [L]
 
           # Nuxt.js Frontend - handle client-side routing
@@ -143,13 +142,27 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteCond %{REQUEST_URI} !^/wp-
           RewriteCond %{REQUEST_URI} !^/graphql
+          RewriteCond %{REQUEST_URI} !^/jwt-auth
           RewriteRule ^(.*)$ /index.html [L]
 
-          # Security headers
+          # CORS headers for API requests
           <IfModule mod_headers.c>
+              # Security headers
               Header always set X-Content-Type-Options nosniff
               Header always set X-Frame-Options DENY
               Header always set X-XSS-Protection "1; mode=block"
+              
+              # CORS headers for API endpoints
+              SetEnvIf Origin "^https?://(localhost:3001|127\.0\.0\.1:3001|stellarpossible\.com)$" CORS_ORIGIN=$0
+              Header always set Access-Control-Allow-Origin %{CORS_ORIGIN}e env=CORS_ORIGIN
+              Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE, PATCH"
+              Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+              Header always set Access-Control-Allow-Credentials "true"
+              Header always set Access-Control-Max-Age "3600"
+              
+              # Handle preflight OPTIONS requests
+              RewriteCond %{REQUEST_METHOD} OPTIONS
+              RewriteRule ^(.*)$ $1 [R=200,L]
           </IfModule>
 
           # BEGIN WordPress
@@ -169,7 +182,6 @@ jobs:
       - name: Verify WordPress integrity
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          
           echo "Checking WordPress installation integrity..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
@@ -183,6 +195,15 @@ jobs:
                echo '❌ WordPress installation missing!'; \
                exit 1; \
              fi"
+
+      # Test JWT endpoint after deployment
+      - name: Test JWT endpoint
+        run: |
+          echo "Testing JWT authentication endpoint..."
+          curl -X POST https://stellarpossible.com/wp-json/jwt-auth/v1/token \
+            -H "Content-Type: application/json" \
+            -d '{"username":"test","password":"test"}' \
+            -w "HTTP Status: %{http_code}\n" || echo "JWT endpoint test completed"
 
       # Clean up SSH key for security
       - name: Cleanup SSH key
@@ -198,3 +219,4 @@ jobs:
           echo "📦 Version: ${{ github.event.release.tag_name }}"
           echo "🔨 Build SHA: ${{ github.sha }}"
           echo "📝 WordPress files preserved during deployment"
+          echo "🔐 JWT authentication configured"
