@@ -4,7 +4,7 @@ This project is a fully headless, API-driven frontend for a **tech solutions web
 
 - ⚙️ Powered by [Nuxt 3](https://nuxt.com/) + [TypeScript](https://www.typescriptlang.org/)
 - 🔐 Authenticated GraphQL via [Apollo Client](https://www.apollographql.com/docs/react/)
-- 📸 Optimized image delivery with `@nuxt/image-edge`
+- 📸 Optimized image delivery with `@nuxt/image`
 - 🎨 SCSS theming with modular variables and global styles
 - 🧠 Dynamic content routing via WordPress slugs
 
@@ -19,7 +19,7 @@ This project is a fully headless, API-driven frontend for a **tech solutions web
 | WordPress + WPGraphQL| CMS and content API                 |
 | Apollo Client       | Secure GraphQL data fetching         |
 | SCSS                | Custom styles and theming            |
-| @nuxt/image-edge    | Optimized, responsive images         |
+| @nuxt/image   | Optimized, responsive images         |
 
 ---
 
