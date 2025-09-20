@@ -99,13 +99,15 @@ jobs:
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
 
       # Create proper .htaccess for headless WordPress + Nuxt frontend with JWT support
+      # Create proper .htaccess for headless WordPress + Nuxt frontend
       - name: Configure server routing
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          
           echo "Creating .htaccess for headless WordPress + Nuxt frontend with JWT support..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "cd $REMOTE_PATH && cat > .htaccess << 'EOF'
+            "cd \$REMOTE_PATH && cat > .htaccess << 'EOF'
           # Headless WordPress + Nuxt.js Frontend Configuration
           RewriteEngine On
 
