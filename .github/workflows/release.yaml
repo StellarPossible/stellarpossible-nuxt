@@ -127,8 +127,12 @@ jobs:
             "cd $REMOTE_PATH && \
             echo 'Installing production dependencies...' && \
             npm install --production && \
-            echo 'Checking if PM2 is available...' && \
-            which pm2 || npm install -g pm2 && \
+            echo 'Ensuring PM2 is installed globally...' && \
+            npm install -g pm2 && \
+            # Add npm global bin to PATH permanently
+            export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            echo 'export PATH=\$PATH:\$(npm config get prefix)/bin' >> ~/.bashrc && \
+            echo 'PM2 version:' \$(pm2 --version) && \
             echo 'Stopping existing Nuxt frontend if running...' && \
             pm2 stop nuxt-frontend 2>/dev/null || true && \
             pm2 delete nuxt-frontend 2>/dev/null || true && \
