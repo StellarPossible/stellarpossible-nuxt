@@ -349,4 +349,4 @@ jobs:
           echo "   - https://stellarpossible.com/api/auth/register"
           echo "   - https://stellarpossible.com/api/test-wp"
           echo ""
-          echo "📦 Version: ${{ github.
+          echo "📦 Version: ${{ github.event.release.tag_name }}"
