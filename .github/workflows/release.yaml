@@ -148,12 +148,17 @@ jobs:
             cat > .htaccess << 'EOF'
           RewriteEngine On
           
-          # Allow direct access to WordPress admin and login
-          RewriteRule ^cms/wp-admin - [L]
-          RewriteRule ^cms/wp-login\.php - [L]
-
+          # WordPress CMS routes (preserve /cms directory access)
+          RewriteRule ^cms/(.*)$ cms/\$1 [L]
+          
           # Proxy all other requests to Nuxt frontend server
+          RewriteCond %{REQUEST_URI} !^/cms/
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]
+          
+          # Handle API routes specifically
+          RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]
           EOF"
 
       # CRITICAL: Verify WordPress CMS is accessible
@@ -163,8 +168,13 @@ jobs:
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "if [ -f domains/stellarpossible.com/public_html/cms/wp-config.php ]; then \
               echo '✅ WordPress CMS found at /cms'; \
+              echo '✅ CMS Admin: https://stellarpossible.com/cms/wp-admin'; \
+              echo '✅ REST API: https://stellarpossible.com/cms/wp-json'; \
+              echo '✅ GraphQL: https://stellarpossible.com/cms/graphql'; \
             else \
               echo '❌ CRITICAL ERROR: WordPress CMS not found at /cms'; \
+              echo 'WordPress must be installed in the /cms subdirectory for headless setup'; \
+              echo 'Deployment cannot continue without headless CMS backend'; \
               exit 1; \
             fi"
 
@@ -174,12 +184,16 @@ jobs:
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "if [ ! -f $REMOTE_PATH.output/server/index.mjs ]; then \
+            "cd $REMOTE_PATH && \
+            if [ ! -f .output/server/index.mjs ]; then \
               echo '❌ CRITICAL ERROR: Nuxt server file (.output/server/index.mjs) not found'; \
               exit 1; \
-            else \
-              echo '✅ Nuxt server files verified'; \
-            fi"
+            fi && \
+            if [ ! -d .output/server/chunks ]; then \
+              echo '❌ CRITICAL ERROR: Nuxt server chunks not found'; \
+              exit 1; \
+            fi && \
+            echo '✅ Nuxt server files verified'"
 
       # CRITICAL: Wait and verify PM2 process is running
       - name: Verify PM2 Process Status
@@ -205,25 +219,83 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
+            "echo 'Testing direct server connection on port 3000...' && \
+            RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
             if [ \"\$RESPONSE\" = \"200\" ]; then \
               echo '✅ Nuxt server responding on port 3000'; \
             else \
               echo '❌ CRITICAL ERROR: Nuxt server not responding on port 3000'; \
               echo 'HTTP Response Code:' \$RESPONSE; \
+              echo '=== PM2 Logs ==='; \
+              pm2 logs nuxt-frontend --lines 20 --nostream || true; \
+              exit 1; \
+            fi"
+
+      # CRITICAL: Test API endpoints return JSON
+      - name: Test API Endpoints Return JSON
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing /api/test-wp endpoint...' && \
+            RESPONSE=\$(curl -s http://127.0.0.1:3000/api/test-wp -m 10) && \
+            if echo \"\$RESPONSE\" | grep -q '\"endpoint\"'; then \
+              echo '✅ API endpoint returns JSON response'; \
+              echo 'Sample response:' \$(echo \"\$RESPONSE\" | head -c 100)...; \
+            elif echo \"\$RESPONSE\" | grep -q '<html>'; then \
+              echo '❌ CRITICAL ERROR: API endpoint returning HTML instead of JSON'; \
+              echo 'This indicates server-side routing is not working properly'; \
+              echo 'Response preview:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            else \
+              echo '❌ CRITICAL ERROR: API endpoint returning unexpected response'; \
+              echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            fi"
+
+      # CRITICAL: Test WordPress CMS API accessibility
+      - name: Test WordPress CMS API Access
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing WordPress REST API at /cms...' && \
+            RESPONSE=\$(curl -s https://stellarpossible.com/cms/wp-json/ -m 10) && \
+            if echo \"\$RESPONSE\" | grep -q '\"name\"'; then \
+              echo '✅ WordPress REST API accessible at /cms'; \
+              echo 'Site name:' \$(echo \"\$RESPONSE\" | jq -r '.name' 2>/dev/null || echo 'Could not parse name'); \
+            else \
+              echo '❌ CRITICAL ERROR: WordPress REST API not accessible at /cms'; \
+              echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
               exit 1; \
             fi"
 
       # CRITICAL: Test frontend proxy routing
       - name: Test Frontend Proxy Routing
         run: |
-          RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' https://stellarpossible.com/ -m 15)
-          if [ "\$RESPONSE" = "200" ]; then
+          echo "Testing frontend proxy routing..."
+          RESPONSE=$(curl -s -o /dev/null -w '%{http_code}' https://stellarpossible.com/ -m 15)
+          if [ "$RESPONSE" = "200" ]; then
             echo '✅ Frontend is accessible via https://stellarpossible.com';
           else
             echo '❌ CRITICAL ERROR: Frontend is not accessible via domain';
-            echo 'HTTP Response Code:' \$RESPONSE;
+            echo 'HTTP Response Code:' $RESPONSE;
             echo 'Check .htaccess configuration and PM2 logs.';
+            exit 1;
+          fi
+
+      # CRITICAL: Test API proxy routing
+      - name: Test API Proxy Routing
+        run: |
+          echo "Testing API proxy routing..."
+          RESPONSE=$(curl -s https://stellarpossible.com/api/test-wp -m 15)
+          if echo "$RESPONSE" | grep -q '"endpoint"'; then
+            echo '✅ API proxy routing working - API accessible via domain';
+          elif echo "$RESPONSE" | grep -q '<html>'; then
+            echo '❌ CRITICAL ERROR: API proxy routing failed - getting HTML instead of JSON';
+            echo 'Check .htaccess configuration';
+            exit 1;
+          else
+            echo '❌ CRITICAL ERROR: API proxy routing failed - unexpected response';
+            echo 'Response:' $(echo "$RESPONSE" | head -c 200);
             exit 1;
           fi
 
@@ -240,8 +312,23 @@ jobs:
           echo "🧪 All critical tests passed!"
           echo "📦 Version: ${{ github.event.release.tag_name }} is live!"
           echo ""
+          echo "🏗️  Architecture:"
+          echo "   Frontend: Nuxt.js (https://stellarpossible.com)"
+          echo "   CMS: WordPress Headless (https://stellarpossible.com/cms)"
+          echo ""
           echo "🌐 URLs:"
           echo "   🎨 Website: https://stellarpossible.com"
           echo "   ⚙️  CMS Admin: https://stellarpossible.com/cms/wp-admin"
           echo "   📡 REST API: https://stellarpossible.com/cms/wp-json"
           echo "   🔗 GraphQL: https://stellarpossible.com/cms/graphql"
+          echo ""
+          echo "🔐 Nuxt API Endpoints:"
+          echo "   - https://stellarpossible.com/api/auth/login"
+          echo "   - https://stellarpossible.com/api/auth/me"
+          echo "   - https://stellarpossible.com/api/auth/register"
+          echo "   - https://stellarpossible.com/api/test-wp"
+          echo ""
+          echo "📋 Management:"
+          echo "   pm2 status"
+          echo "   pm2 logs nuxt-frontend"
+          echo "   pm2 restart nuxt-frontend"
