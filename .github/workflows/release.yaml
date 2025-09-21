@@ -18,335 +18,335 @@ jobs:
         uses: actions/checkout@v4
 
       # Setup Node.js environment with caching for faster builds
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: '20'
-      cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-  # Install all project dependencies
-  - name: Install dependencies
-    run: npm ci
+      # Install all project dependencies
+      - name: Install dependencies
+        run: npm ci
 
-  # Build Nuxt Application (full-stack build for headless frontend)
-  - name: Build Nuxt Application
-    run: npm run build
-    env:
-      WP_USER: ${{ secrets.WP_USER }}
-      WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-      WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
-      WP_REST_ENDPOINT: ${{ secrets.WP_REST_ENDPOINT }}
-      USE_JWT: ${{ secrets.USE_JWT }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      NODE_ENV: production
+      # Build Nuxt Application (full-stack build for headless frontend)
+      - name: Build Nuxt Application
+        run: npm run build
+        env:
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
+          WP_REST_ENDPOINT: ${{ secrets.WP_REST_ENDPOINT }}
+          USE_JWT: ${{ secrets.USE_JWT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: production
 
-  # Create version tracking file
-  - name: Create version file
-    run: |
-      echo "${{ github.event.release.tag_name }}" > .output/public/VERSION.txt
-      echo "Build: ${{ github.sha }}" >> .output/public/VERSION.txt
-      echo "Date: $(date -u)" >> .output/public/VERSION.txt
+      # Create version tracking file
+      - name: Create version file
+        run: |
+          echo "${{ github.event.release.tag_name }}" > .output/public/VERSION.txt
+          echo "Build: ${{ github.sha }}" >> .output/public/VERSION.txt
+          echo "Date: $(date -u)" >> .output/public/VERSION.txt
 
-  # Setup SSH key for secure authentication
-  - name: Setup SSH key
-    run: |
-      mkdir -p ~/.ssh
-      echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-keyscan -p 65002 -H ${{ secrets.HOSTINGER_FTP_SERVER }} >> ~/.ssh/known_hosts
+      # Setup SSH key for secure authentication
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 65002 -H ${{ secrets.HOSTINGER_FTP_SERVER }} >> ~/.ssh/known_hosts
 
-  # Check current directory structure
-  - name: Check remote directory structure
-    run: |
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "pwd && ls -la && \
-         echo '=== WordPress CMS Directory ===' && \
-         ls -la domains/stellarpossible.com/public_html/ | head -10"
+      # Check current directory structure
+      - name: Check remote directory structure
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "pwd && ls -la && \
+            echo '=== WordPress CMS Directory ===' && \
+            ls -la domains/stellarpossible.com/public_html/ | head -10"
 
-  # Backup WordPress CMS (preserve headless backend)
-  - name: Backup WordPress CMS
-    run: |
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      echo "Creating backup of WordPress CMS..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "if [ -f '${REMOTE_PATH}wp-config.php' ]; then \
-           echo 'Backing up WordPress CMS...' && \
-           mkdir -p backups && \
-           tar -czf backups/wp-cms-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
-             -C '$REMOTE_PATH' \
-             wp-admin wp-includes wp-content wp-config.php *.php \
-             2>/dev/null || echo 'CMS backup completed with warnings'; \
-         else \
-           echo 'No WordPress CMS found - this might be first deployment'; \
-         fi"
+      # Backup WordPress CMS (preserve headless backend)
+      - name: Backup WordPress CMS
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          echo "Creating backup of WordPress CMS..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "if [ -f '${REMOTE_PATH}wp-config.php' ]; then \
+              echo 'Backing up WordPress CMS...' && \
+              mkdir -p backups && \
+              tar -czf backups/wp-cms-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+                -C '$REMOTE_PATH' \
+                wp-admin wp-includes wp-content wp-config.php *.php \
+                2>/dev/null || echo 'CMS backup completed with warnings'; \
+            else \
+              echo 'No WordPress CMS found - this might be first deployment'; \
+            fi"
 
-  # Move WordPress to subdirectory (if not already done)
-  - name: Setup WordPress CMS Subdirectory
-    run: |
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd domains/stellarpossible.com/public_html/ && \
-         if [ -f wp-config.php ] && [ ! -d cms ]; then \
-           echo 'Moving WordPress to /cms subdirectory for headless setup...' && \
-           mkdir -p cms && \
-           mv wp-* cms/ 2>/dev/null || true && \
-           mv *.php cms/ 2>/dev/null || true && \
-           echo 'WordPress CMS moved to /cms subdirectory'; \
-         elif [ -d cms ]; then \
-           echo 'WordPress CMS already in /cms subdirectory'; \
-         else \
-           echo 'No WordPress installation found - CMS needs to be installed at /cms'; \
-         fi"
+      # Move WordPress to subdirectory (if not already done)
+      - name: Setup WordPress CMS Subdirectory
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd domains/stellarpossible.com/public_html/ && \
+            if [ -f wp-config.php ] && [ ! -d cms ]; then \
+              echo 'Moving WordPress to /cms subdirectory for headless setup...' && \
+              mkdir -p cms && \
+              mv wp-* cms/ 2>/dev/null || true && \
+              mv *.php cms/ 2>/dev/null || true && \
+              echo 'WordPress CMS moved to /cms subdirectory'; \
+            elif [ -d cms ]; then \
+              echo 'WordPress CMS already in /cms subdirectory'; \
+            else \
+              echo 'No WordPress installation found - CMS needs to be installed at /cms'; \
+            fi"
 
-  # Deploy Nuxt application to public_html root
-  - name: Deploy Nuxt Frontend Application
-    run: |
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      echo "Deploying Nuxt frontend application..."
-      
-      # First, deploy the entire Nuxt application
-      rsync -avz \
-        --exclude='node_modules/' \
-        --exclude='.git/' \
-        --exclude='.github/' \
-        --exclude='README.md' \
-        --exclude='.nvmrc' \
-        --exclude='.vscode/' \
-        --exclude='cms/' \
-        --delete-excluded \
-        -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
-        . \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
+      # Deploy Nuxt application to public_html root
+      - name: Deploy Nuxt Frontend Application
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          echo "Deploying Nuxt frontend application..."
+          
+          # First, deploy the entire Nuxt application
+          rsync -avz \
+            --exclude='node_modules/' \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='README.md' \
+            --exclude='.nvmrc' \
+            --exclude='.vscode/' \
+            --exclude='cms/' \
+            --delete-excluded \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
+            . \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
 
-  # Set up environment variables
-  - name: Configure Environment Variables
-    run: |
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd $REMOTE_PATH && \
-         cat > .env << 'EOF'
-      WP_USER=${{ secrets.WP_USER }}
-      WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
-      WP_GRAPHQL_ENDPOINT=https://stellarpossible.com/cms/graphql
-      WP_REST_ENDPOINT=https://stellarpossible.com/cms/wp-json
-      USE_JWT=${{ secrets.USE_JWT }}
-      JWT_SECRET=${{ secrets.JWT_SECRET }}
-      NODE_ENV=production
-      NITRO_PORT=3000
-      HOST=0.0.0.0
-      EOF"
+      # Set up environment variables
+      - name: Configure Environment Variables
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+            cat > .env << 'EOF'
+          WP_USER=${{ secrets.WP_USER }}
+          WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT=https://stellarpossible.com/cms/graphql
+          WP_REST_ENDPOINT=https://stellarpossible.com/cms/wp-json
+          USE_JWT=${{ secrets.USE_JWT }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          NODE_ENV=production
+          NITRO_PORT=3000
+          HOST=0.0.0.0
+          EOF"
 
-  # Install dependencies and start Nuxt server
-  - name: Install Dependencies and Start Nuxt Server
-    run: |
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd $REMOTE_PATH && \
-         echo 'Installing production dependencies...' && \
-         npm install --production && \
-         echo 'Checking if PM2 is available...' && \
-         which pm2 || npm install -g pm2 && \
-         echo 'Stopping existing Nuxt frontend if running...' && \
-         pm2 stop nuxt-frontend 2>/dev/null || true && \
-         pm2 delete nuxt-frontend 2>/dev/null || true && \
-         echo 'Starting Nuxt frontend server...' && \
-         pm2 start .output/server/index.mjs --name nuxt-frontend --env production && \
-         pm2 save && \
-         echo 'Setting up PM2 startup...' && \
-         pm2 startup || true"
+      # Install dependencies and start Nuxt server
+      - name: Install Dependencies and Start Nuxt Server
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+            echo 'Installing production dependencies...' && \
+            npm install --production && \
+            echo 'Checking if PM2 is available...' && \
+            which pm2 || npm install -g pm2 && \
+            echo 'Stopping existing Nuxt frontend if running...' && \
+            pm2 stop nuxt-frontend 2>/dev/null || true && \
+            pm2 delete nuxt-frontend 2>/dev/null || true && \
+            echo 'Starting Nuxt frontend server...' && \
+            pm2 start .output/server/index.mjs --name nuxt-frontend --env production && \
+            pm2 save && \
+            echo 'Setting up PM2 startup...' && \
+            pm2 startup || true"
 
-  # Configure web server routing
-  - name: Configure Web Server Routing
-    run: |
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd $REMOTE_PATH && \
-         # Create .htaccess for proper routing
-         cat > .htaccess << 'EOF'
-      RewriteEngine On
-      
-      # WordPress CMS routes (headless backend)
-      RewriteRule ^cms/(.*)$ cms/\$1 [L]
-      
-      # Proxy all other requests to Nuxt frontend server
-      RewriteCond %{REQUEST_URI} !^/cms/
-      RewriteCond %{REQUEST_FILENAME} !-f
-      RewriteCond %{REQUEST_FILENAME} !-d
-      RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]
-      
-      # Handle API routes specifically
-      RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]
-      EOF"
+      # Configure web server routing
+      - name: Configure Web Server Routing
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+            # Create .htaccess for proper routing
+            cat > .htaccess << 'EOF'
+          RewriteEngine On
+          
+          # WordPress CMS routes (headless backend)
+          RewriteRule ^cms/(.*)$ cms/\$1 [L]
+          
+          # Proxy all other requests to Nuxt frontend server
+          RewriteCond %{REQUEST_URI} !^/cms/
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]
+          
+          # Handle API routes specifically
+          RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]
+          EOF"
 
-  # CRITICAL: Verify WordPress CMS is accessible - FAIL if not found
-  - name: Verify WordPress CMS Access
-    run: |
-      echo "Checking WordPress CMS accessibility..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd domains/stellarpossible.com/public_html/ && \
-         if [ -f cms/wp-config.php ]; then \
-           echo '✅ WordPress CMS found at /cms'; \
-           echo '✅ CMS Admin: https://stellarpossible.com/cms/wp-admin'; \
-           echo '✅ REST API: https://stellarpossible.com/cms/wp-json'; \
-           echo '✅ GraphQL: https://stellarpossible.com/cms/graphql'; \
-         else \
-           echo '❌ CRITICAL ERROR: WordPress CMS not found at /cms'; \
-           echo 'WordPress must be installed in the /cms subdirectory for headless setup'; \
-           echo 'Deployment cannot continue without headless CMS backend'; \
-           exit 1; \
-         fi"
+      # CRITICAL: Verify WordPress CMS is accessible - FAIL if not found
+      - name: Verify WordPress CMS Access
+        run: |
+          echo "Checking WordPress CMS accessibility..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd domains/stellarpossible.com/public_html/ && \
+            if [ -f cms/wp-config.php ]; then \
+              echo '✅ WordPress CMS found at /cms'; \
+              echo '✅ CMS Admin: https://stellarpossible.com/cms/wp-admin'; \
+              echo '✅ REST API: https://stellarpossible.com/cms/wp-json'; \
+              echo '✅ GraphQL: https://stellarpossible.com/cms/graphql'; \
+            else \
+              echo '❌ CRITICAL ERROR: WordPress CMS not found at /cms'; \
+              echo 'WordPress must be installed in the /cms subdirectory for headless setup'; \
+              echo 'Deployment cannot continue without headless CMS backend'; \
+              exit 1; \
+            fi"
 
-  # CRITICAL: Verify Nuxt server files exist - FAIL if missing
-  - name: Verify Nuxt Server Files
-    run: |
-      echo "Verifying Nuxt server deployment..."
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd $REMOTE_PATH && \
-         if [ ! -f .output/server/index.mjs ]; then \
-           echo '❌ CRITICAL ERROR: Nuxt server file not found'; \
-           echo 'Missing: .output/server/index.mjs'; \
-           exit 1; \
-         fi && \
-         if [ ! -d .output/server/chunks ]; then \
-           echo '❌ CRITICAL ERROR: Nuxt server chunks not found'; \
-           echo 'Missing: .output/server/chunks/'; \
-           exit 1; \
-         fi && \
-         echo '✅ Nuxt server files verified'"
+      # CRITICAL: Verify Nuxt server files exist - FAIL if missing
+      - name: Verify Nuxt Server Files
+        run: |
+          echo "Verifying Nuxt server deployment..."
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+            if [ ! -f .output/server/index.mjs ]; then \
+              echo '❌ CRITICAL ERROR: Nuxt server file not found'; \
+              echo 'Missing: .output/server/index.mjs'; \
+              exit 1; \
+            fi && \
+            if [ ! -d .output/server/chunks ]; then \
+              echo '❌ CRITICAL ERROR: Nuxt server chunks not found'; \
+              echo 'Missing: .output/server/chunks/'; \
+              exit 1; \
+            fi && \
+            echo '✅ Nuxt server files verified'"
 
-  # CRITICAL: Wait and verify PM2 process is running - FAIL if not running
-  - name: Verify PM2 Process Status
-    run: |
-      echo "Waiting for Nuxt frontend to start..."
-      sleep 15
-      REMOTE_PATH="domains/stellarpossible.com/public_html/"
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "cd $REMOTE_PATH && \
-         echo '=== PM2 Status Check ===' && \
-         PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"nuxt-frontend\") | .pm2_env.status') && \
-         if [ \"\$PM2_STATUS\" = \"online\" ]; then \
-           echo '✅ PM2 process nuxt-frontend is online'; \
-           pm2 status; \
-         else \
-           echo '❌ CRITICAL ERROR: PM2 process nuxt-frontend is not online'; \
-           echo 'Current status:' \$PM2_STATUS; \
-           echo '=== PM2 Error Logs ==='; \
-           pm2 logs nuxt-frontend --lines 20 --nostream || true; \
-           exit 1; \
-         fi"
+      # CRITICAL: Wait and verify PM2 process is running - FAIL if not running
+      - name: Verify PM2 Process Status
+        run: |
+          echo "Waiting for Nuxt frontend to start..."
+          sleep 15
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd $REMOTE_PATH && \
+            echo '=== PM2 Status Check ===' && \
+            PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"nuxt-frontend\") | .pm2_env.status') && \
+            if [ \"\$PM2_STATUS\" = \"online\" ]; then \
+              echo '✅ PM2 process nuxt-frontend is online'; \
+              pm2 status; \
+            else \
+              echo '❌ CRITICAL ERROR: PM2 process nuxt-frontend is not online'; \
+              echo 'Current status:' \$PM2_STATUS; \
+              echo '=== PM2 Error Logs ==='; \
+              pm2 logs nuxt-frontend --lines 20 --nostream || true; \
+              exit 1; \
+            fi"
 
-  # CRITICAL: Test Nuxt server direct connection - FAIL if not responding
-  - name: Test Nuxt Server Direct Connection
-    run: |
-      echo "Testing Nuxt server direct connection..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "echo 'Testing direct server connection on port 3000...' && \
-         RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
-         if [ \"\$RESPONSE\" = \"200\" ]; then \
-           echo '✅ Nuxt server responding on port 3000'; \
-         else \
-           echo '❌ CRITICAL ERROR: Nuxt server not responding'; \
-           echo 'HTTP Response Code:' \$RESPONSE; \
-           echo '=== PM2 Logs ==='; \
-           pm2 logs nuxt-frontend --lines 20 --nostream || true; \
-           exit 1; \
-         fi"
+      # CRITICAL: Test Nuxt server direct connection - FAIL if not responding
+      - name: Test Nuxt Server Direct Connection
+        run: |
+          echo "Testing Nuxt server direct connection..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing direct server connection on port 3000...' && \
+            RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
+            if [ \"\$RESPONSE\" = \"200\" ]; then \
+              echo '✅ Nuxt server responding on port 3000'; \
+            else \
+              echo '❌ CRITICAL ERROR: Nuxt server not responding'; \
+              echo 'HTTP Response Code:' \$RESPONSE; \
+              echo '=== PM2 Logs ==='; \
+              pm2 logs nuxt-frontend --lines 20 --nostream || true; \
+              exit 1; \
+            fi"
 
-  # CRITICAL: Test API endpoints return JSON - FAIL if returning HTML
-  - name: Test API Endpoints Return JSON
-    run: |
-      echo "Testing API endpoints return JSON (not HTML)..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "echo 'Testing /api/test-wp endpoint...' && \
-         RESPONSE=\$(curl -s http://127.0.0.1:3000/api/test-wp -m 10) && \
-         if echo \"\$RESPONSE\" | grep -q '\"endpoint\"'; then \
-           echo '✅ API endpoint returns JSON response'; \
-           echo 'Sample response:' \$(echo \"\$RESPONSE\" | head -c 100)...; \
-         elif echo \"\$RESPONSE\" | grep -q '<html>'; then \
-           echo '❌ CRITICAL ERROR: API endpoint returning HTML instead of JSON'; \
-           echo 'This indicates server-side routing is not working properly'; \
-           echo 'Response preview:' \$(echo \"\$RESPONSE\" | head -c 200); \
-           exit 1; \
-         else \
-           echo '❌ CRITICAL ERROR: API endpoint returning unexpected response'; \
-           echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
-           exit 1; \
-         fi"
+      # CRITICAL: Test API endpoints return JSON - FAIL if returning HTML
+      - name: Test API Endpoints Return JSON
+        run: |
+          echo "Testing API endpoints return JSON (not HTML)..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing /api/test-wp endpoint...' && \
+            RESPONSE=\$(curl -s http://127.0.0.1:3000/api/test-wp -m 10) && \
+            if echo \"\$RESPONSE\" | grep -q '\"endpoint\"'; then \
+              echo '✅ API endpoint returns JSON response'; \
+              echo 'Sample response:' \$(echo \"\$RESPONSE\" | head -c 100)...; \
+            elif echo \"\$RESPONSE\" | grep -q '<html>'; then \
+              echo '❌ CRITICAL ERROR: API endpoint returning HTML instead of JSON'; \
+              echo 'This indicates server-side routing is not working properly'; \
+              echo 'Response preview:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            else \
+              echo '❌ CRITICAL ERROR: API endpoint returning unexpected response'; \
+              echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            fi"
 
-  # CRITICAL: Test WordPress CMS API accessibility - FAIL if not accessible
-  - name: Test WordPress CMS API Access
-    run: |
-      echo "Testing WordPress CMS API accessibility..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "echo 'Testing WordPress REST API...' && \
-         RESPONSE=\$(curl -s https://stellarpossible.com/cms/wp-json/ -m 10) && \
-         if echo \"\$RESPONSE\" | grep -q '\"name\"'; then \
-           echo '✅ WordPress REST API accessible'; \
-           echo 'Site name:' \$(echo \"\$RESPONSE\" | jq -r '.name' 2>/dev/null || echo 'Could not parse name'); \
-         else \
-           echo '❌ CRITICAL ERROR: WordPress REST API not accessible'; \
-           echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
-           exit 1; \
-         fi"
+      # CRITICAL: Test WordPress CMS API accessibility - FAIL if not accessible
+      - name: Test WordPress CMS API Access
+        run: |
+          echo "Testing WordPress CMS API accessibility..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing WordPress REST API...' && \
+            RESPONSE=\$(curl -s https://stellarpossible.com/cms/wp-json/ -m 10) && \
+            if echo \"\$RESPONSE\" | grep -q '\"name\"'; then \
+              echo '✅ WordPress REST API accessible'; \
+              echo 'Site name:' \$(echo \"\$RESPONSE\" | jq -r '.name' 2>/dev/null || echo 'Could not parse name'); \
+            else \
+              echo '❌ CRITICAL ERROR: WordPress REST API not accessible'; \
+              echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            fi"
 
-  # CRITICAL: Test frontend proxy routing - FAIL if not working
-  - name: Test Frontend Proxy Routing
-    run: |
-      echo "Testing frontend proxy routing..."
-      ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-        ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-        "echo 'Testing proxied API request...' && \
-         RESPONSE=\$(curl -s https://stellarpossible.com/api/test-wp -m 10) && \
-         if echo \"\$RESPONSE\" | grep -q '\"endpoint\"'; then \
-           echo '✅ Proxy routing working - API accessible via domain'; \
-         elif echo \"\$RESPONSE\" | grep -q '<html>'; then \
-           echo '❌ CRITICAL ERROR: Proxy routing failed - getting HTML instead of API response'; \
-           echo 'Check .htaccess configuration'; \
-           exit 1; \
-         else \
-           echo '❌ CRITICAL ERROR: Proxy routing failed - unexpected response'; \
-           echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
-           exit 1; \
-         fi"
+      # CRITICAL: Test frontend proxy routing - FAIL if not working
+      - name: Test Frontend Proxy Routing
+        run: |
+          echo "Testing frontend proxy routing..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "echo 'Testing proxied API request...' && \
+            RESPONSE=\$(curl -s https://stellarpossible.com/api/test-wp -m 10) && \
+            if echo \"\$RESPONSE\" | grep -q '\"endpoint\"'; then \
+              echo '✅ Proxy routing working - API accessible via domain'; \
+            elif echo \"\$RESPONSE\" | grep -q '<html>'; then \
+              echo '❌ CRITICAL ERROR: Proxy routing failed - getting HTML instead of API response'; \
+              echo 'Check .htaccess configuration'; \
+              exit 1; \
+            else \
+              echo '❌ CRITICAL ERROR: Proxy routing failed - unexpected response'; \
+              echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              exit 1; \
+            fi"
 
-  # Clean up SSH key for security
-  - name: Cleanup SSH key
-    if: always()
-    run: |
-      rm -f ~/.ssh/id_rsa
+      # Clean up SSH key for security
+      - name: Cleanup SSH key
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
 
-  # Log deployment completion details (only runs if all tests pass)
-  - name: Deployment Summary
-    run: |
-      echo "✅ Headless CMS + Nuxt Frontend deployment completed successfully!"
-      echo "🧪 All critical tests passed!"
-      echo ""
-      echo "🏗️  Architecture:"
-      echo "   Frontend: Nuxt.js (https://stellarpossible.com)"
-      echo "   CMS: WordPress Headless (https://stellarpossible.com/cms)"
-      echo ""
-      echo "🌐 URLs:"
-      echo "   🎨 Website: https://stellarpossible.com"
-      echo "   ⚙️  CMS Admin: https://stellarpossible.com/cms/wp-admin"
-      echo "   📡 REST API: https://stellarpossible.com/cms/wp-json"
-      echo "   🔗 GraphQL: https://stellarpossible.com/cms/graphql"
-      echo ""
-      echo "🔐 Nuxt API Endpoints:"
-      echo "   - https://stellarpossible.com/api/auth/login"
-      echo "   - https://stellarpossible.com/api/auth/me"
-      echo "   - https://stellarpossible.com/api/auth/register"
-      echo "   - https://stellarpossible.com/api/test-wp"
-      echo ""
-      echo "📦 Version: ${{ github.
+      # Log deployment completion details (only runs if all tests pass)
+      - name: Deployment Summary
+        run: |
+          echo "✅ Headless CMS + Nuxt Frontend deployment completed successfully!"
+          echo "🧪 All critical tests passed!"
+          echo ""
+          echo "🏗️  Architecture:"
+          echo "   Frontend: Nuxt.js (https://stellarpossible.com)"
+          echo "   CMS: WordPress Headless (https://stellarpossible.com/cms)"
+          echo ""
+          echo "🌐 URLs:"
+          echo "   🎨 Website: https://stellarpossible.com"
+          echo "   ⚙️  CMS Admin: https://stellarpossible.com/cms/wp-admin"
+          echo "   📡 REST API: https://stellarpossible.com/cms/wp-json"
+          echo "   🔗 GraphQL: https://stellarpossible.com/cms/graphql"
+          echo ""
+          echo "🔐 Nuxt API Endpoints:"
+          echo "   - https://stellarpossible.com/api/auth/login"
+          echo "   - https://stellarpossible.com/api/auth/me"
+          echo "   - https://stellarpossible.com/api/auth/register"
+          echo "   - https://stellarpossible.com/api/test-wp"
+          echo ""
+          echo "📦 Version: ${{ github.
