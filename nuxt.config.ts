@@ -20,20 +20,26 @@ export default defineNuxtConfig({
     host: '0.0.0.0',
   },
 
-  // Add route rules to fix the JavaScript errors
+  // Full SSR for headless frontend
+  ssr: true,
+
+  // Route rules optimized for headless CMS
   routeRules: {
-    // Static pages
+    // Static pages (can be prerendered)
     '/': { prerender: true },
     '/about': { prerender: true },
     '/contact': { prerender: true },
     '/products': { prerender: true },
-    '/blog': { isr: true },
     
-    // Authentication pages (SPA mode for dynamic state)
+    // Dynamic content from headless CMS
+    '/blog': { isr: true },
+    '/blog/**': { isr: 3600 }, // Cache for 1 hour
+    
+    // Authentication pages (client-side)
     '/login': { ssr: false },
     '/register': { ssr: false },
     
-    // API routes
+    // API routes (server-side only)
     '/api/**': { 
       cors: true,
       headers: { 
@@ -45,46 +51,36 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    preset: 'node-server',
+    
     prerender: {
       crawlLinks: true,
       routes: ['/sitemap.xml'],
-      failOnError: false
+      failOnError: false,
+      ignore: ['/api/**']
     },
-    compatibilityDate: '2025-01-15',
-    
-    // Additional nitro route rules for production
-    routeRules: {
-      '/api/**': { 
-        cors: true,
-        headers: { 
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    }
+    compatibilityDate: '2025-01-15'
   },
 
   runtimeConfig: {
-    // Private keys (only available on server-side)
+    // Private keys (server-side only)
     wpAppPassword: process.env.WP_APP_PASSWORD || '',
     jwtSecret: process.env.JWT_SECRET || '',
     
-    // Public keys (exposed to client-side)
+    // Public keys (client-side accessible)
     public: {
       wpUser: process.env.WP_USER || '',
-      wpGraphqlEndpoint: process.env.WP_GRAPHQL_ENDPOINT || 'https://stellarpossible.com/graphql',
-      wpRestEndpoint: process.env.WP_REST_ENDPOINT || 'https://stellarpossible.com/wp-json',
-      useJWT: process.env.USE_JWT || 'false'
+      // Updated for headless CMS subdirectory
+      wpGraphqlEndpoint: process.env.WP_GRAPHQL_ENDPOINT || 'https://stellarpossible.com/cms/graphql',
+      wpRestEndpoint: process.env.WP_REST_ENDPOINT || 'https://stellarpossible.com/cms/wp-json',
+      useJWT: process.env.USE_JWT || 'true'
     },
   },
 
-  // Add experimental features for better stability
   experimental: {
     payloadExtraction: false,
     renderJsonPayloads: true
   },
 
-  // Ensure compatibility
   compatibilityDate: '2025-01-15'
 })
