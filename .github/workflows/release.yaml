@@ -1,5 +1,6 @@
-# GitHub Actions workflow for deploying Stellar Possible Nuxt site to Hostinger
-# Triggers on GitHub releases to build and deploy via SSH key authentication
+# .github/workflows/release.yaml
+# GitHub Actions workflow for deploying Stellar Possible Nuxt app to Hostinger
+# Triggers on GitHub releases to build and deploy as a full-stack Node.js application
 name: Deploy to Hostinger
 
 on:
@@ -27,10 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Build and generate static site with WordPress content
-      # Environment variables are injected during build time
-      - name: Build and Generate Static Site
-        run: npm run generate
+      # Build Nuxt Application (full-stack build, not static generation)
+      - name: Build Nuxt Application
+        run: npm run build
         env:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
@@ -62,68 +62,118 @@ jobs:
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "pwd && ls -la"
 
-      # Backup WordPress installation before deployment
-      - name: Backup WordPress files
+      # Create application directory structure
+      - name: Setup application directory
         run: |
-          REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          echo "Creating backup of WordPress files..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "cd $REMOTE_PATH && \
-             mkdir -p ../backups && \
-             if [ -f wp-config.php ]; then \
-               echo 'Backing up WordPress installation...' && \
-               tar -czf ../backups/wp-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+            "mkdir -p nuxt-app && cd nuxt-app && pwd && ls -la"
+
+      # Deploy the entire Nuxt application (server + client)
+      - name: Deploy Full Application
+        run: |
+          # Deploy the entire Nuxt application
+          rsync -avz \
+            --exclude='node_modules/' \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='README.md' \
+            --exclude='.nvmrc' \
+            --exclude='.vscode/' \
+            --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
+            . \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:nuxt-app/
+
+      # Set up environment variables on the server
+      - name: Configure Environment Variables
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd nuxt-app && \
+             cat > .env << 'EOF'
+          WP_USER=${{ secrets.WP_USER }}
+          WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT=${{ secrets.WP_GRAPHQL_ENDPOINT }}
+          WP_REST_ENDPOINT=${{ secrets.WP_REST_ENDPOINT }}
+          USE_JWT=${{ secrets.USE_JWT }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          NODE_ENV=production
+          NITRO_PORT=3000
+          HOST=0.0.0.0
+          EOF"
+
+      # Install production dependencies and start/restart the server
+      - name: Install Dependencies and Start Server
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd nuxt-app && \
+             echo 'Installing production dependencies...' && \
+             npm install --production && \
+             echo 'Checking if PM2 is available...' && \
+             which pm2 || npm install -g pm2 && \
+             echo 'Stopping existing process if running...' && \
+             pm2 stop nuxt-app 2>/dev/null || true && \
+             pm2 delete nuxt-app 2>/dev/null || true && \
+             echo 'Starting Nuxt server...' && \
+             pm2 start .output/server/index.mjs --name nuxt-app --env production && \
+             pm2 save && \
+             echo 'Setting up PM2 startup...' && \
+             pm2 startup || true"
+
+      # Verify deployment and server status
+      - name: Verify Deployment
+        run: |
+          echo "Waiting for server to start..."
+          sleep 10
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd nuxt-app && \
+             echo '=== Application Files ===' && \
+             ls -la .output/ && \
+             echo '=== PM2 Status ===' && \
+             pm2 status && \
+             echo '=== PM2 Logs (last 10 lines) ===' && \
+             pm2 logs nuxt-app --lines 10 --nostream || true && \
+             echo '=== Environment Check ===' && \
+             cat .env | grep -v PASSWORD | grep -v SECRET || true"
+
+      # Test API endpoints
+      - name: Test API Endpoints
+        run: |
+          echo "Testing API endpoints..."
+          # Wait a bit more for the server to be fully ready
+          sleep 15
+          
+          # Get the server details first
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "cd nuxt-app && \
+             echo 'Server should be running on:' && \
+             echo 'Host: 0.0.0.0' && \
+             echo 'Port: 3000' && \
+             echo 'Testing local connection...' && \
+             curl -f http://localhost:3000/api/test-wp -m 10 || echo 'Local API test not responding yet' && \
+             curl -f http://localhost:3000/ -m 10 || echo 'Local server not responding yet'"
+
+      # Backup WordPress installation before any changes (if needed)
+      - name: Backup WordPress files (if exists)
+        run: |
+          REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          echo "Checking for WordPress installation..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
+            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
+            "if [ -d '$REMOTE_PATH' ] && [ -f '${REMOTE_PATH}wp-config.php' ]; then \
+               echo 'WordPress installation found, creating backup...' && \
+               mkdir -p backups && \
+               tar -czf backups/wp-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+                 -C '$REMOTE_PATH' \
                  wp-admin wp-includes wp-content wp-config.php *.php \
-                 2>/dev/null || echo 'Some WordPress files may not exist yet'; \
+                 2>/dev/null || echo 'Backup completed with some warnings'; \
              else \
                echo 'No WordPress installation found to backup'; \
              fi"
-
-      # Deploy with WordPress preservation and proper routing
-      - name: Deploy to Hostinger (preserving WordPress)
-        run: |
-          REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          echo "Deploying Nuxt frontend while preserving WordPress..."
-          # Use rsync with excludes to preserve WordPress files
-          rsync -avz \
-            --exclude='wp-admin/' \
-            --exclude='wp-includes/' \
-            --exclude='wp-content/' \
-            --exclude='wp-config.php' \
-            --exclude='wp-*.php' \
-            --exclude='xmlrpc.php' \
-            --exclude='.htaccess' \
-            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002" \
-            .output/public/ \
-            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }}:$REMOTE_PATH
-
-      # Verify WordPress is still intact
-      - name: Verify WordPress integrity
-        run: |
-          REMOTE_PATH="domains/stellarpossible.com/public_html/"
-          echo "Checking WordPress installation integrity..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
-            ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "cd $REMOTE_PATH && \
-             if [ -f wp-config.php ]; then \
-               echo '✅ WordPress configuration found'; \
-               echo '✅ WordPress admin: $(ls -la wp-admin/ 2>/dev/null | wc -l) files'; \
-               echo '✅ WordPress includes: $(ls -la wp-includes/ 2>/dev/null | wc -l) files'; \
-               echo '✅ WordPress content: $(ls -la wp-content/ 2>/dev/null | wc -l) items'; \
-             else \
-               echo '❌ WordPress installation missing!'; \
-               exit 1; \
-             fi"
-
-      # Test JWT endpoint after deployment
-      - name: Test JWT endpoint
-        run: |
-          echo "Testing JWT authentication endpoint..."
-          curl -X POST https://stellarpossible.com/wp-json/jwt-auth/v1/token \
-            -H "Content-Type: application/json" \
-            -d '{"username":"test","password":"test"}' \
-            -w "HTTP Status: %{http_code}\n" || echo "JWT endpoint test completed"
 
       # Clean up SSH key for security
       - name: Cleanup SSH key
@@ -132,11 +182,21 @@ jobs:
           rm -f ~/.ssh/id_rsa
 
       # Log deployment completion details
-      - name: Verify deployment
+      - name: Deployment Summary
         run: |
           echo "✅ Deployment completed successfully!"
-          echo "🚀 Site URL: https://stellarpossible.com"
+          echo "🚀 Nuxt App Directory: ~/nuxt-app/"
           echo "📦 Version: ${{ github.event.release.tag_name }}"
           echo "🔨 Build SHA: ${{ github.sha }}"
-          echo "📝 WordPress files preserved during deployment"
-          echo "🔐 JWT authentication configured"
+          echo "🖥️  Server: Node.js with PM2 process manager"
+          echo "🔐 APIs Available:"
+          echo "   - /api/auth/login (POST)"
+          echo "   - /api/auth/me (GET)"
+          echo "   - /api/auth/register (POST)"
+          echo "   - /api/auth/logout (POST)"
+          echo "   - /api/test-wp (GET)"
+          echo "   - /api/debug/* (various)"
+          echo "🌐 Server running on port 3000"
+          echo "📝 Check PM2 status: pm2 status"
+          echo "📋 View logs: pm2 logs nuxt-app"
+          echo "🔄 Restart server: pm2 restart nuxt-app"
