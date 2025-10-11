@@ -121,6 +121,19 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "cd $REMOTE_PATH && \
+            echo 'Setting up Node.js environment...' && \
+            # Install Node.js 20 using NodeSource repository if not already installed
+            if ! command -v node &> /dev/null; then \
+              echo 'Installing Node.js 20...' && \
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && \
+              sudo apt-get install -y nodejs; \
+            else \
+              echo 'Node.js already installed:' \$(node --version); \
+            fi && \
+            # Ensure npm is available
+            export PATH=\$PATH:/usr/bin:/usr/local/bin && \
+            echo 'Node version:' \$(node --version) && \
+            echo 'NPM version:' \$(npm --version) && \
             echo 'Installing production dependencies...' && \
             npm install --production && \
             echo 'Ensuring PM2 is installed globally...' && \
@@ -176,7 +189,7 @@ jobs:
           sleep 15
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            "export PATH=\$PATH:/usr/bin:/usr/local/bin:\$(npm config get prefix)/bin 2>/dev/null || export PATH=\$PATH:/usr/bin:/usr/local/bin && \
             PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"nuxt-frontend\") | .pm2_env.status' 2>/dev/null) && \
             if [ \"\$PM2_STATUS\" = \"online\" ]; then \
               echo '✅ PM2 process nuxt-frontend is online'; \
