@@ -171,21 +171,23 @@ jobs:
           </FilesMatch>
           EOF"
 
-      # CRITICAL: Verify WordPress CMS is accessible
-      - name: Verify WordPress CMS Access
+     # CRITICAL: Wait and verify PM2 process is running
+      - name: Verify PM2 Process Status
         run: |
-          CMS_PATH="domains/stellarpossible.com/public_html/cms/"
+          echo "Waiting for Nuxt frontend to start..."
+          sleep 15
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "if [ -f ${CMS_PATH}wp-config.php ]; then \
-              echo '✅ WordPress CMS found at /cms'; \
-              echo '✅ CMS Admin: https://stellarpossible.com/cms/wp-admin'; \
-              echo '✅ REST API: https://stellarpossible.com/cms/wp-json'; \
-              echo '✅ GraphQL: https://stellarpossible.com/cms/graphql'; \
+            "export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"nuxt-frontend\") | .pm2_env.status' 2>/dev/null) && \
+            if [ \"\$PM2_STATUS\" = \"online\" ]; then \
+              echo '✅ PM2 process nuxt-frontend is online'; \
+              pm2 status; \
             else \
-              echo '❌ CRITICAL ERROR: WordPress CMS not found at ${CMS_PATH}'; \
-              echo 'WordPress must be installed in the /cms subdirectory for headless setup'; \
-              echo 'Deployment cannot continue without headless CMS backend'; \
+              echo '❌ CRITICAL ERROR: PM2 process nuxt-frontend is not online'; \
+              echo 'Current status: ' \${PM2_STATUS:-'Not Found'}; \
+              echo '=== PM2 Error Logs ==='; \
+              pm2 logs nuxt-frontend --lines 20 --nostream || true; \
               exit 1; \
             fi"
 
@@ -225,12 +227,13 @@ jobs:
               exit 1; \
             fi"
 
-      # CRITICAL: Test Nuxt server direct connection
+       # CRITICAL: Test Nuxt server direct connection
       - name: Test Nuxt Server Direct Connection
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "echo 'Testing direct server connection on port 3000...' && \
+            "export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            echo 'Testing direct server connection on port 3000...' && \
             RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
             if [ \"\$RESPONSE\" = \"200\" ]; then \
               echo '✅ Nuxt server responding on port 3000'; \
