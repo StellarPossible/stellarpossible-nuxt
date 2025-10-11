@@ -59,25 +59,20 @@ jobs:
       - name: Backup WordPress CMS
         run: |
           REMOTE_PATH="domains/stellarpossible.com/public_html/"
+          CMS_PATH="${REMOTE_PATH}cms/"
           echo "Creating backup of WordPress CMS..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "if [ -f '${REMOTE_PATH}wp-config.php' ]; then \
-              echo 'Backing up WordPress CMS...' && \
-              mkdir -p backups && \
-              tar -czf backups/wp-cms-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
-                -C '$REMOTE_PATH' \
-                wp-admin wp-includes wp-content wp-config.php *.php \
-                2>/dev/null || echo 'CMS backup completed with warnings'; \
-            elif [ -f '${REMOTE_PATH}cms/wp-config.php' ]; then \
+            "if [ -f '${CMS_PATH}wp-config.php' ]; then \
               echo 'Backing up WordPress CMS from /cms directory...' && \
               mkdir -p backups && \
               tar -czf backups/wp-cms-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
-                -C '${REMOTE_PATH}cms/' \
+                -C '${CMS_PATH}' \
                 . \
                 2>/dev/null || echo 'CMS backup completed with warnings'; \
             else \
-              echo 'No WordPress CMS found to back up.'; \
+              echo '❌ WARNING: WordPress CMS not found at expected location ${CMS_PATH}'; \
+              echo 'No WordPress CMS backup created.'; \
             fi"
 
       # Deploy Nuxt application to public_html root
@@ -111,6 +106,7 @@ jobs:
           WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
           WP_GRAPHQL_ENDPOINT=https://stellarpossible.com/cms/graphql
           WP_REST_ENDPOINT=https://stellarpossible.com/cms/wp-json
+          WP_API_URL=https://stellarpossible.com/cms
           USE_JWT=${{ secrets.USE_JWT }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           NODE_ENV=production
@@ -155,30 +151,43 @@ jobs:
           # WordPress CMS routes (preserve /cms directory access)
           RewriteRule ^cms/(.*)$ cms/\$1 [L]
           
+          # Preserve access to /backups if it exists
+          RewriteRule ^backups/(.*)$ backups/\$1 [L]
+          
           # Proxy all other requests to Nuxt frontend server
           RewriteCond %{REQUEST_URI} !^/cms/
+          RewriteCond %{REQUEST_URI} !^/backups/
           RewriteCond %{REQUEST_FILENAME} !-f
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]
           
           # Handle API routes specifically
           RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]
+          
+          # Prevent access to sensitive WordPress files in cms directory
+          <FilesMatch "^\.ht|wp-config\.php$">
+            Order Allow,Deny
+            Deny from all
+          </FilesMatch>
           EOF"
 
-      # CRITICAL: Verify WordPress CMS is accessible
-      - name: Verify WordPress CMS Access
+     # CRITICAL: Wait and verify PM2 process is running
+      - name: Verify PM2 Process Status
         run: |
+          echo "Waiting for Nuxt frontend to start..."
+          sleep 15
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "if [ -f domains/stellarpossible.com/public_html/cms/wp-config.php ]; then \
-              echo '✅ WordPress CMS found at /cms'; \
-              echo '✅ CMS Admin: https://stellarpossible.com/cms/wp-admin'; \
-              echo '✅ REST API: https://stellarpossible.com/cms/wp-json'; \
-              echo '✅ GraphQL: https://stellarpossible.com/cms/graphql'; \
+            "export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"nuxt-frontend\") | .pm2_env.status' 2>/dev/null) && \
+            if [ \"\$PM2_STATUS\" = \"online\" ]; then \
+              echo '✅ PM2 process nuxt-frontend is online'; \
+              pm2 status; \
             else \
-              echo '❌ CRITICAL ERROR: WordPress CMS not found at /cms'; \
-              echo 'WordPress must be installed in the /cms subdirectory for headless setup'; \
-              echo 'Deployment cannot continue without headless CMS backend'; \
+              echo '❌ CRITICAL ERROR: PM2 process nuxt-frontend is not online'; \
+              echo 'Current status: ' \${PM2_STATUS:-'Not Found'}; \
+              echo '=== PM2 Error Logs ==='; \
+              pm2 logs nuxt-frontend --lines 20 --nostream || true; \
               exit 1; \
             fi"
 
@@ -218,12 +227,13 @@ jobs:
               exit 1; \
             fi"
 
-      # CRITICAL: Test Nuxt server direct connection
+       # CRITICAL: Test Nuxt server direct connection
       - name: Test Nuxt Server Direct Connection
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
-            "echo 'Testing direct server connection on port 3000...' && \
+            "export PATH=\$PATH:\$(npm config get prefix)/bin && \
+            echo 'Testing direct server connection on port 3000...' && \
             RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ -m 10) && \
             if [ \"\$RESPONSE\" = \"200\" ]; then \
               echo '✅ Nuxt server responding on port 3000'; \
@@ -269,6 +279,12 @@ jobs:
             else \
               echo '❌ CRITICAL ERROR: WordPress REST API not accessible at /cms'; \
               echo 'Response:' \$(echo \"\$RESPONSE\" | head -c 200); \
+              echo 'Checking if WordPress is properly installed in the cms directory...'; \
+              if [ -f domains/stellarpossible.com/public_html/cms/wp-config.php ]; then \
+                echo 'WordPress files found but API is not responding correctly. Check WP configuration.'; \
+              else \
+                echo 'WordPress files not found at expected location. Please verify the installation path.'; \
+              fi; \
               exit 1; \
             fi"
 
@@ -319,6 +335,7 @@ jobs:
           echo "🏗️  Architecture:"
           echo "   Frontend: Nuxt.js (https://stellarpossible.com)"
           echo "   CMS: WordPress Headless (https://stellarpossible.com/cms)"
+          echo "   Hostinger Path: stellarpossible.com > public_html > cms (WordPress files)"
           echo ""
           echo "🌐 URLs:"
           echo "   🎨 Website: https://stellarpossible.com"
