@@ -145,31 +145,29 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -p 65002 \
             ${{ secrets.HOSTINGER_FTP_USERNAME }}@${{ secrets.HOSTINGER_FTP_SERVER }} \
             "cd $REMOTE_PATH && \
-            cat > .htaccess << 'EOF'
-          RewriteEngine On
-          
-          # WordPress CMS routes (preserve /cms directory access)
-          RewriteRule ^cms/(.*)$ cms/\$1 [L]
-          
-          # Preserve access to /backups if it exists
-          RewriteRule ^backups/(.*)$ backups/\$1 [L]
-          
-          # Proxy all other requests to Nuxt frontend server
-          RewriteCond %{REQUEST_URI} !^/cms/
-          RewriteCond %{REQUEST_URI} !^/backups/
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]
-          
-          # Handle API routes specifically
-          RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]
-          
-          # Prevent access to sensitive WordPress files in cms directory
-          <FilesMatch "^\.ht|wp-config\.php$">
-            Order Allow,Deny
-            Deny from all
-          </FilesMatch>
-          EOF"
+            echo 'RewriteEngine On' > .htaccess && \
+            echo '' >> .htaccess && \
+            echo '# WordPress CMS routes (preserve /cms directory access)' >> .htaccess && \
+            echo 'RewriteRule ^cms/(.*)$ cms/\$1 [L]' >> .htaccess && \
+            echo '' >> .htaccess && \
+            echo '# Preserve access to /backups if it exists' >> .htaccess && \
+            echo 'RewriteRule ^backups/(.*)$ backups/\$1 [L]' >> .htaccess && \
+            echo '' >> .htaccess && \
+            echo '# Proxy all other requests to Nuxt frontend server' >> .htaccess && \
+            echo 'RewriteCond %{REQUEST_URI} !^/cms/' >> .htaccess && \
+            echo 'RewriteCond %{REQUEST_URI} !^/backups/' >> .htaccess && \
+            echo 'RewriteCond %{REQUEST_FILENAME} !-f' >> .htaccess && \
+            echo 'RewriteCond %{REQUEST_FILENAME} !-d' >> .htaccess && \
+            echo 'RewriteRule ^(.*)$ http://127.0.0.1:3000/\$1 [P,L]' >> .htaccess && \
+            echo '' >> .htaccess && \
+            echo '# Handle API routes specifically' >> .htaccess && \
+            echo 'RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/\$1 [P,L]' >> .htaccess && \
+            echo '' >> .htaccess && \
+            echo '# Prevent access to sensitive WordPress files in cms directory' >> .htaccess && \
+            echo '<FilesMatch \"^\.ht|wp-config\.php$\">' >> .htaccess && \
+            echo '  Order Allow,Deny' >> .htaccess && \
+            echo '  Deny from all' >> .htaccess && \
+            echo '</FilesMatch>' >> .htaccess"
 
      # CRITICAL: Wait and verify PM2 process is running
       - name: Verify PM2 Process Status
