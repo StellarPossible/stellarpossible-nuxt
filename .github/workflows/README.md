@@ -16,7 +16,8 @@ The deployment system uses a modular approach with separate scripts for differen
 │   ├── release.yaml         # Main workflow file
 │   └── README.md            # Documentation
 └── scripts/
-    ├── setup-ssh.sh         # SSH setup script
+    ├── setup-ssh.sh         # SSH setup script (original)
+    ├── simple-ssh-setup.sh  # Simplified SSH setup script
     ├── build-image.sh       # Docker build script
     ├── test-container.sh    # Container testing script
     ├── prepare-server.sh    # Server preparation script
@@ -56,15 +57,17 @@ The workflow, named "Patchy's Docker Deployment Adventure," performs the followi
 
 The workflow requires the following secrets to be set in your GitHub repository:
 
-- `VPS_SERVER`: The hostname or IP address of your server
-- `VPS_USERNAME`: The SSH username for connecting to the server
+- `VPS_SERVER`: The hostname or IP address of your server (used in simple-ssh-setup.sh)
+- `VPS_USERNAME`: The SSH username for connecting to the server (used in simple-ssh-setup.sh)
 - `SSH_PRIVATE_KEY`: Your private SSH key (full key content including headers)
-- `SSH_HOST_KEY`: Your server's SSH host key (get it using `ssh-keyscan`)
+- `SSH_HOST_KEY`: Your server's SSH host key (optional, get it using `ssh-keyscan`)
 - `SLACK_WEBHOOK_URL`: The Slack webhook URL for notifications
 - `WP_APP_PASSWORD`: The WordPress application password
 - `USE_JWT`: Whether to use JWT authentication
 - `JWT_SECRET`: The JWT secret for authentication
 - `ADMIN_EMAIL`: The admin email address
+
+The deployment workflow now uses `simple-ssh-setup.sh` which is specifically designed to work with the `VPS_SERVER` and `VPS_USERNAME` environment variables as they are named in your GitHub repository.
 
 ### 🐛 Troubleshooting Common Issues
 

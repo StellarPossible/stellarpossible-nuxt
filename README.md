@@ -27,6 +27,40 @@ This project is a fully headless, API-driven frontend for a **tech solutions web
 
 This frontend uses **Basic Auth via WP Application Passwords** to securely query the WordPress GraphQL API.
 
-### Deployment
+## 🚀 Deployment
 
-`npm run generate`
+This project uses GitHub Actions for automated deployment. The workflow is configured in `.github/workflows/release.yaml`.
+
+### Manual Deployment
+```bash
+# Generate static site
+npm run generate
+
+# Build Docker image
+docker build -t stellarpossible-nuxt .
+
+# Run Docker container
+docker run -p 3000:3000 stellarpossible-nuxt
+```
+
+### Automated Deployment
+
+The GitHub Actions workflow automates the deployment process using Docker. It:
+
+1. Builds a Docker image for the Nuxt application
+2. Tests the container locally
+3. Uploads the image to the production server
+4. Deploys the application with proper environment variables
+
+#### Required GitHub Secrets
+
+For the automated deployment to work, you need to set up these GitHub repository secrets:
+
+- `VPS_SERVER`: Hostname or IP of your server
+- `VPS_USERNAME`: SSH username for server access
+- `SSH_PRIVATE_KEY`: Your SSH private key
+- `WP_APP_PASSWORD`: WordPress application password
+- `JWT_SECRET`: (If using JWT authentication)
+- `SLACK_WEBHOOK_URL`: (For deployment notifications)
+
+See `.github/workflows/README.md` for detailed documentation on the deployment process.

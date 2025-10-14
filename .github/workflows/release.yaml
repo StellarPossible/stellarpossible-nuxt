@@ -102,11 +102,11 @@ jobs:
 
       - name: 🔑 Patchy sets up SSH
         run: |
-          .github/scripts/setup-ssh.sh
+          .github/scripts/simple-ssh-setup.sh
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_HOST: ${{ secrets.VPS_SERVER }}
-          SERVER_USER: ${{ secrets.VPS_USERNAME }}
+          VPS_SERVER: ${{ secrets.VPS_SERVER }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
 
       - name: 🚚 Patchy prepares the server
