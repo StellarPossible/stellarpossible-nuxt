@@ -162,6 +162,9 @@ jobs:
 
       - name: 🎯 Patchy deploys the application
         run: |
+          # Also copy any required utility scripts
+          scp .github/scripts/utils/*.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/ || echo "No utility scripts to copy"
+          
           # Copy the deploy-app.sh script to the server directly
           scp .github/scripts/deploy-app.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/deploy-app.sh
           
@@ -173,15 +176,22 @@ jobs:
           if [ -e /var/run/docker.sock ]; then
             if [ -w /var/run/docker.sock ]; then
               echo "✅ User has direct access to Docker socket"
+              export DOCKER_CMD="docker"
+              export DEPLOY_METHOD="docker"
             elif groups | grep -q docker; then
               echo "✅ User is in docker group"
+              export DOCKER_CMD="docker" 
+              export DEPLOY_METHOD="docker"
             else
-              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+              echo "⚠️ Docker permission issue detected, will use manual deployment method"
+              export DEPLOY_METHOD="manual"
             fi
+          else
+            echo "⚠️ Docker socket not found, will use manual deployment method"
+            export DEPLOY_METHOD="manual"
           fi
           
-          # Set DOCKER_CMD for use in the script
-          export DOCKER_CMD="docker"
+          echo "Using deployment method: $DEPLOY_METHOD"
           
           # Execute the deploy-app script with all environment variables
           bash /tmp/deploy-app.sh
@@ -229,15 +239,22 @@ jobs:
           if [ -e /var/run/docker.sock ]; then
             if [ -w /var/run/docker.sock ]; then
               echo "✅ User has direct access to Docker socket"
+              export DOCKER_CMD="docker"
+              export DEPLOY_METHOD="docker"
             elif groups | grep -q docker; then
               echo "✅ User is in docker group"
+              export DOCKER_CMD="docker" 
+              export DEPLOY_METHOD="docker"
             else
-              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+              echo "⚠️ Docker permission issue detected, using manual checks"
+              export DEPLOY_METHOD="manual"
             fi
+          else
+            echo "⚠️ Docker socket not found, using manual checks"
+            export DEPLOY_METHOD="manual"
           fi
           
-          # Set DOCKER_CMD for use in the script
-          export DOCKER_CMD="docker"
+          echo "Using health check method: $DEPLOY_METHOD"
           
           # Execute the health-check script with environment variables
           bash /tmp/health-check.sh
@@ -295,15 +312,22 @@ jobs:
           if [ -e /var/run/docker.sock ]; then
             if [ -w /var/run/docker.sock ]; then
               echo "✅ User has direct access to Docker socket"
+              export DOCKER_CMD="docker"
+              export DEPLOY_METHOD="docker"
             elif groups | grep -q docker; then
               echo "✅ User is in docker group"
+              export DOCKER_CMD="docker" 
+              export DEPLOY_METHOD="docker"
             else
-              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+              echo "⚠️ Docker permission issue detected, using alternative diagnostics"
+              export DEPLOY_METHOD="manual"
             fi
+          else
+            echo "⚠️ Docker socket not found, using alternative diagnostics"
+            export DEPLOY_METHOD="manual"
           fi
           
-          # Set DOCKER_CMD for use in the script
-          export DOCKER_CMD="docker"
+          echo "Using diagnostics method: $DEPLOY_METHOD"
           
           # Execute the diagnostics script with environment variables
           bash /tmp/diagnostics.sh
@@ -316,6 +340,7 @@ jobs:
           # Execute the wrapper on the remote server
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
             export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
+            export PORT=3000
             
             bash /tmp/diagnostics-wrapper.sh
           "
