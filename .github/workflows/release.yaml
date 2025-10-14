@@ -395,57 +395,15 @@ jobs:
           EOF
       
       - name: Send notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
         run: |
-          # Prepare notification message
-          STATUS_EMOJI="${{ steps.status.outputs.success == 'true' && '✅' || '❌' }}"
-          
-          # Send to Slack if webhook URL is provided
-          if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
             curl -X POST -H 'Content-type: application/json' \
-              --data '{
-                "text": "'$STATUS_EMOJI' Deployment to ${{ github.event.inputs.environment || 'production' }} ${{ steps.status.outputs.status_text }}",
-                "blocks": [
-                  {
-                    "type": "header",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "'$STATUS_EMOJI' Deployment to ${{ github.event.inputs.environment || 'production' }} ${{ steps.status.outputs.status_text }}",
-                      "emoji": true
-                    }
-                  },
-                  {
-                    "type": "section",
-                    "fields": [
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Version:*\n${{ needs.prepare.outputs.app_version }}"
-                      },
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Environment:*\n${{ github.event.inputs.environment || 'production' }}"
-                      },
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Domain:*\nhttps://${{ env.DOMAIN_NAME }}/"
-                      },
-                      {
-                        "type": "mrkdwn",
-                        "text": "*Triggered by:*\n${{ github.actor }}"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "View <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deployment logs>"
-                    }
-                  }
-                ]
-              }' \
+              --data '{"text":"Deployment successful!"}' \
               ${{ secrets.SLACK_WEBHOOK_URL }}
+          else
+            echo "⚠️ SLACK_WEBHOOK_URL is not set. Skipping notification."
           fi
+
 
       # Setup SSH key for secure authentication
       - name: Setup SSH key
