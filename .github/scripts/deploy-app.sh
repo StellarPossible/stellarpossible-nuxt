@@ -96,13 +96,88 @@ if [ "$DEPLOY_METHOD" = "docker" ] && [ -n "$TAR_FILE" ] && [ -f "$TAR_FILE" ]; 
     DEPLOY_METHOD="manual"
   fi
 elif [ "$DEPLOY_METHOD" = "manual" ] && [ -n "$TAR_FILE" ] && [ -f "$TAR_FILE" ]; then
-  # Extract the tar.gz contents for manual deployment
+  # For manual deployment, we need to extract the application files from the Docker image
   print_info "Extracting application files from $TAR_FILE for manual deployment..."
-  mkdir -p ./extracted
-  if tar -xzf "$TAR_FILE" -C ./extracted; then
-    print_success "Application files extracted successfully!"
+  
+  # Check if we have our utility script available
+  if [ -f "/tmp/extract-docker-image.sh" ]; then
+    print_info "Using extract-docker-image.sh utility script"
+    chmod +x /tmp/extract-docker-image.sh
+    
+    # Run the extraction utility
+    if /tmp/extract-docker-image.sh "$TAR_FILE" "./extracted" "./tmp_extract"; then
+      print_success "Application files extracted successfully!"
+    else
+      print_error "Failed to extract application files using utility script!"
+    fi
   else
-    print_error "Failed to extract application files!"
+    print_info "Extract utility not found, using built-in extraction method"
+    
+    # Create a temporary directory for extraction
+    mkdir -p ./extracted ./tmp_extract
+    
+    # First, try to extract the tar.gz directly (it might be a simple archive)
+    if tar -xzf "$TAR_FILE" -C ./tmp_extract 2>/dev/null; then
+      print_success "Successfully extracted as a simple archive!"
+      
+      # Move the contents to our extracted directory
+      cp -r ./tmp_extract/* ./extracted/ 2>/dev/null || true
+    else
+      print_info "Appears to be a Docker image, trying Docker-specific extraction..."
+      
+      # Decompress the Docker image
+      gunzip -c "$TAR_FILE" > ./tmp_extract/docker_image.tar || {
+        print_error "Failed to decompress Docker image"
+        DEPLOY_METHOD="failed"
+        return 1
+      }
+      
+      # Create a directory for layers
+      mkdir -p ./tmp_extract/layers
+      
+      # Extract the Docker image
+      if ! tar -xf ./tmp_extract/docker_image.tar -C ./tmp_extract/layers 2>/dev/null; then
+        print_error "Failed to extract Docker image"
+        DEPLOY_METHOD="failed"
+        return 1
+      fi
+      
+      # Find and extract layers
+      for layer in $(find ./tmp_extract/layers -name "*.tar" 2>/dev/null); do
+        print_info "Extracting layer: $(basename "$layer")"
+        mkdir -p ./tmp_extract/current_layer
+        
+        # Extract this layer
+        tar -xf "$layer" -C ./tmp_extract/current_layer 2>/dev/null || continue
+        
+        # Copy layer contents to extracted directory
+        cp -r ./tmp_extract/current_layer/* ./extracted/ 2>/dev/null || true
+        
+        # Clean up current layer
+        rm -rf ./tmp_extract/current_layer
+      done
+      
+      # Look for the app directory structure
+      if [ -d "./extracted/app" ]; then
+        print_success "Found app directory at ./extracted/app"
+      elif [ -d "./extracted/usr/src/app" ]; then
+        print_success "Found app directory at ./extracted/usr/src/app"
+        mkdir -p ./tmp_extract/app_content
+        cp -r ./extracted/usr/src/app/* ./tmp_extract/app_content/ 2>/dev/null || true
+        rm -rf ./extracted
+        mkdir -p ./extracted
+        cp -r ./tmp_extract/app_content/* ./extracted/ 2>/dev/null || true
+        rm -rf ./tmp_extract/app_content
+      fi
+    fi
+  fi
+  
+  # Check if we have any useful files
+  if [ ! -d "./extracted" ] || [ -z "$(ls -A ./extracted 2>/dev/null)" ]; then
+    print_error "No application files were successfully extracted!"
+  else
+    print_info "Extracted files:"
+    ls -la ./extracted/
   fi
 fi
 
@@ -196,39 +271,89 @@ else
     fi
   fi
   
+  # Print Node.js version for diagnostics
+  print_info "Using Node.js version: $(node -v)"
+  
   # Install PM2 if not already installed
   if ! command -v pm2 >/dev/null 2>&1; then
     print_info "Installing PM2 for process management..."
     npm install -g pm2 || {
       print_error "Failed to install PM2. Please check npm permissions."
     }
+  else
+    print_info "Using existing PM2 installation: $(pm2 -v)"
   fi
   
-  # Copy extracted files to app directory if they exist
+  # Set up deployment directory
+  mkdir -p ./deployment
+  
+  # Copy extracted files to deployment directory if they exist
   if [ -d "./extracted" ]; then
     print_info "Setting up application files from extracted archive..."
     
-    # Look for the app directory in the extracted files
-    app_dir=$(find ./extracted -type d -name "app" -o -name "dist" | head -n 1)
-    
-    if [ -n "$app_dir" ]; then
-      print_info "Found application directory at $app_dir"
-      
-      # Create deployment directory
-      mkdir -p ./deployment
-      
-      # Copy files
-      cp -R "$app_dir"/* ./deployment/
-      
-      # Copy environment file
-      cp .env ./deployment/
-      
-      print_success "Files copied to deployment directory"
+    # For Nuxt.js applications, we're looking for the .output directory or server directory
+    if [ -d "./extracted/.output" ]; then
+      print_success "Found Nuxt output directory at ./extracted/.output"
+      cp -R ./extracted/.output/* ./deployment/
+    elif [ -d "./extracted/server" ]; then
+      print_success "Found server directory at ./extracted/server"
+      cp -R ./extracted/* ./deployment/
+    elif [ -d "./extracted/dist" ]; then
+      print_success "Found dist directory at ./extracted/dist"
+      cp -R ./extracted/* ./deployment/
+    elif [ -f "./extracted/package.json" ]; then
+      print_success "Found package.json at root level"
+      cp -R ./extracted/* ./deployment/
     else
-      print_error "Could not find application directory in extracted files"
+      # Just copy everything and hope for the best
+      print_warning "Could not identify specific app structure, copying all files"
+      cp -R ./extracted/* ./deployment/ 2>/dev/null || true
+      
+      # List what we found to help debug
+      print_info "Files copied to deployment directory:"
+      ls -la ./deployment/
+    fi
+    
+    # Copy environment file to deployment directory
+    cp .env ./deployment/ || print_warning "Could not copy environment file"
+    
+    # Check if we have the necessary files for a Node.js application
+    if [ ! -f "./deployment/package.json" ]; then
+      print_warning "No package.json found in deployment directory. Creating a basic one..."
+      cat > ./deployment/package.json << EOF
+{
+  "name": "stellarpossible-nuxt",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js"
+  }
+}
+EOF
+    fi
+    
+    # Check if we have a server entry point
+    if [ ! -f "./deployment/server/index.js" ] && [ ! -f "./deployment/index.js" ]; then
+      print_warning "No server entry point found. Looking for alternatives..."
+      
+      # Try to find any JS file that could be an entry point
+      entry_point=$(find ./deployment -type f -name "*.js" | grep -E 'server|index|main|app' | head -n 1)
+      
+      if [ -n "$entry_point" ]; then
+        print_success "Found potential entry point: $entry_point"
+        
+        # Update package.json start script
+        if [ -f "./deployment/package.json" ]; then
+          relative_path="${entry_point#./deployment/}"
+          sed -i.bak "s|\"start\":.*|\"start\": \"node $relative_path\"|" ./deployment/package.json
+          rm -f ./deployment/package.json.bak
+        fi
+      else
+        print_warning "Could not find any suitable entry point"
+      fi
     fi
   else
-    print_warning "No extracted files found, skipping file setup"
+    print_error "No extracted files found for deployment"
   fi
   
   # Start or restart the application with PM2
@@ -238,9 +363,47 @@ else
       print_error "Failed to navigate to deployment directory"
     }
     
-    # Start with PM2
-    if pm2 start npm --name "$CONTAINER_NAME" -- start; then
+    # Check if we need to install dependencies
+    if [ -f "package.json" ]; then
+      if [ ! -d "node_modules" ]; then
+        print_info "Installing dependencies..."
+        npm install --production || print_warning "Dependency installation failed, continuing anyway"
+      fi
+    fi
+    
+    # Determine the start command based on what's available
+    START_CMD="npm start"
+    if [ -f "server/index.js" ]; then
+      START_CMD="node server/index.js"
+    elif [ -f "index.js" ]; then
+      START_CMD="node index.js"
+    elif [ -f ".output/server/index.mjs" ]; then
+      START_CMD="node .output/server/index.mjs"
+    fi
+    
+    print_info "Using start command: $START_CMD"
+    
+    # Check if the process is already running in PM2
+    if pm2 list | grep -q "$CONTAINER_NAME"; then
+      print_info "Application already running in PM2, reloading..."
+      pm2 reload "$CONTAINER_NAME" || {
+        print_warning "Failed to reload, attempting to restart..."
+        pm2 restart "$CONTAINER_NAME" || {
+          print_warning "Failed to restart, stopping and starting fresh..."
+          pm2 delete "$CONTAINER_NAME" 2>/dev/null || true
+          pm2 start --name "$CONTAINER_NAME" $START_CMD
+        }
+      }
+    else
+      # Start fresh with PM2
+      print_info "Starting fresh application instance with PM2..."
+      pm2 start --name "$CONTAINER_NAME" $START_CMD
+    fi
+    
+    # Verify the process is running
+    if pm2 list | grep -q "$CONTAINER_NAME"; then
       print_success "Application started successfully with PM2!"
+      pm2 show "$CONTAINER_NAME"
     else
       print_error "Failed to start application with PM2"
     fi
@@ -250,15 +413,28 @@ else
 fi
 
 # Clean up
-print_info "Cleaning up..."
-# Clean up tar file if it exists
+print_info "Cleaning up temporary files..."
+
+# Clean up tar file if it exists and deployment was successful
 if [ -n "$TAR_FILE" ] && [ -f "$TAR_FILE" ]; then
   rm -f "$TAR_FILE"
 fi
 
-# Clean up extracted directory if it exists
-if [ -d "./extracted" ]; then
-  rm -rf "./extracted"
-fi
+# Clean up all temporary directories we might have created
+for dir in "./extracted" "./tmp_extract" "./docker_layers" "./container_extract"; do
+  if [ -d "$dir" ]; then
+    print_info "Removing $dir directory..."
+    rm -rf "$dir"
+  fi
+done
 
 print_success "Deployment completed successfully using $DEPLOY_METHOD method!"
+
+# If this was a manual deployment, print some helpful information
+if [ "$DEPLOY_METHOD" = "manual" ]; then
+  print_info "Manual deployment information:"
+  print_info "Application should be running using PM2. To check status: pm2 list"
+  print_info "To view logs: pm2 logs $CONTAINER_NAME"
+  print_info "To restart app: pm2 restart $CONTAINER_NAME"
+  print_info "To stop app: pm2 stop $CONTAINER_NAME"
+fi
