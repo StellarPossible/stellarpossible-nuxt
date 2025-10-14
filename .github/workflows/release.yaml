@@ -80,7 +80,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Verify package files
+      - name: Verify package files and dependencies
         run: |
           if [[ ! -f "package.json" ]]; then
             echo "❌ package.json not found"
@@ -90,49 +90,99 @@ jobs:
             echo "❌ package-lock.json not found"
             exit 1
           fi
-          echo "✅ Package files verified"
+          
+          # Check for required SCSS files
+          if [[ ! -f "assets/scss/main.scss" ]]; then
+            echo "❌ assets/scss/main.scss not found"
+            exit 1
+          fi
+          if [[ ! -f "assets/scss/variables.scss" ]]; then
+            echo "❌ assets/scss/variables.scss not found"
+            exit 1
+          fi
+          
+          echo "✅ Package files and dependencies verified"
 
       - name: Install dependencies
         run: |
           npm ci --prefer-offline --no-audit
           echo "✅ Dependencies installed successfully"
+          
+          # Verify sass is installed
+          if ! npm list sass --depth=0; then
+            echo "⚠️ Sass not found in dependencies, installing..."
+            npm install sass --save-dev
+          fi
+
+      - name: Debug build environment
+        run: |
+          echo "🔍 Build environment debug:"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+          echo "Package.json scripts:"
+          cat package.json | jq '.scripts'
+          echo "Nuxt config exists: $(test -f nuxt.config.ts && echo 'Yes' || echo 'No')"
 
       - name: Build Nuxt application
         run: |
           echo "🏗️ Building Nuxt application for ${{ needs.prepare.outputs.environment }}"
-          npm run build
-        env:
-          WP_USER: ${{ secrets.WP_USER }}
-          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          WP_GRAPHQL_ENDPOINT: https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}/graphql
-          WP_REST_ENDPOINT: https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}/wp-json
-          WP_API_URL: https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}
-          USE_JWT: ${{ secrets.USE_JWT }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          NODE_ENV: production
+          
+          # Set build environment variables
+          export NODE_ENV=production
+          export WP_USER="${{ secrets.WP_USER }}"
+          export WP_APP_PASSWORD="${{ secrets.WP_APP_PASSWORD }}"
+          export WP_GRAPHQL_ENDPOINT="https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}/graphql"
+          export WP_REST_ENDPOINT="https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}/wp-json"
+          export WP_API_URL="https://${{ needs.prepare.outputs.domain_name }}/${{ env.WP_DIR_NAME }}"
+          export USE_JWT="${{ secrets.USE_JWT }}"
+          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          
+          # Run build with verbose output
+          npm run build -- --verbose
+          
+          echo "✅ Build completed"
 
       - name: Verify build output
         run: |
+          echo "🔍 Verifying build output..."
+          
           if [[ ! -d ".output" ]]; then
             echo "❌ Build failed - .output directory not found"
+            echo "Current directory contents:"
+            ls -la
             exit 1
           fi
           
           if [[ ! -f ".output/server/index.mjs" ]]; then
             echo "❌ Build failed - server entry point not found"
+            echo ".output directory contents:"
+            ls -la .output/
+            if [[ -d ".output/server" ]]; then
+              echo ".output/server contents:"
+              ls -la .output/server/
+            fi
             exit 1
           fi
           
           if [[ ! -d ".output/public" ]]; then
             echo "❌ Build failed - public assets not found"
+            echo ".output directory contents:"
+            ls -la .output/
             exit 1
           fi
           
           echo "✅ Build output verified"
           echo "📊 Build statistics:"
           du -sh .output
-          find .output -type f -name "*.mjs" -o -name "*.js" | wc -l | xargs echo "JavaScript files:"
-          find .output/public -type f | wc -l | xargs echo "Static assets:"
+          echo "📁 .output structure:"
+          find .output -type d | head -20
+          echo "📄 Key files:"
+          find .output -name "*.mjs" -o -name "*.js" | head -10
+          echo "🎨 Static assets:"
+          find .output/public -type f | wc -l | xargs echo "Total files:"
 
       - name: Create deployment metadata
         run: |
@@ -161,6 +211,8 @@ jobs:
           Built by: GitHub Actions
           Repository: ${{ github.repository }}
           EOF
+          
+          echo "✅ Deployment metadata created"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
