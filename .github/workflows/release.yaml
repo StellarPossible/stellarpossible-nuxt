@@ -56,6 +56,8 @@ jobs:
     name: Build Nuxt Application
     runs-on: ubuntu-latest
     needs: prepare
+    # Explicitly set that this job always runs if prepare succeeds
+    if: always() && needs.prepare.result == 'success'
     
     steps:
       - name: Checkout repository
@@ -103,6 +105,7 @@ jobs:
           name: nuxt-build
           path: .output
           retention-days: 1
+          if-no-files-found: error # This will make the step fail if no files are found to upload
   
 
   
@@ -110,17 +113,34 @@ jobs:
     name: Deploy Application
     runs-on: ubuntu-latest
     needs: [prepare, build]
-    if: needs.build.result == 'success'
+    if: always() && needs.build.result == 'success'
     
     steps:
       - name: Checkout repository for configuration files
         uses: actions/checkout@v4
+      
+      - name: List available artifacts
+        run: |
+          echo "Available artifacts:"
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" | \
+            jq '.artifacts[] | {name: .name, size: .size_in_bytes, id: .id}'
       
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
           name: nuxt-build
           path: .output
+          
+      - name: Verify artifact download
+        run: |
+          if [ -d ".output" ] && [ "$(ls -A .output)" ]; then
+            echo "✅ Artifact downloaded successfully"
+            ls -la .output
+          else
+            echo "❌ Artifact download failed or directory is empty"
+            exit 1
+          fi
       
       - name: Setup SSH key
         uses: webfactory/ssh-agent@v0.8.0
