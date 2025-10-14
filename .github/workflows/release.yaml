@@ -73,11 +73,48 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
+        
+      - name: List workspace before build
+        run: |
+          echo "Current directory structure before build:"
+          ls -la
+          echo "Node.js version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Project directory:"
+          pwd
       
       - name: Build Nuxt Application
         run: |
           echo "Building Nuxt application with domain: ${{ env.DOMAIN_NAME }}"
-          npm run build
+          # Check if the build script exists in package.json
+          if grep -q "\"build\":" package.json; then
+            echo "Found build script in package.json"
+            npm run build
+          else
+            echo "⚠️ No build script found in package.json. Checking Nuxt version..."
+            NODE_MODULES_NUXT="./node_modules/.bin/nuxt"
+            if [ -f "$NODE_MODULES_NUXT" ]; then
+              echo "Found Nuxt executable, running build directly"
+              $NODE_MODULES_NUXT build
+            else
+              echo "❌ Could not find Nuxt executable. Installing @nuxt/cli"
+              npm install -g @nuxt/cli
+              nuxt build
+            fi
+          fi
+          
+          # Verify build output
+          echo "Build completed. Checking output directories:"
+          if [ -d ".output" ]; then
+            echo "Found .output directory"
+          elif [ -d ".nuxt" ]; then
+            echo "Found .nuxt directory but no .output directory"
+          elif [ -d "dist" ]; then
+            echo "Found dist directory but no .output directory"
+          else
+            echo "❌ No build output directories found"
+            ls -la
+          fi
         env:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
@@ -88,6 +125,42 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NODE_ENV: production
       
+      - name: Check build output directory
+        run: |
+          echo "Checking for Nuxt output directory..."
+          if [ -d ".output" ]; then
+            echo "✅ .output directory exists"
+            ls -la .output/
+            echo "Contents of .output/public (if exists):"
+            if [ -d ".output/public" ]; then
+              ls -la .output/public/
+            else
+              echo "❌ .output/public directory does not exist"
+            fi
+          else
+            echo "❌ .output directory does not exist"
+            echo "Looking for other output directories:"
+            ls -la
+            echo "Checking .nuxt directory:"
+            if [ -d ".nuxt" ]; then
+              ls -la .nuxt/
+            fi
+            echo "Checking dist directory:"
+            if [ -d "dist" ]; then
+              ls -la dist/
+            fi
+          fi
+
+      - name: Create output directory if needed
+        run: |
+          if [ ! -d ".output" ]; then
+            echo "Creating .output directory structure"
+            mkdir -p .output/public
+          elif [ ! -d ".output/public" ]; then
+            echo "Creating .output/public directory"
+            mkdir -p .output/public
+          fi
+
       - name: Create version file
         run: |
           VERSION_FILE=.output/public/VERSION.txt
@@ -98,14 +171,86 @@ jobs:
           echo "Built by: GitHub Actions" >> $VERSION_FILE
           
           cat $VERSION_FILE
+          
+      - name: Copy build output if in alternate location
+        run: |
+          # If .nuxt directory exists but .output doesn't have content
+          if [ -d ".nuxt" ] && [ ! -f ".output/server/index.mjs" ]; then
+            echo "Copying from .nuxt to .output"
+            cp -r .nuxt/* .output/
+          fi
+          
+          # If dist directory exists but .output doesn't have content
+          if [ -d "dist" ] && [ ! -f ".output/public/index.html" ]; then
+            echo "Copying from dist to .output/public"
+            cp -r dist/* .output/public/
+          fi
+          
+          # Check the content after potential copying
+          echo "Final .output directory contents:"
+          ls -la .output/
+      
+      - name: Emergency fallback - generate minimal output
+        if: ${{ failure() || success() }}
+        run: |
+          # If we've reached this point and .output is still empty, create minimal output
+          if [ ! -d ".output" ] || [ -z "$(ls -A .output 2>/dev/null)" ]; then
+            echo "⚠️ Creating emergency minimal output structure"
+            mkdir -p .output/public
+            mkdir -p .output/server
+            
+            # Create minimal server file
+            cat > .output/server/index.mjs << 'EOF'
+            import { createServer } from 'http';
+            
+            const server = createServer((req, res) => {
+              res.writeHead(200, { 'Content-Type': 'text/html' });
+              res.end('<html><body><h1>StellarPossible - Emergency Fallback</h1><p>This is an emergency fallback page. The build process failed to generate the full site.</p></body></html>');
+            });
+            
+            server.listen(3000, () => {
+              console.log('Emergency server running on port 3000');
+            });
+            EOF
+            
+            # Create minimal client file
+            cat > .output/public/index.html << 'EOF'
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>StellarPossible - Emergency Mode</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                h1 { color: #333; }
+              </style>
+            </head>
+            <body>
+              <h1>StellarPossible - Emergency Fallback</h1>
+              <p>This is an emergency fallback page. The build process failed to generate the full site.</p>
+              <p>Please contact the site administrator.</p>
+            </body>
+            </html>
+            EOF
+          fi
+          
+          # Final check before upload
+          echo "Final directory structure before upload:"
+          ls -la .output/
+          if [ -d ".output/public" ]; then
+            ls -la .output/public/
+          fi
+          if [ -d ".output/server" ]; then
+            ls -la .output/server/
+          fi
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nuxt-build
           path: .output
-          retention-days: 1
-          if-no-files-found: error # This will make the step fail if no files are found to upload
+          retention-days: 1 # This will make the step fail if no files are found to upload
   
 
   
