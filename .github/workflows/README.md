@@ -6,7 +6,35 @@ This directory contains GitHub Actions workflows for automating deployment and o
 
 The `release.yaml` workflow automates the deployment of the StellarPossible Nuxt.js application to a production or staging server.
 
-### 🤖 What "Patchy" Does
+## 📁 Project Structure
+
+The deployment system uses a modular approach with separate scripts for different parts of the workflow:
+
+```
+.github/
+├── workflows/
+│   ├── release.yaml         # Main workflow file
+│   └── README.md            # Documentation
+└── scripts/
+    ├── setup-ssh.sh         # SSH setup script
+    ├── build-image.sh       # Docker build script
+    ├── test-container.sh    # Container testing script
+    ├── prepare-server.sh    # Server preparation script
+    ├── deploy-app.sh        # Application deployment script
+    ├── health-check.sh      # Health check script
+    └── utils/
+        ├── slack-notify.sh  # Slack notification utilities
+        └── docker-utils.sh  # Docker-related utilities
+```
+
+This modular structure offers several benefits:
+- Each script has a single responsibility, making the code more maintainable
+- Scripts can be tested individually, both locally and in CI/CD
+- Common functionality is shared across scripts
+- Better error handling and debugging capabilities
+- Scripts can be reused in other workflows or development processes
+
+## 🤖 What "Patchy" Does
 
 The workflow, named "Patchy's Docker Deployment Adventure," performs the following steps:
 
@@ -106,9 +134,25 @@ You can manually trigger the workflow from the GitHub Actions tab by selecting "
 
 To customize the workflow:
 
-1. Edit the `.github/workflows/release.yaml` file
-2. Modify the environment variables at the top of the file
-3. Add or remove steps as needed
-4. Update the Slack notification content to match your preferences
+1. Edit the `.github/workflows/release.yaml` file for workflow structure changes
+2. Modify individual scripts in `.github/scripts/` for specific functionality changes
+3. Update utility scripts in `.github/scripts/utils/` for shared functionality
+4. Modify the environment variables at the top of the workflow file
+
+### 🧩 Working with the Modular Scripts
+
+Each script is designed to be self-contained and can be run individually:
+
+```bash
+# Running scripts locally (for testing)
+.github/scripts/build-image.sh
+.github/scripts/test-container.sh
+```
+
+To add new functionality:
+
+1. Create a new script in the `.github/scripts/` directory
+2. Make it executable with `chmod +x .github/scripts/your-script.sh`
+3. Add a new step in the workflow file that calls your script
 
 For more advanced customization, refer to the [GitHub Actions documentation](https://docs.github.com/en/actions).
