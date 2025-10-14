@@ -48,10 +48,36 @@ cd "$DEPLOY_PATH/$APP_DIR" || {
   print_error "Failed to navigate to deployment directory!"
 }
 
+# Check Docker socket permissions
+print_info "Checking Docker permissions..."
+if [ ! -w /var/run/docker.sock ] && [ -e /var/run/docker.sock ]; then
+  print_warning "Docker socket permission issue detected. Attempting to fix..."
+  
+  # Check if we have sudo access and docker group exists
+  if command -v sudo >/dev/null 2>&1 && getent group docker >/dev/null; then
+    print_info "Adding current user to the docker group..."
+    sudo usermod -aG docker "$(whoami)"
+    print_info "Please note: You may need to reconnect to the server for group changes to take effect"
+    
+    # Try using sudo for this session
+    print_info "Using sudo for Docker commands in this session..."
+    DOCKER_CMD="sudo docker"
+  else
+    print_warning "Cannot automatically fix permissions. Using sudo for Docker commands..."
+    DOCKER_CMD="sudo docker"
+  fi
+else
+  # Docker socket is accessible
+  DOCKER_CMD="docker"
+fi
+
+# Export the Docker command for use in the rest of the script
+export DOCKER_CMD
+
 # Load Docker image if a tar file is provided
 if [ -n "$TAR_FILE" ] && [ -f "$TAR_FILE" ]; then
   print_info "Loading Docker image from $TAR_FILE..."
-  if gunzip -c "$TAR_FILE" | docker load; then
+  if gunzip -c "$TAR_FILE" | $DOCKER_CMD load; then
     print_success "Docker image loaded successfully!"
   else
     print_error "Failed to load Docker image!"
@@ -89,7 +115,7 @@ chown -R "$(id -u):$(id -g)" logs
 
 # Start the container
 print_info "Starting container $CONTAINER_NAME..."
-if docker run -d \
+if $DOCKER_CMD run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
   -p 3000:3000 \
@@ -106,12 +132,12 @@ fi
 print_info "Verifying container is running..."
 sleep 5
 
-if docker ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
+if $DOCKER_CMD ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
   print_success "Container is confirmed running!"
-  docker ps -f "name=$CONTAINER_NAME"
+  $DOCKER_CMD ps -f "name=$CONTAINER_NAME"
 else
   print_error "Container is not running! Showing logs:"
-  docker logs "$CONTAINER_NAME"
+  $DOCKER_CMD logs "$CONTAINER_NAME"
 fi
 
 # Clean up tar file if it exists
