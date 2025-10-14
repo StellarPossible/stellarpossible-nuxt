@@ -32,6 +32,35 @@ print_error() {
 # Check Docker socket permissions
 print_info "Checking Docker permissions..."
 if [ ! -w /var/run/docker.sock ] && [ -e /var/run/docker.sock ]; then
+  print_warning "Docker socket permission issue detected. Using alternative approach..."
+  
+  # First try if docker works with sudo without password (CI environment)
+  if sudo -n docker info >/dev/null 2>&1; then
+    print_info "Using sudo for Docker commands (non-interactive mode)..."
+    DOCKER_CMD="sudo docker"
+  # For non-CI environments where we can ask for a password
+  elif [ -t 0 ] && command -v sudo >/dev/null 2>&1; then
+    print_info "Terminal detected, attempting to use sudo with password..."
+    if sudo docker info >/dev/null 2>&1; then
+      DOCKER_CMD="sudo docker"
+    else
+      print_error "Cannot use sudo with Docker. Please run with proper permissions."
+      exit 1
+    fi
+  else
+    print_warning "Non-interactive environment detected, cannot use sudo with password..."
+    print_warning "Trying Docker commands without sudo. This may fail if permissions aren't correct."
+    DOCKER_CMD="docker"
+  fi
+else
+  # Docker socket is accessible
+  print_info "Docker socket is accessible, using standard Docker commands"
+  DOCKER_CMD="docker"
+fi
+
+# Check Docker socket permissions
+print_info "Checking Docker permissions..."
+if [ ! -w /var/run/docker.sock ] && [ -e /var/run/docker.sock ]; then
   print_warning "Docker socket permission issue detected. Attempting to fix..."
   
   # Check if we have sudo access and docker group exists

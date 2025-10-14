@@ -111,14 +111,55 @@ jobs:
 
       - name: 🚚 Patchy prepares the server
         run: |
+          # Create a temporary script file
+          cat > prepare-server-temp.sh << 'EOL'
+          #!/bin/bash
+          # Check if Docker socket exists and user has access
+          if [ -e /var/run/docker.sock ]; then
+            if [ -w /var/run/docker.sock ]; then
+              echo "✅ User has direct access to Docker socket"
+            elif groups | grep -q docker; then
+              echo "✅ User is in docker group"
+            else
+              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+            fi
+          fi
+          
+          # Set DOCKER_CMD for use in the script
+          export DOCKER_CMD="docker"
+          
+          # Import and run the main script with variables set
+          export CONTAINER_NAME=${CONTAINER_NAME}
+          export IMAGE_NAME=${IMAGE_NAME}
+          export DEPLOY_PATH=${DEPLOY_PATH}
+          export APP_DIR=${APP_DIR}
+          
+          # Run the script
+          ${PREPARE_SCRIPT}
+          EOL
+          
+          # Make the script executable
+          chmod +x prepare-server-temp.sh
+          
+          # Send the script to the server
+          scp prepare-server-temp.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
+          
+          # Get the content of the prepare-server.sh script
+          PREPARE_CONTENT=$(cat .github/scripts/prepare-server.sh)
+          
+          # Execute the script on the remote server
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
             export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
             export IMAGE_NAME=${{ env.DOCKER_IMAGE_NAME }}
             export DEPLOY_PATH=${{ env.DEPLOY_PATH }}
             export APP_DIR=nuxt-app
+            export PREPARE_SCRIPT='$PREPARE_CONTENT'
             
-            $(cat .github/scripts/prepare-server.sh)
+            bash /tmp/prepare-server-temp.sh
           "
+          
+          # Clean up
+          rm prepare-server-temp.sh
 
       - name: 📤 Patchy uploads the new image
         run: |
@@ -129,6 +170,55 @@ jobs:
 
       - name: 🎯 Patchy deploys the application
         run: |
+          # Create a temporary script file
+          cat > deploy-app-temp.sh << 'EOL'
+          #!/bin/bash
+          # Check if Docker socket exists and user has access
+          if [ -e /var/run/docker.sock ]; then
+            if [ -w /var/run/docker.sock ]; then
+              echo "✅ User has direct access to Docker socket"
+            elif groups | grep -q docker; then
+              echo "✅ User is in docker group"
+            else
+              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+            fi
+          fi
+          
+          # Set DOCKER_CMD for use in the script
+          export DOCKER_CMD="docker"
+          
+          # Import and run the main script with variables set
+          export CONTAINER_NAME=${CONTAINER_NAME}
+          export IMAGE_NAME=${IMAGE_NAME}
+          export TAG=${TAG}
+          export DEPLOY_PATH=${DEPLOY_PATH}
+          export APP_DIR=${APP_DIR}
+          export TAR_FILE=${TAR_FILE}
+          
+          # Set WordPress variables
+          export WP_USER=${WP_USER}
+          export WP_APP_PASSWORD=${WP_APP_PASSWORD}
+          export WP_GRAPHQL_ENDPOINT=${WP_GRAPHQL_ENDPOINT}
+          export WP_REST_ENDPOINT=${WP_REST_ENDPOINT}
+          export WP_API_URL=${WP_API_URL}
+          export USE_JWT=${USE_JWT}
+          export JWT_SECRET=${JWT_SECRET}
+          export ADMIN_EMAIL=${ADMIN_EMAIL}
+          
+          # Run the script
+          ${DEPLOY_SCRIPT}
+          EOL
+          
+          # Make the script executable
+          chmod +x deploy-app-temp.sh
+          
+          # Send the script to the server
+          scp deploy-app-temp.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
+          
+          # Get the content of the deploy-app.sh script
+          DEPLOY_CONTENT=$(cat .github/scripts/deploy-app.sh)
+          
+          # Execute the script on the remote server
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
             export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
             export IMAGE_NAME=${{ env.DOCKER_IMAGE_NAME }}
@@ -146,21 +236,67 @@ jobs:
             export USE_JWT='${{ secrets.USE_JWT }}'
             export JWT_SECRET='${{ secrets.JWT_SECRET }}'
             export ADMIN_EMAIL='${{ secrets.ADMIN_EMAIL }}'
+            export DEPLOY_SCRIPT='$DEPLOY_CONTENT'
             
-            $(cat .github/scripts/deploy-app.sh)
+            bash /tmp/deploy-app-temp.sh
           "
+          
+          # Clean up
+          rm deploy-app-temp.sh
 
       - name: 🏥 Patchy performs health checks
         run: |
+          # Create a temporary script file
+          cat > health-check-temp.sh << 'EOL'
+          #!/bin/bash
+          # Check if Docker socket exists and user has access
+          if [ -e /var/run/docker.sock ]; then
+            if [ -w /var/run/docker.sock ]; then
+              echo "✅ User has direct access to Docker socket"
+            elif groups | grep -q docker; then
+              echo "✅ User is in docker group"
+            else
+              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
+            fi
+          fi
+          
+          # Set DOCKER_CMD for use in the script
+          export DOCKER_CMD="docker"
+          
+          # Import and run the main script with variables set
+          export CONTAINER_NAME=${CONTAINER_NAME}
+          export HOST=${HOST}
+          export PORT=${PORT}
+          export RETRIES=${RETRIES}
+          export DELAY=${DELAY}
+          
+          # Run the script
+          ${HEALTH_SCRIPT}
+          EOL
+          
+          # Make the script executable
+          chmod +x health-check-temp.sh
+          
+          # Send the script to the server
+          scp health-check-temp.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
+          
+          # Get the content of the health-check.sh script
+          HEALTH_CONTENT=$(cat .github/scripts/health-check.sh)
+          
+          # Execute the script on the remote server
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
             export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
             export HOST=localhost
             export PORT=3000
             export RETRIES=5
             export DELAY=10
+            export HEALTH_SCRIPT='$HEALTH_CONTENT'
             
-            $(cat .github/scripts/health-check.sh)
+            bash /tmp/health-check-temp.sh
           "
+          
+          # Clean up
+          rm health-check-temp.sh
 
       - name: 🌐 Patchy tests external access
         run: |
@@ -185,34 +321,74 @@ jobs:
 
       - name: 🔍 Patchy runs final diagnostics
         run: |
+          # Create a temporary diagnostics script file
+          cat > diagnostics-temp.sh << 'EOL'
+          #!/bin/bash
+          
+          echo '🤖 Patchy says: Running final diagnostics...'
+          
+          cd ${DEPLOY_PATH}/${APP_DIR}
+          
+          # Check if Docker socket exists and user has access
+          if [ -e /var/run/docker.sock ]; then
+            if [ -w /var/run/docker.sock ]; then
+              echo "✅ User has direct access to Docker socket"
+              DOCKER_CMD="docker"
+            elif groups | grep -q docker; then
+              echo "✅ User is in docker group"
+              DOCKER_CMD="docker"
+            else
+              echo "⚠️ Docker permission issue detected, trying docker commands anyway..."
+              DOCKER_CMD="docker"
+              # Try sudo if available without password prompt
+              if sudo -n true 2>/dev/null; then
+                echo "✅ Non-interactive sudo is available, using sudo docker"
+                DOCKER_CMD="sudo docker"
+              fi
+            fi
+          fi
+          
+          # Container status
+          echo '📊 Container Status:'
+          $DOCKER_CMD ps -f name=${CONTAINER_NAME} || echo "Failed to get container status"
+          
+          # Resource usage
+          echo '💾 Resource Usage:'
+          $DOCKER_CMD stats ${CONTAINER_NAME} --no-stream || echo "Failed to get resource usage"
+          
+          # Recent logs
+          echo '📝 Recent Application Logs:'
+          $DOCKER_CMD logs ${CONTAINER_NAME} --tail 10 || echo "Failed to get container logs"
+          
+          # Show directory structure
+          echo '📁 Deployment structure:'
+          echo "Main directory: ${DEPLOY_PATH}"
+          ls -la ${DEPLOY_PATH} || echo "Failed to list deployment directory"
+          echo "Nuxt app directory:"
+          ls -la ${DEPLOY_PATH}/${APP_DIR} || echo "Failed to list app directory"
+          
+          # Show port usage
+          echo '🔌 Port 3000 status:'
+          netstat -tlnp 2>/dev/null | grep :3000 || echo 'Port 3000 not in use or netstat unavailable'
+          EOL
+          
+          # Make the script executable
+          chmod +x diagnostics-temp.sh
+          
+          # Send the script to the server
+          scp diagnostics-temp.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
+          
+          # Execute the script on the remote server
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
-            echo '🤖 Patchy says: Running final diagnostics...'
+            export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
+            export DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+            export APP_DIR=nuxt-app
             
-            cd ${{ env.DEPLOY_PATH }}/nuxt-app
-            
-            # Container status
-            echo '📊 Container Status:'
-            docker ps -f name=${{ env.CONTAINER_NAME }}
-            
-            # Resource usage
-            echo '💾 Resource Usage:'
-            docker stats ${{ env.CONTAINER_NAME }} --no-stream
-            
-            # Recent logs
-            echo '📝 Recent Application Logs:'
-            docker logs ${{ env.CONTAINER_NAME }} --tail 10
-            
-            # Show directory structure
-            echo '📁 Deployment structure:'
-            echo 'Main directory: ${{ env.DEPLOY_PATH }}'
-            ls -la ${{ env.DEPLOY_PATH }}
-            echo 'Nuxt app directory:'
-            ls -la ${{ env.DEPLOY_PATH }}/nuxt-app
-            
-            # Show port usage
-            echo '🔌 Port 3000 status:'
-            netstat -tlnp | grep :3000 || echo 'Port 3000 not in use'
+            bash /tmp/diagnostics-temp.sh
           "
+          
+          # Clean up
+          rm diagnostics-temp.sh
 
       - name: 🎉 Patchy celebrates success
         if: success()
