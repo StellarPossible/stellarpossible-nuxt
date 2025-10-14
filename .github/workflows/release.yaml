@@ -162,8 +162,9 @@ jobs:
 
       - name: 🎯 Patchy deploys the application
         run: |
-          # Also copy any required utility scripts
-          scp .github/scripts/utils/*.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/ || echo "No utility scripts to copy"
+          # Copy our utility scripts to the server
+          echo "🤖 Patchy says: Copying utility scripts to the server..."
+          scp .github/scripts/utils/extract-docker-image.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/ || echo "⚠️ Failed to copy extraction utility (not critical)"
           
           # Copy the deploy-app.sh script to the server directly
           scp .github/scripts/deploy-app.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/deploy-app.sh
