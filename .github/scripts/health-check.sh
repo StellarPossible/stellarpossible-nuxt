@@ -32,17 +32,43 @@ print_error() {
   echo -e "\033[31m❌ [HEALTH] $1\033[0m"
 }
 
+# Check Docker socket permissions
+print_info "Checking Docker permissions..."
+if [ ! -w /var/run/docker.sock ] && [ -e /var/run/docker.sock ]; then
+  print_warning "Docker socket permission issue detected. Attempting to fix..."
+  
+  # Check if we have sudo access and docker group exists
+  if command -v sudo >/dev/null 2>&1 && getent group docker >/dev/null; then
+    print_info "Adding current user to the docker group..."
+    sudo usermod -aG docker "$(whoami)"
+    print_info "Please note: You may need to reconnect to the server for group changes to take effect"
+    
+    # Try using sudo for this session
+    print_info "Using sudo for Docker commands in this session..."
+    DOCKER_CMD="sudo docker"
+  else
+    print_warning "Cannot automatically fix permissions. Using sudo for Docker commands..."
+    DOCKER_CMD="sudo docker"
+  fi
+else
+  # Docker socket is accessible
+  DOCKER_CMD="docker"
+fi
+
+# Export the Docker command for use in the rest of the script
+export DOCKER_CMD
+
 # Function to check if the application is running
 check_container_status() {
   print_info "Checking container status..."
   
-  if docker ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
+  if $DOCKER_CMD ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
     print_success "Container is running!"
-    docker ps -f "name=$CONTAINER_NAME"
+    $DOCKER_CMD ps -f "name=$CONTAINER_NAME"
     return 0
   else
     print_error "Container is not running!"
-    docker ps -a -f "name=$CONTAINER_NAME"
+    $DOCKER_CMD ps -a -f "name=$CONTAINER_NAME"
     return 1
   fi
 }
@@ -123,17 +149,17 @@ check_external_url() {
 # Function to show container logs
 show_container_logs() {
   print_info "Container logs (last 50 lines):"
-  docker logs "$CONTAINER_NAME" --tail 50 || print_warning "Failed to retrieve container logs"
+  $DOCKER_CMD logs "$CONTAINER_NAME" --tail 50 || print_warning "Failed to retrieve container logs"
 }
 
 # Function to show container details
 show_container_details() {
   print_info "Container details:"
-  docker inspect "$CONTAINER_NAME" | grep -E "\"Name\"|\"Image\"|\"Status\"|\"Error\"" || 
+  $DOCKER_CMD inspect "$CONTAINER_NAME" | grep -E "\"Name\"|\"Image\"|\"Status\"|\"Error\"" || 
     print_warning "Failed to retrieve container details"
     
   print_info "Container resource usage:"
-  docker stats "$CONTAINER_NAME" --no-stream || print_warning "Failed to retrieve resource usage"
+  $DOCKER_CMD stats "$CONTAINER_NAME" --no-stream || print_warning "Failed to retrieve resource usage"
 }
 
 # Main health check flow
