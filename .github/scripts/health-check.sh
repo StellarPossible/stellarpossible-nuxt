@@ -32,50 +32,73 @@ print_error() {
   echo -e "\033[31m❌ [HEALTH] $1\033[0m"
 }
 
-# Check Docker socket permissions
-print_info "Checking Docker permissions..."
-if [ ! -w /var/run/docker.sock ] && [ -e /var/run/docker.sock ]; then
-  print_warning "Docker socket permission issue detected. Using alternative approach..."
+# Setup deployment method
+DOCKER_CMD=${DOCKER_CMD:-"docker"}
+DEPLOY_METHOD=${DEPLOY_METHOD:-"docker"}
+
+print_info "Checking deployment type..."
+if [ "$DEPLOY_METHOD" = "manual" ]; then
+  print_info "Manual deployment detected, will check process status using PM2"
   
-  # First try if docker works with sudo without password (CI environment)
-  if sudo -n docker info >/dev/null 2>&1; then
-    print_info "Using sudo for Docker commands (non-interactive mode)..."
-    DOCKER_CMD="sudo docker"
-  # For non-CI environments where we can ask for a password
-  elif [ -t 0 ] && command -v sudo >/dev/null 2>&1; then
-    print_info "Terminal detected, attempting to use sudo with password..."
-    if sudo docker info >/dev/null 2>&1; then
-      DOCKER_CMD="sudo docker"
-    else
-      print_error "Cannot use sudo with Docker. Please run with proper permissions."
-      exit 1
-    fi
+  # Verify PM2 is available
+  if command -v pm2 >/dev/null 2>&1; then
+    print_success "PM2 is available for process management"
   else
-    print_warning "Non-interactive environment detected, cannot use sudo with password..."
-    print_warning "Trying Docker commands without sudo. This may fail if permissions aren't correct."
-    DOCKER_CMD="docker"
+    print_warning "PM2 not found - health checks will be limited"
   fi
 else
-  # Docker socket is accessible
-  print_info "Docker socket is accessible, using standard Docker commands"
-  DOCKER_CMD="docker"
+  print_info "Docker deployment detected, checking Docker status..."
+  
+  # Check if docker command works
+  if $DOCKER_CMD info >/dev/null 2>&1; then
+    print_success "Docker is accessible!"
+  else
+    print_warning "Docker command failed. Will use alternative health checks..."
+    DEPLOY_METHOD="manual"
+  fi
 fi
-
-# Export the Docker command for use in the rest of the script
-export DOCKER_CMD
 
 # Function to check if the application is running
 check_container_status() {
-  print_info "Checking container status..."
-  
-  if $DOCKER_CMD ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
-    print_success "Container is running!"
-    $DOCKER_CMD ps -f "name=$CONTAINER_NAME"
-    return 0
+  if [ "$DEPLOY_METHOD" = "manual" ]; then
+    print_info "Checking application process status..."
+    
+    if command -v pm2 >/dev/null 2>&1; then
+      # Check if process is running with PM2
+      if pm2 list | grep -q "$CONTAINER_NAME"; then
+        print_success "Application process is running via PM2!"
+        pm2 info "$CONTAINER_NAME" || true
+        return 0
+      else
+        print_error "Application process is not running in PM2!"
+        pm2 list || true
+        return 1
+      fi
+    else
+      # If PM2 not available, check process directly
+      print_info "Checking for Node.js process serving on port $PORT..."
+      if netstat -tlnp 2>/dev/null | grep -q ":$PORT.*node"; then
+        print_success "Node.js process found serving on port $PORT!"
+        netstat -tlnp | grep ":$PORT" || true
+        return 0
+      else
+        print_warning "No Node.js process found serving on port $PORT"
+        # Don't fail here as we'll check HTTP access directly
+        return 0
+      fi
+    fi
   else
-    print_error "Container is not running!"
-    $DOCKER_CMD ps -a -f "name=$CONTAINER_NAME"
-    return 1
+    print_info "Checking container status..."
+    
+    if $DOCKER_CMD ps -q -f "name=$CONTAINER_NAME" | grep -q .; then
+      print_success "Container is running!"
+      $DOCKER_CMD ps -f "name=$CONTAINER_NAME"
+      return 0
+    else
+      print_error "Container is not running!"
+      $DOCKER_CMD ps -a -f "name=$CONTAINER_NAME" || true
+      return 1
+    fi
   fi
 }
 
