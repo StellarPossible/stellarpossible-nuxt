@@ -1,51 +1,454 @@
 # .github/workflows/release.yaml
-# GitHub Actions workflow for deploying Stellar Possible Nuxt frontend with headless WordPress CMS
-# WordPress serves as headless CMS, Nuxt handles all frontend and custom APIs
-name: Deploy Headless CMS + Nuxt Frontend
+# Comprehensive deployment workflow for StellarPossible Nuxt application with Headless WordPress
+name: Deploy StellarPossible Platform
 
 on:
   release:
     types:
       - released
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  NODE_VERSION: '20'
+  PM2_APP_NAME: 'stellarpossible-nuxt'
+  WP_DIR_NAME: 'cms'
+  REMOTE_BASE_PATH: '/var/www/stellarpossible.com'
+  DOMAIN_NAME: 'stellarpossible.com'
 
 jobs:
-  deploy:
-    name: Deploy Nuxt Frontend (Headless WordPress CMS)
+  prepare:
+    name: Prepare Deployment
     runs-on: ubuntu-latest
+    outputs:
+      server_path: ${{ steps.config.outputs.server_path }}
+      app_version: ${{ steps.version.outputs.version }}
+    
     steps:
-      # Checkout the repository code at the release tag
+      - name: Set configuration values
+        id: config
+        run: |
+          if [[ "${{ github.event.inputs.environment || 'production' }}" == "staging" ]]; then
+            echo "server_path=/var/www/staging.stellarpossible.com" >> $GITHUB_OUTPUT
+            echo "REMOTE_BASE_PATH=/var/www/staging.stellarpossible.com" >> $GITHUB_ENV
+            echo "DOMAIN_NAME=staging.stellarpossible.com" >> $GITHUB_ENV
+          else
+            echo "server_path=/var/www/stellarpossible.com" >> $GITHUB_OUTPUT
+            echo "REMOTE_BASE_PATH=/var/www/stellarpossible.com" >> $GITHUB_ENV
+            echo "DOMAIN_NAME=stellarpossible.com" >> $GITHUB_ENV
+          fi
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+          fi
+  
+  build:
+    name: Build Nuxt Application
+    runs-on: ubuntu-latest
+    needs: prepare
+    
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # Setup Node.js environment with caching for faster builds
+        with:
+          fetch-depth: 0
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
-      # Install all project dependencies
+      
       - name: Install dependencies
         run: npm ci
-
-      # Build Nuxt Application (full-stack build for headless frontend)
+      
       - name: Build Nuxt Application
-        run: npm run build
+        run: |
+          echo "Building Nuxt application with domain: ${{ env.DOMAIN_NAME }}"
+          npm run build
         env:
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
-          WP_GRAPHQL_ENDPOINT: ${{ secrets.WP_GRAPHQL_ENDPOINT }}
-          WP_REST_ENDPOINT: ${{ secrets.WP_REST_ENDPOINT }}
+          WP_GRAPHQL_ENDPOINT: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/graphql
+          WP_REST_ENDPOINT: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/wp-json
+          WP_API_URL: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}
           USE_JWT: ${{ secrets.USE_JWT }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           NODE_ENV: production
-
-      # Create version tracking file
+      
       - name: Create version file
         run: |
-          echo "${{ github.event.release.tag_name }}" > .output/public/VERSION.txt
-          echo "Build: ${{ github.sha }}" >> .output/public/VERSION.txt
-          echo "Date: $(date -u)" >> .output/public/VERSION.txt
+          VERSION_FILE=.output/public/VERSION.txt
+          echo "Version: ${{ needs.prepare.outputs.app_version }}" > $VERSION_FILE
+          echo "Commit: ${{ github.sha }}" >> $VERSION_FILE
+          echo "Branch: ${{ github.ref_name }}" >> $VERSION_FILE
+          echo "Built at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $VERSION_FILE
+          echo "Built by: GitHub Actions" >> $VERSION_FILE
+          
+          cat $VERSION_FILE
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuxt-build
+          path: .output
+          retention-days: 1
+  
+
+  
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    if: needs.build.result == 'success'
+    
+    steps:
+      - name: Checkout repository for configuration files
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: nuxt-build
+          path: .output
+      
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_SERVER }} >> ~/.ssh/known_hosts
+      
+      - name: Backup WordPress if exists
+        run: |
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} '
+          BACKUP_PATH="${{ needs.prepare.outputs.server_path }}/backups"
+          CMS_PATH="${{ needs.prepare.outputs.server_path }}/${{ env.WP_DIR_NAME }}"
+          
+          # Create backups directory if it doesn't exist
+          mkdir -p "$BACKUP_PATH"
+          
+          # If WordPress is installed, back it up
+          if [ -f "${CMS_PATH}/wp-config.php" ]; then
+            echo "Creating WordPress backup..."
+            TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+            BACKUP_FILE="$BACKUP_PATH/wp-backup-$TIMESTAMP.tar.gz"
+            
+            # Create backup
+            tar -czf "$BACKUP_FILE" -C "$CMS_PATH" . || echo "Warning: Some files were not included in the backup"
+            
+            echo "WordPress backup created: $BACKUP_FILE"
+            
+            # Keep only the latest 3 backups
+            ls -tp "$BACKUP_PATH"/wp-backup-*.tar.gz | grep -v "/$" | tail -n +4 | xargs -I {} rm -- {}
+          else
+            echo "WordPress installation not found at $CMS_PATH"
+          fi
+          '
+      
+      - name: Deploy Nuxt application
+        run: |
+          echo "Deploying to ${{ needs.prepare.outputs.server_path }}"
+          
+          # Upload Nuxt build files
+          rsync -avz --delete \
+            --exclude="/${{ env.WP_DIR_NAME }}/" \
+            --exclude="/backups/" \
+            .output/ \
+            ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:${{ needs.prepare.outputs.server_path }}
+          
+          # Create .env file on server
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
+          cat > ${{ needs.prepare.outputs.server_path }}/.env << 'EOF'
+          WP_USER=${{ secrets.WP_USER }}
+          WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT=https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/graphql
+          WP_REST_ENDPOINT=https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/wp-json
+          WP_API_URL=https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}
+          USE_JWT=${{ secrets.USE_JWT }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          NODE_ENV=production
+          NITRO_PORT=3000
+          HOST=0.0.0.0
+          EOF
+          "
+      
+      - name: Install production dependencies
+        run: |
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
+          cd ${{ needs.prepare.outputs.server_path }}
+          
+          # Install production dependencies
+          npm ci --production
+          "
+      
+      - name: Configure and start PM2
+        run: |
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
+          cd ${{ needs.prepare.outputs.server_path }}
+          
+          # Create PM2 ecosystem file
+          cat > ecosystem.config.js << 'EOF'
+          module.exports = {
+            apps: [{
+              name: '${{ env.PM2_APP_NAME }}',
+              script: './.output/server/index.mjs',
+              instances: 'max',
+              exec_mode: 'cluster',
+              watch: false,
+              env: {
+                PORT: 3000,
+                NODE_ENV: 'production',
+              },
+              max_memory_restart: '500M',
+              log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+              combine_logs: true,
+            }]
+          };
+          EOF
+          
+          # Restart application using PM2
+          pm2 delete ${{ env.PM2_APP_NAME }} || true
+          pm2 start ecosystem.config.js
+          pm2 save
+          
+          # Ensure PM2 starts on system boot
+          pm2 startup | tail -n 1 | bash || true
+          "
+  
+  verify:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy]
+    
+    steps:
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_SERVER }} >> ~/.ssh/known_hosts
+      
+      - name: Check PM2 process status
+        run: |
+          echo "Checking PM2 process status..."
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
+          # Check if process is running
+          PM2_STATUS=\$(pm2 jlist | jq -r '.[] | select(.name==\"${{ env.PM2_APP_NAME }}\") | .pm2_env.status' 2>/dev/null)
+          
+          if [ \"\$PM2_STATUS\" = \"online\" ]; then
+            echo '✅ PM2 process ${{ env.PM2_APP_NAME }} is online'
+            pm2 status
+            exit 0
+          else
+            echo '❌ ERROR: PM2 process ${{ env.PM2_APP_NAME }} is not online'
+            echo 'Current status: ' \${PM2_STATUS:-'Not Found'}
+            echo '=== PM2 Error Logs ==='
+            pm2 logs ${{ env.PM2_APP_NAME }} --lines 20 --nostream || true
+            exit 1
+          fi
+          "
+      
+      - name: Check Nuxt server direct connection
+        run: |
+          echo "Testing Nuxt server direct connection..."
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
+          # Test direct server connection
+          RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/ -m 10)
+          
+          if [ \"\$RESPONSE\" = \"200\" ]; then
+            echo '✅ Nuxt server responding on port 3000'
+            exit 0
+          else
+            echo '❌ ERROR: Nuxt server not responding on port 3000'
+            echo 'HTTP Response Code:' \$RESPONSE
+            echo '=== PM2 Logs ==='
+            pm2 logs ${{ env.PM2_APP_NAME }} --lines 20 --nostream || true
+            exit 1
+          fi
+          "
+      
+      - name: Test Frontend and API access
+        run: |
+          echo "Testing frontend access via HTTPS..."
+          FRONTEND_STATUS=$(curl -s -o /dev/null -w '%{http_code}' https://${{ env.DOMAIN_NAME }}/ -m 15)
+          
+          if [ "$FRONTEND_STATUS" = "200" ]; then
+            echo '✅ Frontend is accessible via https://${{ env.DOMAIN_NAME }}/'
+          else
+            echo '❌ ERROR: Frontend is not accessible via domain'
+            echo 'HTTP Response Code:' $FRONTEND_STATUS
+            exit 1
+          fi
+          
+          echo "Testing API access..."
+          API_RESPONSE=$(curl -s https://${{ env.DOMAIN_NAME }}/api/test-wp -m 15)
+          
+          if echo "$API_RESPONSE" | grep -q '"endpoint"'; then
+            echo '✅ API accessible via domain'
+          else
+            echo '❌ ERROR: API not accessible or returning unexpected response'
+            echo 'Response:' $(echo "$API_RESPONSE" | head -c 200)
+            exit 1
+          fi
+      
+      - name: Test WordPress access
+        run: |
+          echo "Testing WordPress access..."
+          
+          WP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/ -m 15)
+          
+          if [ "$WP_STATUS" = "200" ]; then
+            echo '✅ WordPress is accessible via https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/'
+          else
+            echo '⚠️ WARNING: WordPress may not be accessible'
+            echo 'HTTP Response Code:' $WP_STATUS
+          fi
+          
+          # Test WordPress REST API
+          WP_API_RESPONSE=$(curl -s https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/wp-json/ -m 15)
+          
+          if echo "$WP_API_RESPONSE" | grep -q '"name"'; then
+            echo '✅ WordPress REST API accessible'
+          else
+            echo '⚠️ WARNING: WordPress REST API may not be accessible'
+            echo 'Response:' $(echo "$WP_API_RESPONSE" | head -c 200)
+          fi
+  
+  notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy, verify]
+    if: always()
+    
+    steps:
+      - name: Check overall status
+        id: status
+        run: |
+          if [[ "${{ needs.deploy.result }}" == "success" && "${{ needs.verify.result }}" == "success" ]]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "status_text=SUCCESS" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "status_text=FAILED" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Generate deployment report
+        run: |
+          cat > deployment-report.txt << EOF
+          # Deployment Report: ${{ steps.status.outputs.status_text }}
+          
+          ## Application Details
+          - Version: ${{ needs.prepare.outputs.app_version }}
+          - Environment: ${{ github.event.inputs.environment || 'production' }}
+          - Domain: ${{ env.DOMAIN_NAME }}
+          - Deployed on: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          
+          ## Server Configuration
+          - Path: ${{ needs.prepare.outputs.server_path }}
+          - PM2 App Name: ${{ env.PM2_APP_NAME }}
+          
+          ## Deployment Results
+          - Build: ${{ needs.build.result }}
+          - Deploy: ${{ needs.deploy.result }}
+          - Verification: ${{ needs.verify.result }}
+          
+          ## URLs
+          - Frontend: https://${{ env.DOMAIN_NAME }}/
+          - API Example: https://${{ env.DOMAIN_NAME }}/api/test-wp
+          - WordPress Admin: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/wp-admin/
+          - WordPress REST API: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/wp-json/
+          - WordPress GraphQL: https://${{ env.DOMAIN_NAME }}/${{ env.WP_DIR_NAME }}/graphql
+          
+          ## How to manage the server
+          - View PM2 processes: \`pm2 status\`
+          - View application logs: \`pm2 logs ${{ env.PM2_APP_NAME }}\`
+          - Restart application: \`pm2 restart ${{ env.PM2_APP_NAME }}\`
+          - Monitor resources: \`pm2 monit\`
+          
+          ## Troubleshooting
+          - Check Nginx logs: \`sudo tail -f /var/log/nginx/access.log /var/log/nginx/error.log\`
+          - Check application logs: \`pm2 logs ${{ env.PM2_APP_NAME }} --lines 50\`
+          - Restart Nginx: \`sudo systemctl restart nginx\`
+          - Test Nuxt locally: \`curl http://localhost:3000/\`
+          
+          ## Webhook triggered by
+          - User: ${{ github.actor }}
+          - Event: ${{ github.event_name }}
+          - Repository: ${{ github.repository }}
+          EOF
+      
+      - name: Send notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          # Prepare notification message
+          STATUS_EMOJI="${{ steps.status.outputs.success == 'true' && '✅' || '❌' }}"
+          
+          # Send to Slack if webhook URL is provided
+          if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text": "'$STATUS_EMOJI' Deployment to ${{ github.event.inputs.environment || 'production' }} ${{ steps.status.outputs.status_text }}",
+                "blocks": [
+                  {
+                    "type": "header",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "'$STATUS_EMOJI' Deployment to ${{ github.event.inputs.environment || 'production' }} ${{ steps.status.outputs.status_text }}",
+                      "emoji": true
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Version:*\n${{ needs.prepare.outputs.app_version }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Environment:*\n${{ github.event.inputs.environment || 'production' }}"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Domain:*\nhttps://${{ env.DOMAIN_NAME }}/"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Triggered by:*\n${{ github.actor }}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "View <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deployment logs>"
+                    }
+                  }
+                ]
+              }' \
+              ${{ secrets.SLACK_WEBHOOK_URL }}
+          fi
 
       # Setup SSH key for secure authentication
       - name: Setup SSH key
