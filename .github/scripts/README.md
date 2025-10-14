@@ -6,7 +6,8 @@ This directory contains modular scripts used in the GitHub Actions deployment wo
 
 ### Core Scripts
 
-- **setup-ssh.sh**: Sets up SSH keys and connections for secure server access
+- **setup-ssh.sh.obsolete**: [OBSOLETE] Former SSH setup script (kept for reference)
+- **simple-ssh-setup.sh**: Simplified SSH setup that works with standard GitHub Actions secrets
 - **build-image.sh**: Builds the Docker image for the Nuxt.js application
 - **test-container.sh**: Tests the built Docker container to ensure it works correctly
 - **prepare-server.sh**: Prepares the server for deployment (backup, cleanup, etc.)
@@ -72,10 +73,16 @@ export TAG="test"
 
 Each script requires specific environment variables. Here's a summary:
 
-### setup-ssh.sh
+### setup-ssh.sh.obsolete [OBSOLETE]
 - `SSH_PRIVATE_KEY`: The SSH private key
-- `SERVER_HOST`: Hostname or IP of the server
-- `SERVER_USER`: SSH username
+- `SERVER_HOST`: Hostname or IP of the server (no longer used)
+- `SERVER_USER`: SSH username (no longer used)
+- `SSH_HOST_KEY`: (Optional) Host key for verification
+
+### simple-ssh-setup.sh
+- `SSH_PRIVATE_KEY`: The SSH private key
+- `VPS_SERVER`: Hostname or IP of the server (matches GitHub secret name)
+- `VPS_USERNAME`: SSH username (matches GitHub secret name)
 - `SSH_HOST_KEY`: (Optional) Host key for verification
 
 ### build-image.sh
