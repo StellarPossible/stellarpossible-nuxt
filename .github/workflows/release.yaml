@@ -395,13 +395,15 @@ jobs:
           EOF
       
       - name: Send notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ vars.ENABLE_SLACK_NOTIFICATIONS == 'true' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           # Prepare notification message
           STATUS_EMOJI="${{ steps.status.outputs.success == 'true' && '✅' || '❌' }}"
           
           # Send to Slack if webhook URL is provided
-          if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+          if [[ -n "${SLACK_WEBHOOK_URL}" ]]; then
             curl -X POST -H 'Content-type: application/json' \
               --data '{
                 "text": "'$STATUS_EMOJI' Deployment to ${{ github.event.inputs.environment || 'production' }} ${{ steps.status.outputs.status_text }}",
