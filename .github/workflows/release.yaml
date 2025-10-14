@@ -157,13 +157,20 @@ jobs:
           echo "✅ Patchy has packaged the image for deployment!"
           ls -lh stellarpossible-docker-image.tar.gz
 
+      - name: � Set up SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.VPS_SERVER }} $(echo "${{ secrets.SSH_HOST_KEY }}")" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          ssh-keygen -lf ~/.ssh/id_rsa || echo "SSH key added with fingerprint shown above"
+
       - name: 🚚 Patchy prepares the server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_SERVER }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          echo "🤖 Patchy is connecting to the server at ${{ secrets.VPS_SERVER }}..."
+          
+          ssh -o StrictHostKeyChecking=accept-new -v ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} '
             echo "🤖 Patchy has arrived on the server!"
             echo "👤 Running as user: $(whoami)"
             echo "📁 Working in: $(pwd)"
@@ -198,24 +205,19 @@ jobs:
             
             # Remove old images (keep last 3 backups)
             echo "🧹 Patchy cleans up old images..."
-            docker images ${{ env.DOCKER_IMAGE_NAME }} --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | grep backup | tail -n +4 | awk '{print $1}' | xargs -r docker rmi || true
+            docker images ${{ env.DOCKER_IMAGE_NAME }} --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | grep backup | tail -n +4 | awk "{print \$1}" | xargs -r docker rmi || true
+          '
 
       - name: 📤 Patchy uploads the new image
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_SERVER }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "stellarpossible-docker-image.tar.gz"
-          target: "${{ env.DEPLOY_PATH }}/nuxt-app/"
+        run: |
+          echo "🤖 Patchy is uploading the Docker image to the server..."
+          scp -v stellarpossible-docker-image.tar.gz ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:${{ env.DEPLOY_PATH }}/nuxt-app/
+          echo "✅ Image upload complete!"
 
       - name: 🎯 Patchy deploys the application
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_SERVER }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          echo "🤖 Patchy is deploying the application..."
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} '
             cd ${{ env.DEPLOY_PATH }}/nuxt-app
             
             echo "🤖 Patchy says: Loading the new image..."
@@ -227,7 +229,7 @@ jobs:
             cat > .env << EOF
             # WordPress Configuration (using admin credentials for now)
             WP_USER=admin
-            WP_APP_PASSWORD=your_wp_app_password_here
+            WP_APP_PASSWORD=${{ secrets.WP_APP_PASSWORD }}
             WP_GRAPHQL_ENDPOINT=https://stellarpossible.com/cms/graphql
             WP_REST_ENDPOINT=https://stellarpossible.com/cms/wp-json
             WP_API_URL=https://stellarpossible.com/cms
@@ -263,14 +265,13 @@ jobs:
             
             # Cleanup the uploaded tar file
             rm -f stellarpossible-docker-image.tar.gz
+          '
+          echo "📦 Deployment step completed!"
 
       - name: 🏥 Patchy performs health checks
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_SERVER }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          echo "🤖 Patchy says: Time for the health check!"
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} '
             echo "🤖 Patchy says: Time for the health check!"
             
             # Wait for container to start
@@ -303,6 +304,8 @@ jobs:
                 fi
               fi
             done
+          '
+          echo "✅ Health check completed!"
 
       - name: 🌐 Patchy tests external access
         run: |
@@ -326,12 +329,9 @@ jobs:
           done
 
       - name: 🔍 Patchy runs final diagnostics
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_SERVER }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+        run: |
+          echo "🤖 Patchy is running final diagnostics..."
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} '
             echo "🤖 Patchy says: Running final diagnostics..."
             
             cd ${{ env.DEPLOY_PATH }}/nuxt-app
@@ -368,6 +368,8 @@ jobs:
             # Show port usage
             echo "🔌 Port 3000 status:"
             netstat -tlnp | grep :3000 || echo "Port 3000 not in use"
+          '
+          echo "✅ Diagnostics completed!"
 
       - name: 🎉 Patchy celebrates success
         if: success()
