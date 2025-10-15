@@ -291,16 +291,15 @@ else
   if [ -d "./extracted" ]; then
     print_info "Setting up application files from extracted archive..."
     
-    # For Nuxt.js applications, we're looking for the .output directory or server directory
+    # For Nuxt.js applications, prioritize .output directory
     if [ -d "./extracted/.output" ]; then
       print_success "Found Nuxt output directory at ./extracted/.output"
-      cp -R ./extracted/.output/* ./deployment/
-    elif [ -d "./extracted/server" ]; then
-      print_success "Found server directory at ./extracted/server"
-      cp -R ./extracted/* ./deployment/
-    elif [ -d "./extracted/dist" ]; then
-      print_success "Found dist directory at ./extracted/dist"
-      cp -R ./extracted/* ./deployment/
+      cp -R ./extracted/.output ./deployment/
+      cp -R ./extracted/package.json ./deployment/ 2>/dev/null || true
+    elif [ -d "./extracted/app/.output" ]; then
+      print_success "Found Nuxt output directory at ./extracted/app/.output"
+      cp -R ./extracted/app/.output ./deployment/
+      cp -R ./extracted/app/package.json ./deployment/ 2>/dev/null || true
     elif [ -f "./extracted/package.json" ]; then
       print_success "Found package.json at root level"
       cp -R ./extracted/* ./deployment/
@@ -308,10 +307,6 @@ else
       # Just copy everything and hope for the best
       print_warning "Could not identify specific app structure, copying all files"
       cp -R ./extracted/* ./deployment/ 2>/dev/null || true
-      
-      # List what we found to help debug
-      print_info "Files copied to deployment directory:"
-      ls -la ./deployment/
     fi
     
     # Copy environment file to deployment directory
@@ -325,8 +320,9 @@ else
   "name": "stellarpossible-nuxt",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node server/index.js"
+    "start": "node .output/server/index.mjs"
   }
 }
 EOF
@@ -373,12 +369,12 @@ EOF
     
     # Determine the start command based on what's available
     START_CMD="npm start"
-    if [ -f "server/index.js" ]; then
+    if [ -f ".output/server/index.mjs" ]; then
+      START_CMD="node .output/server/index.mjs"
+    elif [ -f "server/index.js" ]; then
       START_CMD="node server/index.js"
     elif [ -f "index.js" ]; then
       START_CMD="node index.js"
-    elif [ -f ".output/server/index.mjs" ]; then
-      START_CMD="node .output/server/index.mjs"
     fi
     
     print_info "Using start command: $START_CMD"

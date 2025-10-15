@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "type-check": "nuxt typecheck"
+    "type-check": "nuxt typecheck",
+    "start": "node .output/server/index.mjs"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",
