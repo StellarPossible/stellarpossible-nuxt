@@ -29,7 +29,7 @@ check_docker() {
     return 1
   fi
   
-  if ! docker info &>/dev/null; then
+  if ! **sudo** docker info &>/dev/null; then
     print_error "Docker daemon is not running or current user doesn't have permissions!"
     return 1
   fi
@@ -43,7 +43,7 @@ check_image_exists() {
   local image="$1"
   local tag="${2:-latest}"
   
-  if docker image inspect "$image:$tag" &>/dev/null; then
+  if **sudo** docker image inspect "$image:$tag" &>/dev/null; then
     print_success "Image $image:$tag exists"
     return 0
   else
@@ -56,7 +56,7 @@ check_image_exists() {
 check_container_exists() {
   local container="$1"
   
-  if docker ps -a -q -f "name=$container" | grep -q .; then
+  if sudo docker ps -a -q -f "name=$container" | grep -q .; then
     print_success "Container $container exists"
     return 0
   else
@@ -69,7 +69,7 @@ check_container_exists() {
 check_container_running() {
   local container="$1"
   
-  if docker ps -q -f "name=$container" | grep -q .; then
+  if sudo docker ps -q -f "name=$container" | grep -q .; then
     print_success "Container $container is running"
     return 0
   else
@@ -85,13 +85,13 @@ safe_remove_container() {
   
   if check_container_exists "$container"; then
     print_info "Stopping container $container..."
-    docker stop "$container" &>/dev/null || print_warning "Container was not running"
+    **sudo** docker stop "$container" &>/dev/null || print_warning "Container was not running"
     
     print_info "Removing container $container..."
-    if ! docker rm "$container" &>/dev/null; then
+    if ! **sudo** docker rm "$container" &>/dev/null; then
       if [ "$force" = "true" ]; then
         print_warning "Standard removal failed, trying force removal..."
-        docker rm -f "$container" &>/dev/null || {
+        **sudo** docker rm -f "$container" &>/dev/null || {
           print_error "Failed to remove container $container even with force!"
           return 1
         }
@@ -121,7 +121,7 @@ backup_container() {
   fi
   
   print_info "Creating backup of container $container as $image:$tag..."
-  if docker commit "$container" "$image:$tag"; then
+  if **sudo** docker commit "$container" "$image:$tag"; then
     print_success "Backup created successfully: $image:$tag"
     return 0
   else
@@ -137,7 +137,7 @@ save_image() {
   local output="${3:-$image-$tag.tar.gz}"
   
   print_info "Saving image $image:$tag to $output..."
-  if docker save "$image:$tag" | gzip > "$output"; then
+  if **sudo** docker save "$image:$tag" | gzip > "$output"; then
     print_success "Image saved successfully to $output"
     ls -lh "$output"
     return 0
@@ -157,7 +157,7 @@ load_image() {
   fi
   
   print_info "Loading image from $input..."
-  if gunzip -c "$input" | docker load; then
+  if gunzip -c "$input" | **sudo** docker load; then
     print_success "Image loaded successfully!"
     return 0
   else
@@ -175,17 +175,17 @@ cleanup_old_images() {
   print_info "Cleaning up old $image images with tag pattern $tag_pattern..."
   
   # Get count of matching images
-  local count=$(docker images "$image" --format "{{.Tag}}" | grep -c "$tag_pattern" 2>/dev/null || echo "0")
+  local count=$(**sudo** docker images "$image" --format "{{.Tag}}" | grep -c "$tag_pattern" 2>/dev/null || echo "0")
   
   if [ "$count" -gt "$keep" ]; then
     print_info "Found $count images, keeping newest $keep..."
     
     # Get list of images to remove
-    local images_to_remove=$(docker images "$image" --format "{{.Repository}}:{{.Tag}}" | 
+    local images_to_remove=$(**sudo** docker images "$image" --format "{{.Repository}}:{{.Tag}}" | 
                            grep "$tag_pattern" | sort -r | tail -n +$((keep+1)))
     
     if [ -n "$images_to_remove" ]; then
-      echo "$images_to_remove" | xargs -r docker rmi 2>/dev/null || 
+      echo "$images_to_remove" | xargs -r **sudo** docker rmi 2>/dev/null || 
         print_warning "Some images could not be removed, they might be in use"
     fi
     
