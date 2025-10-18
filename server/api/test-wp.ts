@@ -108,7 +108,60 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
     }
   }
   
-  // Test 4: Try alternative authentication formats
+  // Test 4: Test GraphQL endpoint
+  try {
+    const graphqlEndpoint = config.public.wpGraphqlEndpoint || 'https://stellarpossible.com/cms/graphql';
+    const authString = config.public.wpUser && config.wpAppPassword ? 
+      Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64') : '';
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    
+    if (authString) {
+      headers['Authorization'] = `Basic ${authString}`;
+    }
+    
+    const response = await $fetch(graphqlEndpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        query: `
+          query TestQuery {
+            posts(first: 1) {
+              nodes {
+                id
+                title
+              }
+            }
+          }
+        `
+      }),
+      timeout: 10000
+    });
+    
+    testResults.tests.push({
+      test: 'GraphQL API Connectivity',
+      status: 'success',
+      data: {
+        endpoint: graphqlEndpoint,
+        postCount: response.data?.posts?.nodes?.length || 0,
+        firstPost: response.data?.posts?.nodes?.[0]?.title || 'No posts found'
+      }
+    });
+  } catch (error: any) {
+    testResults.tests.push({
+      test: 'GraphQL API Connectivity',
+      status: 'failed',
+      error: {
+        message: error.message,
+        status: error.status || error.statusCode,
+        cause: error.cause?.code || error.code
+      }
+    });
+  }
+
+  // Test 5: Try alternative authentication formats
   if (config.public.wpUser && config.wpAppPassword) {
     // Test with email if username fails
     const possibleUsernames = [

@@ -113,4 +113,50 @@ watch(isHomePage, (isHome) => {
     overflow: hidden;
   }
 }
+
+/* WordPress content global styles */
+.wp-content {
+  color: #333;
+  
+  p {
+    display: block;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    display: block;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #222;
+  }
+  
+  ul, ol {
+    display: block;
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+    
+    li {
+      display: list-item;
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem 0;
+  }
+  
+  a {
+    color: #0066cc;
+    text-decoration: underline;
+    
+    &:hover {
+      color: #004499;
+    }
+  }
+}
 </style>

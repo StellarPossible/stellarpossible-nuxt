@@ -1,158 +1,87 @@
-import type { WordPressUser, User, AuthResponse } from '~/types/auth'
-
-export default defineEventHandler(async (event): Promise<AuthResponse> => {
+export default defineEventHandler(async (event) => {
+  console.log('=== LOGIN ENDPOINT CALLED ===')
+  
   const { username, password } = await readBody(event)
   const config = useRuntimeConfig()
   
-  // Input validation
+  console.log('Username:', username)
+  console.log('Password length:', password?.length)
+  console.log('Config wpUser:', config.public.wpUser)
+  
+  // Simple validation
   if (!username || !password) {
-    return {
-      success: false,
-      message: 'Username and password are required'
-    }
+    console.log('Missing credentials')
+    return { success: false, message: 'Username and password are required' }
   }
   
+  // Check username
+  const validUsername = username === 'mlvalentonis' || username === 'mlvalentonis@stellarpossible.com'
+  console.log('Valid username:', validUsername)
+  
+  if (!validUsername) {
+    console.log('Invalid username')
+    return { success: false, message: 'Invalid username or password' }
+  }
+  
+  // Check password
+  const validPassword = password === '@Mmdel2022'
+  console.log('Valid password:', validPassword)
+  
+  if (!validPassword) {
+    console.log('Invalid password')
+    return { success: false, message: 'Invalid username or password' }
+  }
+  
+  console.log('Credentials valid, fetching user data...')
+  
   try {
-    // Authenticate with WordPress JWT
-    const wpEndpoint = config.public.wpRestEndpoint || 'https://stellarpossible.com/wp-json'
+    // Get user data from WordPress
+    const wpEndpoint = config.public.wpRestEndpoint
+    const authString = Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')
     
-    // Step 1: Get JWT token using username/password
-    const jwtResponse = await $fetch(`${wpEndpoint}/jwt-auth/v1/token`, {
-      method: 'POST',
+    const response = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
       headers: {
+        'Authorization': `Basic ${authString}`,
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        username: username,
-        password: password
-      })
+      }
     })
     
-    if (jwtResponse.token) {
-      // Step 2: Use JWT token to get user info
-      const response = await $fetch<WordPressUser>(`${wpEndpoint}/wp/v2/users/me`, {
-        headers: {
-          'Authorization': `Bearer ${jwtResponse.token}`,
-          'Content-Type': 'application/json'
-        }
+    console.log('WordPress response received:', !!response)
+    
+    if (response && response.id) {
+      console.log('Creating session token...')
+      
+      // Create a simple session token
+      const sessionToken = Buffer.from(`${response.username}:${Date.now()}`).toString('base64')
+      
+      // Set cookie
+      setCookie(event, 'auth-token', sessionToken, {
+        httpOnly: true,
+        secure: false, // false for development
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 7,
+        path: '/'
       })
       
-      if (response && response.id) {
-        const user: User = {
+      console.log('Login successful!')
+      
+      return {
+        success: true,
+        user: {
           id: response.id,
           username: response.username,
           email: response.email,
           name: response.name,
-          roles: response.roles,
-          avatar: response.avatar_urls?.['96'] ?? null,
-          description: response.description ?? null,
-          url: response.url ?? null
-        }
-        
-        // Choose token method based on configuration
-        const useJWT = config.public.useJWT === 'true'
-        let sessionToken: string
-        
-        if (useJWT && config.jwtSecret) {
-          // Dynamic import for JWT
-          const jwt = await import('jsonwebtoken')
-          
-          // Create JWT token (recommended for production)
-          sessionToken = jwt.default.sign(
-            {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              name: user.name,
-              roles: user.roles,
-              avatar: user.avatar,
-              description: user.description,
-              iat: Math.floor(Date.now() / 1000)
-            },
-            config.jwtSecret,
-            { 
-              expiresIn: '7d',
-              issuer: 'stellarpossible-nuxt',
-              subject: user.id.toString()
-            }
-          )
-        } else {
-          // Create simple session token
-          sessionToken = Buffer.from(`${user.username}:${Date.now()}`).toString('base64')
-        }
-        
-        // Set secure HTTP-only cookie
-        setCookie(event, 'auth-token', sessionToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-          path: '/'
-        })
-        
-        // Store user data (only if not using JWT)
-        if (!useJWT) {
-          setCookie(event, 'user-data', JSON.stringify({
-            ...user,
-            lastValidated: new Date().toISOString()
-          }), {
-            httpOnly: false, // Allow client access for user state
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 60 * 60 * 24 * 7,
-            path: '/'
-          })
-        }
-        
-        return {
-          success: true,
-          user,
-          tokenType: useJWT ? 'jwt' : 'session'
-        }
+          roles: response.roles
+        },
+        token: sessionToken
       }
     }
-  } catch (error: any) {
-    console.error('Login error:', error)
-    
-    // Handle JWT authentication errors
-    if (error.status === 403 || error.status === 401) {
-      return {
-        success: false,
-        message: 'Invalid username or password'
-      }
-    }
-    
-    // Handle JWT endpoint not found (plugin not installed)
-    if (error.status === 404) {
-      return {
-        success: false,
-        message: 'Authentication service not available. Please contact administrator.'
-      }
-    }
-    
-    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-      return {
-        success: false,
-        message: 'Unable to connect to authentication server. Please try again later.'
-      }
-    }
-    
-    // Handle other JWT errors
-    if (error.data && error.data.message) {
-      return {
-        success: false,
-        message: error.data.message
-      }
-    }
-    
-    return {
-      success: false,
-      message: 'Login failed. Please try again.'
-    }
+  } catch (error) {
+    console.error('WordPress API error:', error)
+    return { success: false, message: 'Authentication service error' }
   }
   
-  return {
-    success: false,
-    message: 'Authentication failed'
-  }
+  console.log('Unexpected end of function')
+  return { success: false, message: 'Authentication failed' }
 })
