@@ -27,14 +27,17 @@
             autocomplete="username"
           />
         </div>
-        <div class="form-group">
+        <div class="form-group password-group">
           <input 
             v-model="loginForm.password" 
             placeholder="Password" 
-            type="password" 
+            :type="showLoginPassword ? 'text' : 'password'" 
             required 
             autocomplete="current-password"
           />
+          <span class="password-toggle" @click="showLoginPassword = !showLoginPassword">
+            <Icon :icon="showLoginPassword ? 'mdi:eye-off' : 'mdi:eye'" />
+          </span>
         </div>
         <button type="submit" :disabled="isLoading" class="submit-btn">
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
@@ -63,15 +66,18 @@
             autocomplete="email"
           />
         </div>
-        <div class="form-group">
+        <div class="form-group password-group">
           <input 
             v-model="registerForm.password" 
             placeholder="Password (8+ characters)" 
-            type="password" 
+            :type="showRegisterPassword ? 'text' : 'password'" 
             required 
             autocomplete="new-password"
             minlength="8"
           />
+          <span class="password-toggle" @click="showRegisterPassword = !showRegisterPassword">
+            <Icon :icon="showRegisterPassword ? 'mdi:eye-off' : 'mdi:eye'" />
+          </span>
         </div>
         <button type="submit" :disabled="isLoading" class="submit-btn">
           {{ isLoading ? 'Creating Account...' : 'Create Account' }}
@@ -99,6 +105,8 @@ const error = ref('')
 const success = ref('')
 const debugInfo = ref(null)
 const showDebug = process.dev // Only show in development
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
 
 const loginForm = ref({
   username: '',
@@ -115,6 +123,8 @@ const registerForm = ref({
 watch(isRegistering, () => {
   error.value = ''
   success.value = ''
+  showLoginPassword.value = false
+  showRegisterPassword.value = false
 })
 
 async function login() {
@@ -256,6 +266,7 @@ if (user.value) {
 
 .form-group {
   margin-bottom: 1.5rem;
+  position: relative;
   
   input {
     width: 100%;
@@ -272,6 +283,30 @@ if (user.value) {
     
     &::placeholder {
       color: #6c757d;
+    }
+  }
+}
+
+.password-group {
+  position: relative;
+  
+  .password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+    
+    &:hover {
+      color: $primary;
+    }
+    
+    svg {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
     }
   }
 }
