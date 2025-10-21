@@ -15,6 +15,13 @@ export default defineEventHandler(async (event) => {
     return { success: false, message: 'Username and password are required' }
   }
   
+  // Check username length (unless it's an email)
+  const isEmail = username.includes('@') && username.includes('.')
+  if (!isEmail && username.length < 6) {
+    console.log('Username too short')
+    return { success: false, message: 'Username must be at least 6 characters long' }
+  }
+  
   // For the demo site, we'll use hardcoded credentials for testing
   // In production, this should be replaced with actual WordPress authentication
   const validUsers = [
