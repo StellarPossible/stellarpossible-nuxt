@@ -3,8 +3,7 @@
     <div class="hero-backdrop">
       <h1>Your Ideas. Our Tech. <br />Infinite Possibility.</h1>
       <p>
-        Crafting solutions for creatives, educators, and visionaries ready to
-        make an impact.
+        Human-focused, AI-driven solutions for creatives, educators, and visionaries.
       </p>
       <div class="hero-buttons">
         <button class="primary">Launch Your Project</button>
