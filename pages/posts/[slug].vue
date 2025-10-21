@@ -153,22 +153,16 @@ onMounted(() => {
           </div>
           <div class="date">{{ post.date }}</div>
         </div>
-        
-        <h1 class="post-title">{{ post.title }}</h1>
-        
-        <div v-if="post.featuredImage" class="featured-image">
-          <NuxtImg 
-            :src="post.featuredImage.node.sourceUrl" 
-            :alt="post.featuredImage.node.altText || post.title"
-            width="1200"
-            height="600" 
-          />
-        </div>
       </div>
       
       <div v-if="post.content" class="post-content">
-        <!-- Use our WordPress content component without debug mode -->
-        <WordPressContent :content="post.content" :debug="false" />
+        <!-- Use our WordPress content component with title and featured image -->
+        <WordPressContent 
+          :content="post.content" 
+          :title="post.title"
+          :featuredImage="post.featuredImage?.node?.sourceUrl || ''"
+          :debug="false" 
+        />
       </div>
       <div v-else class="post-content-empty">
         <p>No content available for this post.</p>
