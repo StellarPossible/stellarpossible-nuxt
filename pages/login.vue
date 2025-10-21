@@ -4,27 +4,38 @@
       <div class="auth-tabs">
         <button 
           :class="{ active: !isRegistering }" 
-          @click="isRegistering = false"
+          @click="switchToLogin"
         >
           Login
         </button>
         <button 
           :class="{ active: isRegistering }" 
-          @click="isRegistering = true"
+          @click="switchToRegister"
         >
           Register
         </button>
       </div>
 
       <!-- Login Form -->
-      <form v-if="!isRegistering" @submit.prevent="login" class="auth-form">
+      <form v-if="!isRegistering" @submit.prevent="login" class="auth-form" id="login-form" autocomplete="off" @reset.prevent>
         <h1>Welcome Back</h1>
+        
+        <!-- Hidden fields to trick browser autofill -->
+        <div style="display:none">
+          <input type="text" name="prevent-autofill-username" />
+          <input type="password" name="prevent-autofill-password" />
+        </div>
+        
         <div class="form-group">
           <input 
             v-model="loginForm.username" 
-            placeholder="Username or Email" 
+            placeholder="Username (6+ characters) or Email" 
             required 
-            autocomplete="username"
+            autocomplete="new-password" 
+            name="login-username"
+            minlength="6"
+            @focus="() => {}"
+            @blur="checkAutofill('login')"
           />
         </div>
         <div class="form-group password-group">
@@ -33,7 +44,10 @@
             placeholder="Password" 
             :type="showLoginPassword ? 'text' : 'password'" 
             required 
-            autocomplete="current-password"
+            autocomplete="new-password"
+            name="login-current-password"
+            @focus="() => {}"
+            @blur="checkAutofill('login')"
           />
           <span class="password-toggle" @click="showLoginPassword = !showLoginPassword">
             <Icon :icon="showLoginPassword ? 'mdi:eye-off' : 'mdi:eye'" />
@@ -46,15 +60,26 @@
       </form>
 
       <!-- Register Form -->
-      <form v-else @submit.prevent="register" class="auth-form">
+      <form v-else @submit.prevent="register" class="auth-form" id="register-form" autocomplete="off">
         <h1>Create Account</h1>
+        
+        <!-- Hidden fields to trick browser autofill -->
+        <div style="display:none">
+          <input type="text" name="prevent-autofill-username-reg" />
+          <input type="email" name="prevent-autofill-email-reg" />
+          <input type="password" name="prevent-autofill-password-reg" />
+        </div>
+        
         <div class="form-group">
           <input 
             v-model="registerForm.username" 
-            placeholder="Username (3+ characters)" 
+            placeholder="Username (6+ characters)" 
             required 
-            autocomplete="username"
-            minlength="3"
+            autocomplete="new-password" 
+            name="register-new-username"
+            minlength="6"
+            @focus="() => {}"
+            @blur="checkAutofill('register')"
           />
         </div>
         <div class="form-group">
@@ -63,7 +88,10 @@
             placeholder="Email Address" 
             type="email" 
             required 
-            autocomplete="email"
+            autocomplete="new-password"
+            name="register-new-email"
+            @focus="() => {}"
+            @blur="checkAutofill('register')"
           />
         </div>
         <div class="form-group password-group">
@@ -73,7 +101,10 @@
             :type="showRegisterPassword ? 'text' : 'password'" 
             required 
             autocomplete="new-password"
+            name="register-new-password"
             minlength="8"
+            @focus="() => {}"
+            @blur="checkAutofill('register')"
           />
           <span class="password-toggle" @click="showRegisterPassword = !showRegisterPassword">
             <Icon :icon="showRegisterPassword ? 'mdi:eye-off' : 'mdi:eye'" />
@@ -119,17 +150,114 @@ const registerForm = ref({
   password: ''
 })
 
-// Clear messages when switching forms
-watch(isRegistering, () => {
-  error.value = ''
-  success.value = ''
+// Functions to handle tab switching with proper form resets
+function switchToLogin() {
+  if (isRegistering.value) {
+    // Clear messages
+    error.value = ''
+    success.value = ''
+    
+    // Hide passwords
+    showLoginPassword.value = false
+    showRegisterPassword.value = false
+    
+    // Reset registration form
+    registerForm.value = { username: '', email: '', password: '' }
+    
+    // Reset autofill handling
+    autofillHandled.value = false
+    
+    // Set tab
+    isRegistering.value = false
+    
+    // Small delay to ensure the browser doesn't re-autofill after switching
+    setTimeout(() => {
+      loginForm.value = { username: '', password: '' }
+    }, 10)
+  }
+}
+
+function switchToRegister() {
+  if (!isRegistering.value) {
+    // Clear messages
+    error.value = ''
+    success.value = ''
+    
+    // Hide passwords
+    showLoginPassword.value = false
+    showRegisterPassword.value = false
+    
+    // Reset login form
+    loginForm.value = { username: '', password: '' }
+    
+    // Reset autofill handling
+    autofillHandled.value = false
+    
+    // Set tab
+    isRegistering.value = true
+    
+    // Small delay to ensure the browser doesn't re-autofill after switching
+    setTimeout(() => {
+      registerForm.value = { username: '', email: '', password: '' }
+    }, 10)
+  }
+}
+
+// Function to reset all form fields and prevent autofill
+function resetAllFormFields() {
+  // Reset form values
+  loginForm.value = { username: '', password: '' }
+  registerForm.value = { username: '', email: '', password: '' }
+  
+  // Reset password visibility
   showLoginPassword.value = false
   showRegisterPassword.value = false
-})
+}
+
+// Track if we've already handled autofill to prevent loops
+const autofillHandled = ref(false)
+
+// Function to check if fields were autofilled and reset them if needed
+function checkAutofill(formType: 'login' | 'register') {
+  // If we've already handled autofill this session, don't do it again
+  if (autofillHandled.value) {
+    return
+  }
+  
+  // Small timeout to let the browser finish autofill
+  setTimeout(() => {
+    // Check if the autofilled username is an email when it shouldn't be
+    if (formType === 'login' && loginForm.value.username.includes('@') && 
+        loginForm.value.username !== '' && loginForm.value.password !== '') {
+      // If looks like an autofill, reset the fields
+      console.log('Detected potential autofill in login form, resetting')
+      loginForm.value = { username: '', password: '' }
+      autofillHandled.value = true
+    }
+    
+    if (formType === 'register') {
+      // For register form, if email and username are identical, it's likely autofill
+      if (registerForm.value.username === registerForm.value.email && 
+          registerForm.value.username !== '' && registerForm.value.email !== '') {
+        console.log('Detected potential autofill in register form, resetting')
+        registerForm.value = { username: '', email: '', password: '' }
+        autofillHandled.value = true
+      }
+    }
+  }, 50)
+}
 
 async function login() {
   isLoading.value = true
   error.value = ''
+  
+  // Client-side validation for username length (unless it's an email)
+  const isEmail = loginForm.value.username.includes('@') && loginForm.value.username.includes('.')
+  if (!isEmail && loginForm.value.username.length < 6) {
+    error.value = 'Username must be at least 6 characters'
+    isLoading.value = false
+    return
+  }
   
   try {
     const response = await $fetch('/api/auth/login', {
@@ -142,10 +270,12 @@ async function login() {
 
     if (response.success) {
       const user = useState('auth.user')
-      user.value = response.user
+      if ('user' in response) {
+        user.value = response.user
+      }
       await navigateTo('/')
     } else {
-      error.value = response.message || 'Login failed'
+      error.value = 'message' in response ? response.message : 'Login failed'
     }
   } catch (err: any) {
     console.error('Login error:', err)
@@ -159,6 +289,13 @@ async function register() {
   isLoading.value = true
   error.value = ''
   success.value = ''
+  
+  // Client-side validation for username length
+  if (registerForm.value.username.length < 6) {
+    error.value = 'Username must be at least 6 characters'
+    isLoading.value = false
+    return
+  }
   
   try {
     const response = await $fetch('/api/auth/register', {
@@ -203,6 +340,30 @@ const user = useState('auth.user')
 if (user.value) {
   await navigateTo('/')
 }
+
+// Reset and prevent autofill issues when component is mounted
+onMounted(() => {
+  // First reset immediately
+  resetAllFormFields()
+  
+  // Then add a delayed reset to catch any browser autofill attempts
+  setTimeout(() => {
+    // Create dummy forms and submit them to clear browser autofill data
+    const clearLoginForm = document.createElement('form')
+    clearLoginForm.setAttribute('autocomplete', 'off')
+    document.body.appendChild(clearLoginForm)
+    clearLoginForm.submit()
+    document.body.removeChild(clearLoginForm)
+    
+    // Reset form fields again
+    resetAllFormFields()
+    
+    // Focus on username field (helps prevent autofill in some browsers)
+    if (!isRegistering.value) {
+      (document.querySelector('#login-form input[name="login-username"]') as HTMLInputElement)?.focus()
+    }
+  }, 100)
+})
 </script>
 
 <style scoped lang="scss">
@@ -279,6 +440,14 @@ if (user.value) {
     &:focus {
       outline: none;
       border-color: $primary;
+    }
+    
+    &:invalid:not(:placeholder-shown) {
+      border-color: #dc3545;
+    }
+    
+    &:valid:not(:placeholder-shown) {
+      border-color: #28a745;
     }
     
     &::placeholder {
