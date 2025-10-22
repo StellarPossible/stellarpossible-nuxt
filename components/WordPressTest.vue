@@ -29,13 +29,35 @@
 </template>
 
 <script setup lang="ts">
+interface TestError {
+  message: string
+  status?: number
+  statusCode?: number
+  cause?: any
+  authUser?: string
+  passwordFormat?: string
+  testedWith?: string
+}
+
+interface TestResult {
+  test: string
+  status: 'success' | 'failed'
+  data?: any
+  error?: TestError
+}
+
+interface TestResults {
+  endpoint: string
+  tests: TestResult[]
+}
+
 const loading = ref(false)
-const results = ref(null)
+const results = ref<TestResults | null>(null)
 
 async function runTests() {
   loading.value = true
   try {
-    results.value = await $fetch('/api/test-wp')
+    results.value = await $fetch<TestResults>('/api/test-wp')
   } catch (error) {
     console.error('Test failed:', error)
   } finally {
