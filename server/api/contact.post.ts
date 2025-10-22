@@ -1,3 +1,5 @@
+import { sendContactEmail } from "~/server/utils/email"
+
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ name?: string; email?: string; subject?: string; message?: string }>(event)
 
@@ -11,11 +13,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid form data' })
   }
 
-  // TODO: Integrate with email or ticketing. For now, log to server.
-  console.info('[Contact] New message received:', { name, email, subject, message: message.slice(0, 200) })
-
-  // Simulate processing delay (optional)
-  await new Promise((r) => setTimeout(r, 250))
+  // Send via email provider (Resend) or simulate if not configured
+  await sendContactEmail({ name, email, subject, message })
 
   return { success: true }
 })
