@@ -348,14 +348,7 @@ onMounted(() => {
   
   // Then add a delayed reset to catch any browser autofill attempts
   setTimeout(() => {
-    // Create dummy forms and submit them to clear browser autofill data
-    const clearLoginForm = document.createElement('form')
-    clearLoginForm.setAttribute('autocomplete', 'off')
-    document.body.appendChild(clearLoginForm)
-    clearLoginForm.submit()
-    document.body.removeChild(clearLoginForm)
-    
-    // Reset form fields again
+    // Reset form fields again (without causing any page reload)
     resetAllFormFields()
     
     // Focus on username field (helps prevent autofill in some browsers)
