@@ -134,7 +134,7 @@ const isRegistering = ref(false)
 const isLoading = ref(false)
 const error = ref('')
 const success = ref('')
-const debugInfo = ref(null)
+const debugInfo = ref<any>(null)
 const showDebug = process.dev // Only show in development
 const showLoginPassword = ref(false)
 const showRegisterPassword = ref(false)
@@ -329,7 +329,7 @@ async function register() {
 
 async function loadDebugInfo() {
   try {
-    debugInfo.value = await $fetch('/api/auth/debug')
+    debugInfo.value = await $fetch<any>('/api/auth/debug')
   } catch (err) {
     console.error('Debug info failed:', err)
   }

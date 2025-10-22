@@ -15,7 +15,7 @@ export default defineEventHandler(async (event): Promise<any> => {
   
   const { username, password } = await readBody(event)
   
-  const debugInfo = {
+  const debugInfo: any = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     wpDebugEnabled: true,
@@ -32,10 +32,11 @@ export default defineEventHandler(async (event): Promise<any> => {
       useJWT: config.public.useJWT
     },
     tests: {
-      jwtEndpoint: null,
-      jwtAuth: null,
-      restApiAuth: null,
-      userFetch: null
+      jwtEndpoint: null as any,
+      jwtAuth: null as any,
+      restApiAuth: null as any,
+      userFetch: null as any,
+      globalError: null as any
     }
   }
   
@@ -62,7 +63,7 @@ export default defineEventHandler(async (event): Promise<any> => {
     // Test 2: Try JWT authentication with provided credentials
     if (username && password) {
       try {
-        const jwtResponse = await $fetch(`${wpEndpoint}/jwt-auth/v1/token`, {
+        const jwtResponse: any = await $fetch(`${wpEndpoint}/jwt-auth/v1/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -150,7 +151,8 @@ async function checkWordPressDebug(config: any): Promise<boolean> {
   } catch (error) {
     // Fallback: check if we can access a debug-only endpoint
     try {
-      const debugResponse = await $fetch(`${wpEndpoint}/wp/v2/settings`, {
+      const wpEndpoint = config.public.wpRestEndpoint || 'https://stellarpossible.com/wp-json'
+      const debugResponse: any = await $fetch(`${wpEndpoint}/wp/v2/settings`, {
         headers: {
           'Authorization': `Basic ${Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')}`,
           'Content-Type': 'application/json'

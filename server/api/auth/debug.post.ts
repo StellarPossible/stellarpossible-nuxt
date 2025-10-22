@@ -9,7 +9,30 @@ export default defineEventHandler(async (event) => {
   
   const config = useRuntimeConfig()
   
-  const debugInfo = {
+  const debugInfo: {
+    environment: string | undefined
+    wpRestEndpoint: string
+    wpUser: string
+    hasWpAppPassword: boolean
+    useJWT: string
+    wordpressConnection: null | {
+      status: string
+      name?: any
+      description?: any
+      url?: any
+      routes?: string[]
+      error?: any
+      statusCode?: any
+    }
+    authentication: null | {
+      status: string
+      user?: any
+      roles?: any
+      error?: any
+      statusCode?: any
+      message?: string
+    }
+  } = {
     environment: process.env.NODE_ENV,
     wpRestEndpoint: config.public.wpRestEndpoint,
     wpUser: config.public.wpUser,
@@ -24,7 +47,7 @@ export default defineEventHandler(async (event) => {
     const wpEndpoint = config.public.wpRestEndpoint || 'https://stellarpossible.com/wp-json'
     
     // Test basic WordPress API connectivity
-    const wpInfo = await $fetch(`${wpEndpoint}/wp/v2/`)
+  const wpInfo: any = await $fetch(`${wpEndpoint}/wp/v2/`)
     
     debugInfo.wordpressConnection = {
       status: 'connected',
@@ -37,7 +60,7 @@ export default defineEventHandler(async (event) => {
     // Test authentication
     if (config.public.wpUser && config.wpAppPassword) {
       try {
-        const authTest = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
+        const authTest: any = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
           headers: {
             'Authorization': `Basic ${Buffer.from(`${config.public.wpUser}:${config.wpAppPassword}`).toString('base64')}`
           }

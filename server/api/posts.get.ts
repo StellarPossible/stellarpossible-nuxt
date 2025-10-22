@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
   `;
 
   // Variables for GraphQL query
-  const variables = {
+  const variables: Record<string, any> = {
     first: perPage,
     after: null, // Implement pagination with cursor if needed
   };
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
   
   try {
     // Make GraphQL request to WordPress
-    const response = await $fetch(config.public.wpGraphqlEndpoint, {
+    const response: any = await $fetch(config.public.wpGraphqlEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

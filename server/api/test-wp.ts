@@ -7,6 +7,9 @@ interface TestResult {
     status?: number
     statusCode?: number
     cause?: any
+    authUser?: string
+    passwordFormat?: string
+    testedWith?: string
   }
 }
 
@@ -26,7 +29,7 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
   
   // Test 1: Basic WordPress API connectivity
   try {
-    const response = await $fetch(`${wpEndpoint}/`, {
+    const response: any = await $fetch(`${wpEndpoint}/`, {
       timeout: 10000
     })
     
@@ -74,7 +77,7 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
         authStringLength: authString.length
       })
       
-      const response = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
+      const response: any = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
         headers: {
           'Authorization': `Basic ${authString}`,
           'Content-Type': 'application/json',
@@ -122,7 +125,7 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
       headers['Authorization'] = `Basic ${authString}`;
     }
     
-    const response = await $fetch(graphqlEndpoint, {
+    const response: any = await $fetch(graphqlEndpoint, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -176,7 +179,7 @@ export default defineEventHandler(async (event): Promise<TestResults> => {
       try {
         const authString = Buffer.from(`${testUser}:${config.wpAppPassword}`).toString('base64')
         
-        const response = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
+        const response: any = await $fetch(`${wpEndpoint}/wp/v2/users/me`, {
           headers: {
             'Authorization': `Basic ${authString}`,
             'Content-Type': 'application/json'

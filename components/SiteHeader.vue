@@ -51,7 +51,8 @@ defineProps<{ scrolled: boolean }>()
 
 const isMenuOpen = ref(false)
 const route = useRoute()
-const user = useState('auth.user')
+import type { User } from '~/types/auth'
+const user = useState<User | null>('auth.user', () => null)
 
 const isHomePage = computed(() => route.path === '/')
 
