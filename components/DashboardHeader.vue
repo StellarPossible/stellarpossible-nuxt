@@ -3,7 +3,7 @@
     <h1>Welcome back, {{ user?.name || user?.username }}!</h1>
     <div class="header-actions">
       <button @click="logout" class="logout-btn">
-        <Icon name="mdi:logout" />
+        <Icon icon="mdi:logout" />
         <span>Logout</span>
       </button>
     </div>

@@ -31,7 +31,7 @@
         <NuxtLink to="/about" active-class="active" @click="closeMenu">About</NuxtLink>
         <NuxtLink to="/products" active-class="active" @click="closeMenu">Products</NuxtLink>
         <NuxtLink to="/blog" active-class="active" @click="closeMenu">Education</NuxtLink>
-        <NuxtLink to="/contact" active-class="active" @click="closeMenu">Contact</NuxtLink>
+        
         
         <!-- Authentication Links -->
         <div v-if="user" class="auth-section">

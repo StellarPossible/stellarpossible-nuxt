@@ -8,25 +8,25 @@
     
     <nav class="dashboard-nav">
       <NuxtLink to="/dashboard" class="nav-item" exact-active-class="active">
-        <Icon name="mdi:view-dashboard" />
+        <Icon icon="mdi:view-dashboard" />
         <span>Overview</span>
       </NuxtLink>
       <NuxtLink to="/dashboard/profile" class="nav-item" active-class="active">
-        <Icon name="mdi:account" />
+        <Icon icon="mdi:account" />
         <span>Profile</span>
       </NuxtLink>
       <NuxtLink to="/dashboard/settings" class="nav-item" active-class="active">
-        <Icon name="mdi:cog" />
+        <Icon icon="mdi:cog" />
         <span>Settings</span>
       </NuxtLink>
       <div v-if="isAdmin" class="admin-section">
         <h4>Admin</h4>
         <NuxtLink to="/dashboard/users" class="nav-item" active-class="active">
-          <Icon name="mdi:account-group" />
+          <Icon icon="mdi:account-group" />
           <span>Users</span>
         </NuxtLink>
         <NuxtLink to="/dashboard/content" class="nav-item" active-class="active">
-          <Icon name="mdi:file-document" />
+          <Icon icon="mdi:file-document" />
           <span>Content</span>
         </NuxtLink>
       </div>

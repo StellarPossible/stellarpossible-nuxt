@@ -1,6 +1,7 @@
 <template>
   <footer class="site-footer">
     <div class="footer-content">
+  <button type="button" class="contact-btn" aria-label="Contact StellarPossible" @click="open()">Contact</button>
       <span class="copyright">&copy; {{ year }} StellarPossible, LLC</span>
       <a
         href="https://instagram.com/stellarpossible"
@@ -22,6 +23,7 @@
 
 <script setup lang="ts">
 const year = new Date().getFullYear()
+const { open } = useContactModal()
 </script>
 
 <style scoped lang="scss">
@@ -57,9 +59,27 @@ const year = new Date().getFullYear()
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
+    gap: 1.25rem;
     position: relative;
     z-index: 1;
+  }
+
+  .contact-btn {
+    background: rgba(255,255,255,0.08);
+    color: $white;
+    border: 1px solid rgba(255,255,255,0.24);
+    padding: 0.3rem 0.65rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    transition: background .2s ease, border-color .2s ease;
+
+    &:hover {
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.3);
+    }
   }
 
   .copyright {
@@ -74,6 +94,8 @@ const year = new Date().getFullYear()
   .copyright {
     font-size: .5rem;
   }
+  .footer-content { gap: 0.75rem; }
+  .contact-btn { padding: 0.28rem 0.55rem; font-size: .9rem; }
   }
 
   .social-icon {
