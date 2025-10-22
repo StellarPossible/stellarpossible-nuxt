@@ -3,12 +3,11 @@
     <div class="hero-backdrop">
       <h1>Your Ideas. Our Tech. <br />Infinite Possibility.</h1>
       <p>
-        Crafting solutions for creatives, educators, and visionaries ready to
-        make an impact.
+        Human-focused, AI-driven solutions for creatives, educators, and visionaries.
       </p>
       <div class="hero-buttons">
-        <button class="primary">Launch Your Project</button>
-        <button class="secondary">Get a Quote</button>
+        <NuxtLink to="/contact" class="button primary">Get In Touch</NuxtLink>
+        <NuxtLink to="/products" class="button ghost">Products</NuxtLink>
       </div>
     </div>
   </section>
@@ -57,27 +56,38 @@
     justify-content: center;
     gap: 1.5rem;
 
-    button {
+    .button {
       padding: 1rem 2rem;
       font-size: 1rem;
       font-weight: 600;
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
 
       &.primary {
-        background-color: $primary;
-        color: white;
-      }
-
-      &.secondary {
         background-color: white;
         color: $primary;
       }
 
-      &:hover {
-        opacity: 0.9;
+      &.ghost {
+        background-color: transparent;
+        color: white;
+        border: 1px solid white;
+      }
+
+      &.primary:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      &.ghost:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
       }
     }
   }
@@ -89,9 +99,13 @@
     line-height: 2.75rem;
   }
 
-  .hero-buttons {
+  .hero-content .hero-buttons {
     flex-direction: column;
     gap: 1rem;
+    
+    .button {
+      width: 100%;
+    }
   }
 }
 

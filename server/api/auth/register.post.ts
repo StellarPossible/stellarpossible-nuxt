@@ -31,10 +31,10 @@ export default defineEventHandler(async (event): Promise<AuthResponse> => {
   }
   
   // Username validation
-  if (username.length < 3) {
+  if (username.length < 6) {
     return {
       success: false,
-      message: 'Username must be at least 3 characters long'
+      message: 'Username must be at least 6 characters long'
     }
   }
   

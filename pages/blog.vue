@@ -328,6 +328,11 @@ const getCategoryName = (slug: string): string => {
 </script>
 
 <style scoped lang="scss">
+
+h2 {
+  color: rgb(51, 51, 51, .8);
+
+}
 .education-page {
   padding: 4rem 2rem;
   color: #fff;
