@@ -1,5 +1,7 @@
+@use '@/assets/scss/dashboard.scss';
+
 body {
-   margin: 0;
+  margin: 0;
   }
   // Fade mask for home hero
 .fade-to-footer::after {
@@ -12,6 +14,8 @@ body {
   z-index: 1;
   pointer-events: none;
 }
+
+// Dashboard styles are loaded via @use at the top of this file
 
 // Darkened sticky nav background
 .site-header.scrolled {

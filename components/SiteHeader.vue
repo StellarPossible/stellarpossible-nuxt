@@ -35,6 +35,7 @@
         
         <!-- Authentication Links -->
         <div v-if="user" class="auth-section">
+          <NuxtLink to="/dashboard" class="dashboard-link" @click="closeMenu">Dashboard</NuxtLink>
           <span class="welcome">Hi, {{ user.name || user.username }}!</span>
           <button @click="logout" class="logout-btn">Logout</button>
         </div>
@@ -185,6 +186,13 @@ async function logout() {
     align-items: center;
     gap: 1rem;
     
+    .dashboard-link {
+      text-decoration: none;
+      color: white;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    
     .welcome {
       color: white;
       font-size: 0.9rem;
@@ -257,6 +265,11 @@ async function logout() {
       align-items: flex-end;
       gap: 0.5rem;
       width: 100%;
+      
+      .dashboard-link {
+        text-align: right;
+        width: 100%;
+      }
       
       .welcome {
         text-align: right;
