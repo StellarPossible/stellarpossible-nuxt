@@ -1,6 +1,6 @@
 <template>
   <header class="dashboard-header">
-    <h1>Welcome back, {{ user?.name || user?.username }}!</h1>
+    <h1>Dashboard</h1>
     <div class="header-actions">
       <button @click="logout" class="logout-btn">
         <Icon icon="mdi:logout" />
