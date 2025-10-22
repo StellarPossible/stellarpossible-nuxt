@@ -1,18 +1,20 @@
 <template>
-  <NuxtLink
+  <button
     v-if="!isContactPage"
-    to="/contact"
+    type="button"
     class="floating-help"
     aria-label="Contact or get help"
+    @click="open()"
   >
-  <Icon icon="mdi:help-circle-outline" />
-  </NuxtLink>
+    <Icon icon="mdi:help-circle-outline" />
+  </button>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 const route = useRoute()
 const isContactPage = computed(() => route.path === '/contact')
+const { open } = useContactModal()
 </script>
 
 <style scoped lang="scss">
@@ -32,6 +34,7 @@ const isContactPage = computed(() => route.path === '/contact')
   color: #fff;
   text-decoration: none;
   border: 1px solid rgba(255,255,255,0.25);
+  cursor: pointer;
   transition: transform .15s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
 
   :deep(svg) {

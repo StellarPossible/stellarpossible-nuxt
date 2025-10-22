@@ -1,7 +1,7 @@
 <template>
   <footer class="site-footer">
     <div class="footer-content">
-      <NuxtLink to="/contact" class="contact-btn" aria-label="Contact StellarPossible">Contact</NuxtLink>
+  <button type="button" class="contact-btn" aria-label="Contact StellarPossible" @click="open()">Contact</button>
       <span class="copyright">&copy; {{ year }} StellarPossible, LLC</span>
       <a
         href="https://instagram.com/stellarpossible"
@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 const year = new Date().getFullYear()
+const { open } = useContactModal()
 </script>
 
 <style scoped lang="scss">

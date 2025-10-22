@@ -19,6 +19,9 @@
   <!-- Floating help button -->
   <FloatingHelp />
 
+  <!-- Contact modal -->
+  <ContactModal />
+
   <SiteFooter />
 </template>
 
@@ -27,6 +30,8 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import HeroContent from '@/components/HeroContent.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
+import ContactModal from '@/components/ContactModal.vue'
+import FloatingHelp from '@/components/FloatingHelp.vue'
 
 const route = useRoute()
 const isHomePage = computed(() => route.path === '/')
