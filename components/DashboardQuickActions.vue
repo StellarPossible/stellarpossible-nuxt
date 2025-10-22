@@ -3,11 +3,11 @@
     <h2>Quick Actions</h2>
     <div class="actions">
       <NuxtLink to="/blog" class="action">
-        <Icon name="mdi:book-open-page-variant" />
+        <Icon icon="mdi:book-open-page-variant" />
         <span>Read Education</span>
       </NuxtLink>
       <NuxtLink to="/contact" class="action">
-        <Icon name="mdi:message-text" />
+        <Icon icon="mdi:message-text" />
         <span>Contact Us</span>
       </NuxtLink>
     </div>

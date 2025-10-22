@@ -16,6 +16,9 @@
     </main>
   </div>
 
+  <!-- Floating help button -->
+  <FloatingHelp />
+
   <SiteFooter />
 </template>
 
