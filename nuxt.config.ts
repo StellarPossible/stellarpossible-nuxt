@@ -75,6 +75,11 @@ export default defineNuxtConfig({
       wpRestEndpoint: process.env.WP_REST_ENDPOINT || 'https://stellarpossible.com/cms/wp-json',
       useJWT: process.env.USE_JWT || 'true'
     },
+
+    // Email/private server-side config
+    emailFrom: process.env.EMAIL_FROM || '',
+    emailTo: process.env.EMAIL_TO || '',
+    resendApiKey: process.env.RESEND_API_KEY || ''
   },
 
   experimental: {
