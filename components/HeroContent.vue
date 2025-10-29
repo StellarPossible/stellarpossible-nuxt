@@ -3,7 +3,7 @@
     <div class="hero-backdrop">
       <h1>Your Ideas. Our Tech. <br />Infinite Possibility.</h1>
       <p>
-        Human-focused, tech-driven solutions for creatives, educators, and visionaries.
+        Human-focused solutions for creatives, educators, and visionaries.
       </p>
       <div class="hero-buttons">
         <NuxtLink to="/contact" class="button primary">Get In Touch</NuxtLink>
