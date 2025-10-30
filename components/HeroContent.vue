@@ -103,9 +103,6 @@
     flex-direction: column;
     gap: 1rem;
     
-    .button {
-      width: 100%;
-    }
   }
 }
 
