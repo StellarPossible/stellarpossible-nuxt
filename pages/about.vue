@@ -17,12 +17,12 @@
       <div class="section">
         <h2><span class="icon">🧑‍🚀</span> Meet the Team</h2>
         <p>
-          We’re a small, passionate team of engineers, designers, and problem solvers committed to delivering thoughtful and impactful digital experiences.
+          We’re a small, passionate team of engineers, designers, and problem solvers committed to delivering human-centric digital tools.
         </p>
         <div class="team-member">
           <div class="team-member-content">
             <div class="team-member-left">
-              <img src="/images/primary/marine.jpg" alt="Marine" class="team-member-image" />
+              <img src="/images/primary/marine.png" alt="Marine" class="team-member-image" />
               <a href="https://github.com/pandemicprogrammer" target="_blank" rel="noopener noreferrer" class="github-link">
                 <Icon name="mdi:github" class="github-icon" />
                 GitHub Profile
