@@ -34,42 +34,6 @@
               <p>
                 Marine leads our team with a focus on innovative API-driven solutions and modern web architectures. With extensive experience in full-stack development, she ensures our projects deliver exceptional user experiences and robust backend systems.
               </p>
-              <div class="github-preview">
-                <div class="github-stats-card">
-                  <div class="stats-grid">
-                    <div class="stat-item">
-                      <div class="stat-number">{{ githubStats?.stats?.total_repos || 0 }}</div>
-                      <div class="stat-label">Total Repos</div>
-                    </div>
-                    <div class="stat-item">
-                      <div class="stat-number">{{ githubStats?.stats?.stars || 0 }}</div>
-                      <div class="stat-label">Stars</div>
-                    </div>
-                    <div class="stat-item">
-                      <div class="stat-number">{{ githubStats?.stats?.followers || 0 }}</div>
-                      <div class="stat-label">Followers</div>
-                    </div>
-                    <div class="stat-item">
-                      <div class="stat-number">{{ githubStats?.stats?.following || 0 }}</div>
-                      <div class="stat-label">Following</div>
-                    </div>
-                  </div>
-                  <div class="languages-section" v-if="githubStats?.stats?.languages && Object.keys(githubStats.stats.languages).length > 0">
-                    <h4>Top Languages by Code Volume</h4>
-                    <div class="language-bars">
-                      <div
-                        v-for="[lang, bytes] in Object.entries(githubStats.stats.languages).sort((a, b) => b[1] - a[1]).slice(0, 5)"
-                        :key="lang"
-                        class="language-bar"
-                      >
-                        <span class="language-name">{{ lang }}</span>
-                        <div class="language-fill" :style="{ width: `${(bytes / Math.max(...Object.values(githubStats.stats.languages))) * 100}%` }"></div>
-                        <span class="language-size">{{ formatBytes(bytes) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               <!-- Recent Activity Section -->
               <div class="recent-activity" v-if="githubStats?.activity">
@@ -413,7 +377,6 @@ h1 {
 
 .recent-activity {
   margin-top: 2rem;
-  padding-top: 2rem;
   border-top: 1px solid rgba(0, 209, 255, 0.2);
 }
 
