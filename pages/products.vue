@@ -9,33 +9,6 @@
       <NuxtLink class="cta-button" to="/contact">Let's Talk</NuxtLink>
     </div>
 
-    <div class="product-showcase">
-      <div class="product-card">
-        <div class="product-icon">📦</div>
-        <div class="product-text">
-          <h2>SlateBuilder</h2>
-          <ul>
-            <li>Used by 100+ WooCommerce stores</li>
-            <li>Drag-and-drop bundle builder</li>
-            <li>Optimized for growth + ease of use</li>
-          </ul>
-          <NuxtLink class="learn-link" to="/products/slatebuilder">Learn More</NuxtLink>
-        </div>
-      </div>
-
-      <div class="product-card">
-        <div class="product-icon">📊</div>
-        <div class="product-text">
-          <h2>TherapySync</h2>
-          <ul>
-            <li>HIPAA-compliant dashboard for therapists</li>
-            <li>Scheduler, file sharing, and messaging</li>
-          </ul>
-          <NuxtLink class="learn-link" to="/products/therapysync">Learn More</NuxtLink>
-        </div>
-      </div>
-    </div>
-
     <div class="final-cta">
       <h2>Let’s Build Something Stellar Together</h2>
       <p>

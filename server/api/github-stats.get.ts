@@ -3,10 +3,10 @@ import { Octokit } from '@octokit/rest'
 export default defineEventHandler(async (event) => {
   try {
     // GitHub token from environment variables (server-side only)
-    const token = process.env.GITHUB_TOKEN
+    const token = process.env.ACCESS_TOKEN_GITHUB
 
     if (!token) {
-      console.log('No GITHUB_TOKEN found')
+      console.log('No ACCESS_TOKEN_GITHUB found')
       return { error: 'No GitHub token configured' }
     }
 
