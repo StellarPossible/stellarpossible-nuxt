@@ -32,7 +32,7 @@
               <h3>Marine</h3>
               <p class="role">CEO and Lead Developer</p>
               <p>
-                Marine leads our team with a focus on innovative API-driven solutions and modern web architectures. With extensive experience in full-stack development, she ensures our projects deliver exceptional user experiences and robust backend systems.
+                Marine leads our team with a focus on innovative API-driven solutions and modern web architectures. With extensive experience in full-stack development, they ensure our projects deliver exceptional user experiences and robust backend systems.
               </p>
 
               <!-- Recent Activity Section -->
