@@ -78,21 +78,7 @@
 
                 <!-- Recent Commits -->
                 <div class="activity-section" v-if="githubStats.activity.recentCommits?.length">
-                  <h5>💻 Recent Commits</h5>
-                  <div class="activity-list">
-                    <div
-                      v-for="commit in githubStats.activity.recentCommits"
-                      :key="commit.sha"
-                      class="activity-item"
-                    >
-                      <div class="activity-content">
-                        <strong>{{ commit.message }}</strong>
-                        <span class="activity-repo">{{ commit.repo }}</span>
-                        <div class="activity-date">{{ formatDate(commit.date) }}</div>
-                        <code class="commit-sha">{{ commit.sha }}</code>
-                      </div>
-                    </div>
-                  </div>
+                  
                 </div>
               </div>
             </div>
