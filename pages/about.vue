@@ -389,7 +389,7 @@ h1 {
 
 .activity-list {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -398,6 +398,10 @@ h1 {
   padding: 0.75rem;
   border-radius: 0.25rem;
   border-left: 3px solid #00d1ff;
+  box-sizing: border-box;
+  /* flexible: try to show two items per row when space allows */
+  flex: 1 1 calc(50% - 0.75rem);
+  min-width: 260px;
 }
 
 .activity-content {
@@ -545,6 +549,17 @@ h1 {
 
   .activity-section h5 {
     font-size: 0.95rem;
+  }
+
+  /* Ensure activity cards stack neatly on small screens */
+  .activity-list {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .activity-item {
+    flex: 1 1 100%;
+    min-width: 0;
   }
 }
 </style>
