@@ -37,48 +37,76 @@
 
               <!-- Recent Activity Section -->
               <div class="recent-activity" v-if="githubStats?.activity">
-                <h4>Recent Activity</h4>
+                <div class="recent-activity-header">
+                  <h4>Recent Activity</h4>
+                  <button
+                    class="activity-toggle"
+                    type="button"
+                    @click="recentActivityOpen = !recentActivityOpen"
+                    :aria-expanded="recentActivityOpen"
+                  >
+                    <span v-if="!recentActivityOpen">Show activity ({{ totalActivityCount }})</span>
+                    <span v-else>Hide activity</span>
+                  </button>
+                </div>
 
-                <!-- Latest Releases -->
-                <div class="activity-section" v-if="githubStats.activity.latestReleases?.length">
-                  <h5>🚀 Latest Releases</h5>
-                  <div class="activity-list">
-                    <div
-                      v-for="release in githubStats.activity.latestReleases"
-                      :key="release.repo + release.release.tag_name"
-                      class="activity-item"
-                    >
-                      <div class="activity-content">
-                        <strong>{{ release.release.name || release.release.tag_name }}</strong>
-                        <span class="activity-repo">{{ release.repo }}</span>
-                        <div class="activity-date">{{ formatDate(release.published_at) }}</div>
+                <div class="recent-activity-body" :class="{ collapsed: !recentActivityOpen }">
+
+                  <!-- Latest Releases -->
+                  <div class="activity-section" v-if="githubStats.activity.latestReleases?.length">
+                    <h5>🚀 Latest Releases</h5>
+                    <div class="activity-list">
+                      <div
+                        v-for="release in githubStats.activity.latestReleases"
+                        :key="release.repo + release.release.tag_name"
+                        class="activity-item"
+                      >
+                        <div class="activity-content">
+                          <strong>{{ release.release.name || release.release.tag_name }}</strong>
+                          <span class="activity-repo">{{ release.repo }}</span>
+                          <div class="activity-date">{{ formatDate(release.published_at) }}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Recent Pull Requests -->
-                <div class="activity-section" v-if="githubStats.activity.recentPullRequests?.length">
-                  <h5>🔄 Recent PRs</h5>
-                  <div class="activity-list">
-                    <div
-                      v-for="pr in githubStats.activity.recentPullRequests"
-                      :key="pr.id"
-                      class="activity-item"
-                    >
-                      <div class="activity-content">
-                        <strong>{{ pr.title }}</strong>
-                        <span class="activity-repo">{{ pr.repository_url.split('/').slice(-2).join('/') }}</span>
-                        <div class="activity-date">{{ formatDate(pr.updated_at) }}</div>
-                        <div class="activity-status" :class="pr.state">{{ pr.state }}</div>
+                  <!-- Recent Pull Requests -->
+                  <div class="activity-section" v-if="githubStats.activity.recentPullRequests?.length">
+                    <h5>🔄 Recent PRs</h5>
+                    <div class="activity-list">
+                      <div
+                        v-for="pr in githubStats.activity.recentPullRequests"
+                        :key="pr.id"
+                        class="activity-item"
+                      >
+                        <div class="activity-content">
+                          <strong>{{ pr.title }}</strong>
+                          <span class="activity-repo">{{ pr.repository_url.split('/').slice(-2).join('/') }}</span>
+                          <div class="activity-date">{{ formatDate(pr.updated_at) }}</div>
+                          <div class="activity-status" :class="pr.state">{{ pr.state }}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Recent Commits -->
-                <div class="activity-section" v-if="githubStats.activity.recentCommits?.length">
-                  
+                  <!-- Recent Commits -->
+                  <div class="activity-section" v-if="githubStats.activity.recentCommits?.length">
+                    <h5>🔨 Recent Commits</h5>
+                    <div class="activity-list">
+                      <div
+                        v-for="commit in githubStats.activity.recentCommits"
+                        :key="commit.sha || commit.id"
+                        class="activity-item"
+                      >
+                        <div class="activity-content">
+                          <strong>{{ commit.message || commit.commit?.message || commit.sha }}</strong>
+                          <div class="activity-date">{{ formatDate(commit.date || commit.commit?.author?.date) }}</div>
+                          <div class="commit-sha">{{ commit.sha?.slice(0, 8) || commit.id }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -128,6 +156,20 @@ interface GitHubStats {
 }
 
 const githubStats = ref<GitHubStats | null>(null)
+
+// controls whether the Recent Activity panel is expanded (default: collapsed)
+const recentActivityOpen = ref(false)
+
+// computed total count of items in the activity sections
+const totalActivityCount = computed(() => {
+  const activity = githubStats.value?.activity
+  if (!activity) return 0
+  return (
+    (activity.latestReleases?.length || 0) +
+    (activity.recentPullRequests?.length || 0) +
+    (activity.recentCommits?.length || 0)
+  )
+})
 
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
@@ -180,9 +222,8 @@ onMounted(async () => {
 
 .about-panel {
   background: rgba(0, 0, 0, 0.65);
-  padding: 3rem;
+  padding: 1rem;
   border-radius: 1rem;
-  max-width: 900px;
   color: #fff;
   width: 100%;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
@@ -385,6 +426,42 @@ h1 {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.recent-activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.activity-toggle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #00d1ff;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.activity-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.recent-activity-body {
+  overflow: hidden;
+  transition: max-height 0.32s ease, opacity 0.22s ease, padding 0.22s ease;
+  max-height: 2000px; /* large enough to show content when expanded */
+  opacity: 1;
+}
+
+.recent-activity-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .activity-list {
