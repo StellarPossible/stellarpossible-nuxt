@@ -2,20 +2,23 @@
   <section class="about-page">
     <div class="about-panel">
       <h1>About Us</h1>
-      <div class="section">
-        <h2><span class="icon">🔧</span> What We Do</h2>
-        <p>
-          We specialize in API-driven web architecture, modern frontend frameworks, and WordPress backend integrations. From headless CMS implementations to custom platform development, we turn complex needs into elegant solutions.
-        </p>
+      <div class="section-row two-cols">
+        <div class="section card">
+          <h2><Icon icon="mdi:tools" class="section-icon" /> What We Do</h2>
+          <p>
+            We specialize in API-driven web architecture, modern frontend frameworks, and WordPress backend integrations. From headless CMS implementations to custom platform development, we turn complex needs into elegant solutions.
+          </p>
+        </div>
+
+        <div class="section card">
+          <h2><Icon icon="mdi:lightbulb-outline" class="section-icon" /> Our Philosophy</h2>
+          <p>
+            We believe that technology should empower — not overwhelm. That’s why we build tools that are as intuitive as they are powerful, tailored to your team's workflow and your users' experience.
+          </p>
+        </div>
       </div>
       <div class="section">
-        <h2><span class="icon">💡</span> Our Philosophy</h2>
-        <p>
-          We believe that technology should empower — not overwhelm. That’s why we build tools that are as intuitive as they are powerful, tailored to your team's workflow and your users' experience.
-        </p>
-      </div>
-      <div class="section">
-        <h2><span class="icon">🧑‍🚀</span> Meet the Team</h2>
+  <h2><Icon icon="mdi:account-group" class="section-icon" /> Meet the Team</h2>
         <p>
           We’re a small, passionate team of engineers, designers, and problem solvers committed to delivering human-centric digital tools.
         </p>
@@ -24,7 +27,7 @@
             <div class="team-member-left">
               <img src="/images/primary/marine.png" alt="Marine" class="team-member-image" />
               <a href="https://github.com/pandemicprogrammer" target="_blank" rel="noopener noreferrer" class="github-link">
-                <Icon name="mdi:github" class="github-icon" />
+                <Icon icon="mdi:github" class="github-icon" />
                 GitHub Profile
               </a>
             </div>
@@ -54,7 +57,7 @@
 
                   <!-- Latest Releases -->
                   <div class="activity-section" v-if="githubStats.activity.latestReleases?.length">
-                    <h5>🚀 Latest Releases</h5>
+                    <h5><Icon icon="mdi:rocket" class="section-small-icon" /> Latest Releases</h5>
                     <div class="activity-list">
                       <div
                         v-for="release in githubStats.activity.latestReleases"
@@ -72,7 +75,7 @@
 
                   <!-- Recent Pull Requests -->
                   <div class="activity-section" v-if="githubStats.activity.recentPullRequests?.length">
-                    <h5>🔄 Recent PRs</h5>
+                    <h5><Icon icon="mdi:git-pull-request" class="section-small-icon" /> Recent PRs</h5>
                     <div class="activity-list">
                       <div
                         v-for="pr in githubStats.activity.recentPullRequests"
@@ -91,7 +94,7 @@
 
                   <!-- Recent Commits -->
                   <div class="activity-section" v-if="githubStats.activity.recentCommits?.length">
-                    <h5>🔨 Recent Commits</h5>
+                    <h5><Icon icon="mdi:git-commit" class="section-small-icon" /> Recent Commits</h5>
                     <div class="activity-list">
                       <div
                         v-for="commit in githubStats.activity.recentCommits"
@@ -212,32 +215,54 @@ onMounted(async () => {
 <style scoped lang="scss">
 .about-page {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  min-height: 100vh;
-  padding: 4rem 1rem;
+  min-height: auto;
+  padding: 2rem 1rem;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
 }
 
 .about-panel {
   background: rgba(0, 0, 0, 0.65);
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 1rem;
+  max-width: 980px;
   color: #fff;
   width: 100%;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #00d1ff;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.section-row.two-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: stretch; /* make grid items stretch to equal height */
+  margin-bottom: 1.25rem;
+}
+.card {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+}
+
+.card > p {
+  /* make paragraph take remaining space so cards are uniform height */
+  flex: 1 1 auto;
 }
 
 .section h2 {
@@ -252,21 +277,22 @@ h1 {
 
 .section p {
   font-size: 1.1rem;
-  line-height: 1.7;
+  line-height: 1.1;
   color: #e2e2e2;
 }
 
 .team-member {
   background: rgba(255, 255, 255, 0.05);
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.5rem;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 .team-member-content {
   display: flex;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .team-member-left {
@@ -278,8 +304,8 @@ h1 {
 }
 
 .team-member-image {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #00d1ff;
@@ -293,7 +319,7 @@ h1 {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.3s;
+  transition: color 0.2s;
 }
 
 .github-link:hover {
@@ -318,8 +344,21 @@ h1 {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Icon styling for headings */
+.section-icon {
+  font-size: 1.05rem;
+  color: #00d1ff;
+  margin-right: 0.6rem;
+}
+
+.section-small-icon {
+  font-size: 0.95rem;
+  color: #00d1ff;
+  margin-right: 0.45rem;
 }
 
 .stat-item {
@@ -490,7 +529,7 @@ h1 {
 .activity-content strong {
   color: #ffffff;
   font-size: 0.9rem;
-  line-height: 1.3;
+  line-height: 1.1;
 }
 
 .activity-repo {
@@ -557,7 +596,7 @@ h1 {
 
 .team-member-info p {
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.1;
 }
 
 .question-mark-portrait {
@@ -637,6 +676,12 @@ h1 {
   .activity-item {
     flex: 1 1 100%;
     min-width: 0;
+  }
+
+  /* Stack the intro cards on small screens */
+  .section-row.two-cols {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 }
 </style>
