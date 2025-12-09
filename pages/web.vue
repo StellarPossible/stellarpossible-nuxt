@@ -1,30 +1,69 @@
 <template>
   <section class="web-page">
     <div class="hero">
-      <h1>Web Experiences Built for Momentum</h1>
+      <h1>Web Solutions for Small Businesses & Individuals</h1>
       <p>
-        We design composable web architectures that are fast, accessible, and easy to keep fresh, whether
-        you are shipping campaigns weekly or rolling out new revenue streams.
+        Whether you're looking for a simple landing page and domain setup or a full-scale multi-page site, Stellar Possible is here to walk you through (and do most of the work!) everything.
       </p>
-      <NuxtLink class="cta-button" to="/contact">Plan a Web Sprint</NuxtLink>
+      <p>
+        We work with you, where you are at, wherever that is. Let us get to know each other, your goals and vision for the future, and begin a partnership of mutual investment.
+      </p>
+      <p>
+        Because when you succeed, we succeed.
+      </p>
+      <NuxtLink class="cta-button" to="/contact">Start Your Partnership</NuxtLink>
     </div>
 
-    <div class="pillars">
-      <article
-        v-for="pillar in webPillars"
-        :key="pillar.title"
-        class="pillar-card"
-      >
-        <div class="pillar-icon">
-          <Icon :icon="pillar.icon" />
-        </div>
-        <h2>{{ pillar.title }}</h2>
-        <p>{{ pillar.description }}</p>
+    <div class="packages">
+      <h2>Our Packages</h2>
+      <div class="package-grid">
+        <article
+          v-for="pkg in packages"
+          :key="pkg.name"
+          class="package-card"
+        >
+          <h3>{{ pkg.name }}</h3>
+          <div class="price">{{ pkg.price }}</div>
+          <p>{{ pkg.description }}</p>
+          <ul>
+            <li v-for="feature in pkg.features" :key="feature">{{ feature }}</li>
+          </ul>
+        </article>
+      </div>
+      <div class="addons">
+        <h3>Add-Ons</h3>
         <ul>
-          <li v-for="detail in pillar.details" :key="detail">{{ detail }}</li>
+          <li>New Domain: $50/year</li>
+          <li>Additional Content Development Hours: $95/hour</li>
         </ul>
-      </article>
+        <p class="limited-time">* Initial single page site setup is included (for a limited time) in enrollment of one of the monthly packages.</p>
+      </div>
     </div>
+
+    <section class="process">
+      <h2>How We Work Together</h2>
+      <div class="process-steps">
+        <div v-for="step in process" :key="step.title" class="process-card">
+          <span class="step-number">{{ step.order }}</span>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.summary }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <h2>Web Services FAQ</h2>
+      <div class="faq-items">
+        <details
+          v-for="item in webFaq"
+          :key="item.question"
+          class="faq-item"
+        >
+          <summary>{{ item.question }}</summary>
+          <p>{{ item.answer }}</p>
+        </details>
+      </div>
+    </section>
 
     <section class="client-showcase">
       <div class="client-card">
@@ -58,75 +97,55 @@
       </div>
     </section>
 
-    <section class="process">
-      <h2>How We Land Launches</h2>
-      <div class="process-steps">
-        <div v-for="step in process" :key="step.title" class="process-card">
-          <span class="step-number">{{ step.order }}</span>
-          <h3>{{ step.title }}</h3>
-          <p>{{ step.summary }}</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="faq">
-      <h2>Web Experience FAQ</h2>
-      <div class="faq-items">
-        <details
-          v-for="item in webFaq"
-          :key="item.question"
-          class="faq-item"
-        >
-          <summary>{{ item.question }}</summary>
-          <p>{{ item.answer }}</p>
-        </details>
-      </div>
-    </section>
-
     <div class="final-cta">
-      <h2>Ready to Refresh Your Web Stack?</h2>
+      <h2>Ready to Build Your Online Presence?</h2>
       <p>
-        Whether you need a headless CMS, a marketing site with Gravity, or a hybrid Nuxt + WordPress
-        deployment, we'll help you ship with confidence.
+        From a single landing page to a comprehensive multi-page site, we're here to help you succeed online. Let's start a partnership that grows with you.
       </p>
-      <NuxtLink class="cta-button" to="/contact">Talk With Our Team</NuxtLink>
+      <NuxtLink class="cta-button" to="/contact">Get Started Today</NuxtLink>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-const webPillars = [
+const packages = [
   {
-    title: 'Composable Frontends',
-    icon: 'mdi:view-dashboard-variant-outline',
-    description:
-      'Nuxt, Vue, and modern CSS systems give marketing and product teams a toolkit that is quick to iterate and simple to extend.',
-    details: [
-      'Component libraries aligned with your brand',
-      'Animation systems powered by GSAP and Lottie',
-      'Accessibility checks embedded into the build pipeline'
+    name: 'Starter Package',
+    price: '$200/month',
+    description: 'Perfect for small businesses or individuals starting online.',
+    features: [
+      '1-page site hosting',
+      'Keep your existing domain',
+      '2 hours of content development included',
+      'Basic SEO optimization',
+      'Mobile responsive design',
+      'Email support'
     ]
   },
   {
-    title: 'Headless Content Ops',
-    icon: 'mdi:server-network-outline',
-    description:
-      'Connect the CMS your team knows with the performance and guardrails your engineers expect.',
-    details: [
-      'WordPress, Sanity, and Strapi headless builds',
-      'Content modeling and editorial workflows',
-      'Static generation plus on-demand revalidation'
+    name: 'Growth Package',
+    price: '$400/month',
+    description: 'For businesses ready to expand their online presence.',
+    features: [
+      'Up to 5 pages',
+      'Domain hosting included',
+      '5 hours of content development',
+      'Advanced SEO and analytics',
+      'Contact forms and integrations',
+      'Priority support'
     ]
   },
   {
-    title: 'Search & Performance',
-    icon: 'mdi:rocket-launch-outline',
-    description:
-      'We tune for sub-second loads, lighthouse 90+, and organic search that sees the content you invest in.',
-    details: [
-      'Edge caching strategies and image optimization',
-      'Schema and structured data implementation',
-      'Core Web Vitals monitoring with automated QA'
+    name: 'Enterprise Package',
+    price: '$700/month',
+    description: 'Full-scale solutions for established businesses.',
+    features: [
+      'Unlimited pages',
+      'Custom domain setup',
+      '10 hours of content development',
+      'E-commerce integration',
+      'Advanced analytics and reporting',
+      'Dedicated account manager'
     ]
   }
 ]
@@ -134,39 +153,44 @@ const webPillars = [
 const process = [
   {
     order: '01',
-    title: 'Discovery & Architecture',
+    title: 'Discovery & Partnership',
     summary:
-      'We facilitate stakeholder workshops, audit the current stack, and outline a roadmap that balances quick wins with sustainable growth.'
+      'We get to know you, your goals, and your vision. Understanding where you are now helps us build a roadmap for your success.'
   },
   {
     order: '02',
-    title: 'Design & Build',
+    title: 'Design & Development',
     summary:
-      'Rapid prototypes validate direction while we stand up scalable components, integrate APIs, and keep SEO intact.'
+      'We create and build your site, incorporating your content and ensuring it meets your needs. We handle most of the work so you can focus on your business.'
   },
   {
     order: '03',
-    title: 'Launch & Iterate',
+    title: 'Launch & Support',
     summary:
-      'We manage the release, train your team, and stay engaged for continued optimization, testing, and new feature rollouts.'
+      'Your site goes live, and we provide ongoing support. As your business grows, we scale with you, adding features and content as needed.'
   }
 ]
 
 const webFaq = [
   {
-    question: 'How do you keep marketing sites fast when content teams publish every day?',
+    question: 'Do I need technical skills to get started?',
     answer:
-      'We pair headless CMS workflows with Nuxt static generation and on-demand ISR so the site revalidates only the pages that changed. Editors get instant previews, and end users keep sub-second page loads.'
+      'Not at all! We handle all the technical aspects. You provide your content and vision, and we take care of building and maintaining your site.'
   },
   {
-    question: 'Can new landing pages still be accessible and SEO-ready without developer involvement?',
+    question: 'Can I keep my existing domain?',
     answer:
-      'Yes. We design component libraries with baked-in aria patterns, schema markup, and analytics instrumentation. Marketers drag-and-drop sections, and the compiled output still passes lighthouse and WCAG checks.'
+      'Yes, if you already have a domain, we can host your site on it. If you need a new domain, we can help with that for an additional $50/year.'
   },
   {
-    question: 'What happens if we already have WordPress running on shared hosting?',
+    question: 'What if I need more content development time?',
     answer:
-      'We decouple the CMS into a managed headless instance, sync media to object storage, and layer API caching in front. Your editorial team keeps the familiar dashboard while the frontend moves to a modern edge-hosted architecture.'
+      'Additional content development hours are available at $95/hour. We can help with writing, editing, or any content needs for your site.'
+  },
+  {
+    question: 'Is the initial setup really free?',
+    answer:
+      'For a limited time, yes! When you enroll in one of our monthly packages, the initial single-page site setup is included at no extra cost.'
   }
 ]
 
@@ -212,8 +236,12 @@ const clientShowcase = {
 
   p {
     font-size: 1.2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: #e7f7ff;
+  }
+
+  p:last-of-type {
+    margin-bottom: 2rem;
   }
 
   .cta-button {
@@ -231,18 +259,29 @@ const clientShowcase = {
   }
 }
 
-.pillars {
-  display: grid;
-  gap: 2rem;
-  max-width: 1100px;
+.packages {
+  max-width: 1200px;
   width: 100%;
   margin-bottom: 4rem;
 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
   }
 
-  .pillar-card {
+  .package-grid {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .package-card {
     background: rgba(255, 255, 255, 0.08);
     border-radius: 14px;
     padding: 2rem 1.5rem;
@@ -253,10 +292,17 @@ const clientShowcase = {
     flex-direction: column;
     gap: 0.75rem;
 
-    h2 {
+    h3 {
       font-size: 1.55rem;
       font-weight: 700;
       color: $white;
+    }
+
+    .price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: $primary-light;
+      margin-bottom: 0.5rem;
     }
 
     p {
@@ -288,11 +334,43 @@ const clientShowcase = {
         }
       }
     }
+  }
 
-    .pillar-icon {
-      font-size: 2.25rem;
+  .addons {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $white;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: left;
+      max-width: 400px;
+      margin: 0 auto 1rem;
+
+      li {
+        color: #f8fbff;
+        line-height: 1.4;
+      }
+    }
+
+    .limited-time {
+      font-size: 0.9rem;
       color: $primary-light;
-      margin-bottom: 0.25rem;
+      font-style: italic;
+      margin: 0;
     }
   }
 }
@@ -558,7 +636,7 @@ const clientShowcase = {
     font-size: 2.25rem;
   }
 
-  .pillars,
+  .package-grid,
   .process-steps,
   .client-details {
     grid-template-columns: 1fr;
