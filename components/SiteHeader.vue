@@ -27,7 +27,6 @@
         class="nav"
         :class="{ open: isMenuOpen }"
       >
-        <NuxtLink to="/" exact-active-class="active" @click="closeMenu">Home</NuxtLink>
         <NuxtLink to="/software" active-class="active" @click="closeMenu">Software</NuxtLink>
         <NuxtLink to="/web" active-class="active" @click="closeMenu">Web</NuxtLink>
         <NuxtLink to="/author" active-class="active" @click="closeMenu">Author</NuxtLink>
