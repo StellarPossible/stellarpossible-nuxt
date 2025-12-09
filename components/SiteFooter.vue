@@ -36,7 +36,7 @@ const { open } = useContactModal()
   bottom: 0;
   width: 100%;
   padding: .5rem;
-  background: $primary opacify($color: #000000, $amount: 0);
+  background: $primary opacify($color: $dark, $amount: 0);
   color: $white;
   font-family: 'Montserrat', sans-serif;
   text-align: center;

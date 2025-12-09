@@ -196,7 +196,7 @@ const clientShowcase = {
   align-items: center;
   background: rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
-  color: #fff;
+  color: $white;
   text-align: center;
 }
 
@@ -218,7 +218,7 @@ const clientShowcase = {
 
   .cta-button {
     padding: 0.75rem 2.25rem;
-    background: #ffb347;
+    background: $primary-light;
     color: #1a1a1a;
     font-weight: 700;
     border-radius: 8px;
@@ -256,7 +256,7 @@ const clientShowcase = {
     h2 {
       font-size: 1.55rem;
       font-weight: 700;
-      color: #fff;
+      color: $white;
     }
 
     p {
@@ -282,7 +282,7 @@ const clientShowcase = {
           content: '•';
           position: absolute;
           left: 0;
-          color: #ffb347;
+          color: $primary-light;
           font-size: 1.4rem;
           line-height: 1;
         }
@@ -291,7 +291,7 @@ const clientShowcase = {
 
     .pillar-icon {
       font-size: 2.25rem;
-      color: #ffb347;
+      color: $primary-light;
       margin-bottom: 0.25rem;
     }
   }
@@ -327,7 +327,7 @@ const clientShowcase = {
     h2 {
       font-size: 1.75rem;
       font-weight: 700;
-      color: #fff;
+      color: $white;
       margin: 0;
     }
   }
@@ -352,7 +352,7 @@ const clientShowcase = {
   h3 {
     font-size: 1.9rem;
     font-weight: 700;
-    color: #fff;
+    color: $white;
     margin: 0;
   }
 
@@ -380,7 +380,7 @@ const clientShowcase = {
     h4 {
       font-size: 1.1rem;
       font-weight: 700;
-      color: #ffb347;
+      color: $primary-light;
       margin-bottom: 0.75rem;
     }
 
@@ -402,7 +402,7 @@ const clientShowcase = {
           content: '•';
           position: absolute;
           left: 0;
-          color: #ffb347;
+          color: $primary-light;
           font-size: 1.4rem;
           line-height: 1;
         }
@@ -444,7 +444,7 @@ const clientShowcase = {
     .step-number {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #ffb347;
+      color: $primary-light;
     }
 
     h3 {
@@ -477,7 +477,7 @@ const clientShowcase = {
 
   .cta-button {
     padding: 0.75rem 2.25rem;
-    background: #ffb347;
+    background: $primary-light;
     color: #1a1a1a;
     font-weight: 700;
     border-radius: 8px;

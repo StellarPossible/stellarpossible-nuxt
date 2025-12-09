@@ -3,18 +3,23 @@
 // Font imports
 
 // Primary brand palette
-$primary: #020b14;    // Deep teal
-$secondary: #1794d0;  // Muted green-teal
-$accent: #c8d8e4;     // Soft blue accent
+$primary: #123146;    // Primary dark
+$primary-light: #547580;
+$primary-medium: #2d4558;
+$secondary: #241321;  // Secondary dark
 
 // Backgrounds and neutrals
 $white: #ffffff;
-$light: #f2f2f2;      // Light gray background
-$dark: #333333;       // Default dark text
+$light: #f5f7fa;      // Soft neutral background
+$dark: #000000;       // Default dark text (unused with white typography)
+
+// Typography
+$text-primary: #ffffff;
+$text-muted: rgba(255, 255, 255, 0.72);
 
 // Utility
-$border: #dddddd;
-$shadow-color: rgba(0, 0, 0, 0.05);
+$border: rgba(84, 117, 128, 0.35);
+$shadow-color: rgba(10, 20, 32, 0.25);
 
 @font-face {
   font-family: 'Evermore';
@@ -26,6 +31,13 @@ $shadow-color: rgba(0, 0, 0, 0.05);
 @font-face {
   font-family: 'OrionSans';
   src: url('@/assets/fonts/orionsans.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'OldStyle';
+  src: url('@/assets/fonts/oldstyle.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }

@@ -367,7 +367,7 @@ h2 {
     h1 {
       font-size: 3rem;
       font-weight: 800;
-      color: #ffffff;
+      color: $text-primary;
     }
 
     .subtitle {
