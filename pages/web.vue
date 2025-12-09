@@ -218,8 +218,8 @@ const clientShowcase = {
 
   .cta-button {
     padding: 0.75rem 2.25rem;
-    background: $primary-light;
-    color: #1a1a1a;
+    background: $secondary;
+    color: white;
     font-weight: 700;
     border-radius: 8px;
     text-decoration: none;

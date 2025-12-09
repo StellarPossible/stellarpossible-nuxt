@@ -29,3 +29,8 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+
+// Disable scroll when mobile menu is open
+.menu-open {
+  overflow: hidden;
+}
