@@ -1,187 +1,269 @@
 <template>
-    <section class="author-page">
-    <div class="header fade-up">
-      <h1>Author</h1>
+  <section class="author-services-page">
+    <div class="hero fade-up">
+      <h1>Self-Publishing Services for Authors</h1>
       <p class="subtitle">
-        Essays, project notes, and release updates from our founder.
+        Empower your story with professional publishing support. From concept to bestseller, we help authors navigate the self-publishing journey with confidence.
       </p>
-      
-      <!-- Dynamic category tags with count -->
-      <div v-if="categories.length > 0" class="tags">
-        <span 
-          class="tag"
-          :class="{ active: !selectedCategory }"
-          @click="resetFilters"
-        >
-          All
-        </span>
-        <span 
-          v-for="category in sortedCategories" 
-          :key="category.id"
-          class="tag"
-          :class="{ active: selectedCategory === category.slug }"
-          @click="filterByCategory(category.slug)"
-        >
-          {{ category.name }}
-          <span v-if="category.count" class="count">{{ category.count }}</span>
-        </span>
-        <span 
-          v-if="selectedCategory"
-          class="tag reset"
-          @click="resetFilters"
-        >
-          Clear filters
-        </span>
-      </div>
+      <NuxtLink to="/contact" class="cta-button">Get Started Today</NuxtLink>
     </div>
 
-    <!-- Loading state -->
-    <div v-if="loading" class="loading-state fade-up">
-      <p>
-        {{ selectedCategory ? `Loading posts for ${getCategoryName(selectedCategory)}...` : 'Loading posts...' }}
-      </p>
-      <div class="loading-spinner"></div>
-    </div>
-
-    <!-- Error state -->
-    <div v-else-if="error" class="error-state fade-up">
-      <p>{{ error }}</p>
-      <div class="error-actions">
-        <button @click="fetchAuthorContent" class="retry-button">Try Again</button>
-        <button v-if="selectedCategory" @click="resetFilters" class="reset-button">View All Posts</button>
-      </div>
-    </div>
-
-    <!-- Content when loaded -->
-    <template v-else>
-      <!-- Featured posts section -->
-      <div v-if="featuredPosts.length > 0" class="featured-posts fade-up">
-        <div class="post-card" v-for="post in featuredPosts" :key="post.id">
-          <NuxtImg 
-            v-if="post.featuredImage && post.featuredImage.node" 
-            :src="post.featuredImage.node.sourceUrl" 
-            :alt="post.title" 
-            class="post-img" 
-          />
-          <div v-else class="post-img placeholder-img"></div>
-          <div class="post-content">
-            <h3>{{ post.title }}</h3>
-            <p class="date">{{ post.date }}</p>
-            <p>{{ post.summary || (post.excerpt && stripHtml(post.excerpt).substring(0, 120) + '...') }}</p>
-            <NuxtLink :to="`/posts/${post.slug}`" class="read-more">
-              Read More
-            </NuxtLink>
-          </div>
+    <div class="services-grid">
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-book"></span>
         </div>
-      </div>
-      
-      <!-- No posts state -->
-      <div v-else-if="!loading" class="no-posts fade-up">
-        <p v-if="selectedCategory">
-          No posts found for category "<strong>{{ getCategoryName(selectedCategory) }}</strong>".
-          <span class="try-another" @click="resetFilters">View all posts</span>
+        <h3>Cover Design</h3>
+        <p>
+          Professional, eye-catching book covers that capture your story's essence and stand out on virtual shelves. Custom designs for print and digital formats.
         </p>
-        <p v-else>No posts found. Please check back later!</p>
+        <ul>
+          <li>Genre-appropriate aesthetics</li>
+          <li>Print-ready formatting</li>
+          <li>Multiple revision rounds</li>
+          <li>Digital optimization</li>
+        </ul>
       </div>
 
-      <!-- Newsletter section -->
-      <div class="newsletter fade-up">
-        <h2>Never miss an insight</h2>
-        <p>Subscribe to our newsletter for updates</p>
-        <button class="subscribe-button">Subscribe</button>
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-publish"></span>
+        </div>
+        <h3>Self-Publishing Assistance</h3>
+        <p>
+          Complete walkthrough and troubleshooting for publishing on major platforms. We guide you through every step of the process.
+        </p>
+        <ul>
+          <li>Amazon KDP setup and optimization</li>
+          <li>Barnes & Noble Press publishing</li>
+          <li>Audible ACX audiobook production</li>
+          <li>Platform-specific formatting</li>
+        </ul>
       </div>
 
-      <!-- Popular reads section -->
-      <div v-if="popularReads.length > 0" class="popular-reads fade-up">
-        <h2>Popular Reads</h2>
-        <div class="post-card" v-for="post in popularReads" :key="post.id">
-          <NuxtImg 
-            v-if="post.featuredImage && post.featuredImage.node" 
-            :src="post.featuredImage.node.sourceUrl" 
-            :alt="post.title" 
-            class="post-img" 
-          />
-          <div v-else class="post-img placeholder-img"></div>
-          <div class="post-content">
-            <h3>{{ post.title }}</h3>
-            <p class="date">{{ post.date }}</p>
-            <NuxtLink :to="`/posts/${post.slug}`" class="read-more">
-              Read More
-            </NuxtLink>
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-edit"></span>
+        </div>
+        <h3>Professional Editing</h3>
+        <p>
+          Transform your manuscript with expert editing services. From developmental guidance to final polish, we ensure your story shines.
+        </p>
+        <ul>
+          <li>Developmental editing</li>
+          <li>Line editing and copyediting</li>
+          <li>Proofreading</li>
+          <li>Manuscript evaluation</li>
+        </ul>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-tools"></span>
+        </div>
+        <h3>Free Tools & Education</h3>
+        <p>
+          Empower yourself with our comprehensive library of free resources, templates, and educational content for independent publishing success.
+        </p>
+        <ul>
+          <li>Publishing checklists and templates</li>
+          <li>Platform guides and tutorials</li>
+          <li>Marketing strategy resources</li>
+          <li>Author community access</li>
+        </ul>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-marketing"></span>
+        </div>
+        <h3>Marketing & Social Media</h3>
+        <p>
+          Strategic marketing campaigns and social media management to build your author platform and reach your target readers.
+        </p>
+        <ul>
+          <li>Social media strategy development</li>
+          <li>Content creation and scheduling</li>
+          <li>Email marketing campaigns</li>
+          <li>Book launch planning</li>
+        </ul>
+      </div>
+
+      <div class="service-card fade-up">
+        <div class="service-icon">
+          <span class="icon-sales"></span>
+        </div>
+        <h3>Ethical Sales Strategies</h3>
+        <p>
+          Sustainable, author-focused sales approaches that prioritize long-term success over quick profits. Build lasting relationships with readers.
+        </p>
+        <ul>
+          <li>Reader engagement tactics</li>
+          <li>Promotional pricing strategies</li>
+          <li>Cross-promotion opportunities</li>
+          <li>Sales tracking and analysis</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="releases-section fade-up">
+      <h2>Checkout Recent Author Releases</h2>
+      <div class="book-slideshow">
+        <div class="book-container" v-for="book in recentBooks" :key="book.id" @click="selectBook(book)">
+          <img :src="book.cover" :alt="book.title" class="book-cover" />
+          <div class="book-info">
+            <h4>{{ book.title }}</h4>
+            <p>by {{ book.author }}</p>
           </div>
         </div>
       </div>
-    </template>
+    </div>
+
+    <!-- Book Overlay -->
+    <div v-if="selectedBook" class="book-overlay" @click="closeOverlay">
+      <div class="overlay-content" @click.stop>
+        <button class="close-btn" @click="closeOverlay">&times;</button>
+        <div class="book-details">
+          <img :src="selectedBook.cover" :alt="selectedBook.title" class="overlay-cover" />
+          <div class="book-meta">
+            <h3>{{ selectedBook.title }}</h3>
+            <p class="author">by {{ selectedBook.author }}</p>
+            <p class="genre">{{ selectedBook.genre }}</p>
+            <p class="description">{{ selectedBook.description }}</p>
+          </div>
+        </div>
+        <div class="overlay-actions">
+          <a :href="selectedBook.authorLink" target="_blank" class="overlay-btn author-btn">
+            <span class="icon">👤</span>
+            Author
+          </a>
+          <a :href="selectedBook.purchaseLink" target="_blank" class="overlay-btn book-btn">
+            <span class="icon">📖</span>
+            Book
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="process-section fade-up">
+      <h2>Our Publishing Process</h2>
+      <div class="process-steps">
+        <div class="step">
+          <div class="step-number">01</div>
+          <h4>Discovery & Planning</h4>
+          <p>We assess your manuscript, goals, and target audience to create a customized publishing roadmap.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">02</div>
+          <h4>Content Preparation</h4>
+          <p>Professional editing, cover design, and formatting ensure your book meets industry standards.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">03</div>
+          <h4>Publishing & Distribution</h4>
+          <p>We guide you through publishing on multiple platforms and setting up distribution channels.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">04</div>
+          <h4>Marketing & Launch</h4>
+          <p>Strategic marketing campaigns and launch events maximize your book's visibility and sales.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-section fade-up">
+      <h2>Ready to Publish Your Book?</h2>
+      <p>Join hundreds of successful self-published authors who've transformed their manuscripts into bestselling books.</p>
+      <div class="cta-buttons">
+        <NuxtLink to="/contact" class="cta-button primary">Start Your Publishing Journey</NuxtLink>
+        <NuxtLink to="/values" class="cta-button secondary">Learn About Our Approach</NuxtLink>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-// Define types for WordPress data
-interface WordPressImage {
-  node: {
-    sourceUrl: string;
-    altText?: string;
+// Book type definition
+interface Book {
+  id: number
+  title: string
+  author: string
+  genre: string
+  cover: string
+  description: string
+  authorLink: string
+  purchaseLink: string
+}
+
+// Book data
+const recentBooks = [
+  {
+    id: 1,
+    title: "The Digital Revolution",
+    author: "Sarah Chen",
+    genre: "Technology",
+    cover: "https://via.placeholder.com/200x300/123146/ffffff?text=Book+1",
+    description: "A comprehensive guide to navigating the digital age and emerging technologies.",
+    authorLink: "/author/sarah-chen",
+    purchaseLink: "https://amazon.com/book1"
+  },
+  {
+    id: 2,
+    title: "Mindful Leadership",
+    author: "Marcus Rodriguez",
+    genre: "Business",
+    cover: "https://via.placeholder.com/200x300/547580/ffffff?text=Book+2",
+    description: "Transform your leadership style with mindfulness and emotional intelligence.",
+    authorLink: "/author/marcus-rodriguez",
+    purchaseLink: "https://amazon.com/book2"
+  },
+  {
+    id: 3,
+    title: "Sustainable Futures",
+    author: "Dr. Emily Watson",
+    genre: "Environment",
+    cover: "https://via.placeholder.com/200x300/2d4558/ffffff?text=Book+3",
+    description: "Exploring solutions for a sustainable planet and equitable future.",
+    authorLink: "/author/emily-watson",
+    purchaseLink: "https://amazon.com/book3"
+  },
+  {
+    id: 4,
+    title: "Creative Coding",
+    author: "Alex Thompson",
+    genre: "Programming",
+    cover: "https://via.placeholder.com/200x300/241321/ffffff?text=Book+4",
+    description: "Unlock your creativity through code and build amazing digital experiences.",
+    authorLink: "/author/alex-thompson",
+    purchaseLink: "https://amazon.com/book4"
+  },
+  {
+    id: 5,
+    title: "The Art of Storytelling",
+    author: "Lisa Park",
+    genre: "Writing",
+    cover: "https://via.placeholder.com/200x300/0a1116/ffffff?text=Book+5",
+    description: "Master the craft of storytelling and captivate your audience.",
+    authorLink: "/author/lisa-park",
+    purchaseLink: "https://amazon.com/book5"
   }
+]
+
+// Overlay state
+const selectedBook = ref<Book | null>(null)
+
+// Functions
+function selectBook(book: Book) {
+  selectedBook.value = book
 }
 
-interface WordPressCategory {
-  id: string;
-  name: string;
-  slug: string;
-  count?: number;
+function closeOverlay() {
+  selectedBook.value = null
 }
 
-interface WordPressPost {
-  id: string;
-  title: string;
-  excerpt?: string;
-  slug: string;
-  date: string;
-  summary?: string;
-  featuredImage?: WordPressImage;
-}
-
-interface AuthorFeedData {
-  featuredPosts: WordPressPost[];
-  popularPosts: WordPressPost[];
-  categories: WordPressCategory[];
-}
-
-// State management
-const loading = ref(true);
-const error = ref<string | null>(null);
-const featuredPosts = ref<WordPressPost[]>([]);
-const popularReads = ref<WordPressPost[]>([]);
-const categories = ref<WordPressCategory[]>([]);
-const selectedCategory = ref<string | null>(null);
-
-// Helper function to strip HTML tags from content
-const stripHtml = (html: string): string => {
-  // Create a temporary element to handle HTML parsing
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || '';
-};
-
-// Sort categories by post count (if available) and then alphabetically
-const sortedCategories = computed(() => {
-  return [...categories.value].sort((a, b) => {
-    // First sort by post count (descending)
-    if (a.count && b.count) {
-      return b.count - a.count;
-    } else if (a.count) {
-      return -1;
-    } else if (b.count) {
-      return 1;
-    }
-    
-    // Then alphabetically by name
-    return a.name.localeCompare(b.name);
-  });
-});
-
-// Animation setup
+// Animation setup for fade-up effects
 onMounted(() => {
-  // First, add a class to body to indicate JS is enabled
+  // Add a class to body to indicate JS is enabled
   document.body.classList.add('js-animation-enabled');
   
   // Set up fade animation with IntersectionObserver
@@ -202,428 +284,549 @@ onMounted(() => {
       observer.observe(el);
     });
   }, 100);
-  
-  // Fetch author posts from WordPress
-  fetchAuthorContent();
 });
-
-// Fetch all author content in a single request
-const fetchAuthorContent = async () => {
-  try {
-    loading.value = true;
-    error.value = null;
-    
-    // Fetch data from our author API endpoint
-    const data = await $fetch<AuthorFeedData>('/api/education');
-    
-    // Update state with fetched data
-    featuredPosts.value = data.featuredPosts || [];
-    popularReads.value = data.popularPosts || [];
-    categories.value = data.categories || [];
-    
-    // Save original featured posts for restoring when "All" is clicked
-    originalFeaturedPosts.value = [...featuredPosts.value];
-    
-    // State updated with fetched data
-    
-    loading.value = false;
-    
-    // Force refresh the animation system for newly loaded content
-    nextTick(() => {
-      // Re-trigger the IntersectionObserver by toggling a class
-      document.querySelectorAll('.fade-up:not(.visible)').forEach((el) => {
-        // Force a reflow
-        el.classList.add('refresh-animation');
-        setTimeout(() => el.classList.remove('refresh-animation'), 50);
-      });
-    });
-  } catch (err) {
-    console.error('Error fetching author content:', err);
-    error.value = 'Failed to load author content';
-    loading.value = false;
-  }
-};
-
-// Cache for category filtered posts to reduce API calls
-const categoryPostsCache = ref<Record<string, WordPressPost[]>>({});
-
-// Store original posts for the "All" view
-const originalFeaturedPosts = ref<WordPressPost[]>([]);
-
-// Filter posts by category
-const filterByCategory = async (slug: string) => {
-  // Skip if already selected
-  if (selectedCategory.value === slug) return;
-  
-  selectedCategory.value = slug;
-  loading.value = true;
-  error.value = null;
-  
-  try {
-    // Check if we have cached results
-    if (categoryPostsCache.value[slug]) {
-      // Using cached posts for this category
-      featuredPosts.value = categoryPostsCache.value[slug];
-      loading.value = false;
-      return;
-    }
-    
-    // Fetch posts by category
-    const response = await $fetch('/api/posts', {
-      params: {
-        category: slug,
-        perPage: 6 // Fetch more posts to show a good selection
-      }
-    }) as any;
-    
-    // Cache the results
-    if (response.posts && response.posts.length > 0) {
-      categoryPostsCache.value[slug] = response.posts;
-    }
-    
-    // Update featured posts with category-filtered posts
-    featuredPosts.value = response.posts || [];
-    // Posts loaded for category
-    loading.value = false;
-  } catch (err) {
-    console.error('Error filtering by category:', err);
-    error.value = 'Failed to filter posts';
-    loading.value = false;
-  }
-};
-
-// Reset category filter
-const resetFilters = () => {
-  // Clear selected category
-  selectedCategory.value = null;
-  error.value = null;
-  
-  // Show loading state briefly
-  loading.value = true;
-  
-  // Restore original posts if available, otherwise fetch them
-  if (originalFeaturedPosts.value.length > 0) {
-    // Restore from the cached original posts
-    featuredPosts.value = [...originalFeaturedPosts.value];
-    loading.value = false;
-    
-    // Trigger animation refresh for restored content
-    nextTick(() => {
-      document.querySelectorAll('.fade-up:not(.visible)').forEach((el) => {
-        el.classList.add('refresh-animation');
-        setTimeout(() => el.classList.remove('refresh-animation'), 50);
-      });
-    });
-  } else {
-    // Fetch all posts if originals aren't available
-    fetchAuthorContent();
-  }
-};
-
-// Helper to get category name from slug
-const getCategoryName = (slug: string): string => {
-  const category = categories.value.find(cat => cat.slug === slug);
-  return category ? category.name : slug;
-};
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/scss/variables.scss' as *;
 
-h2 {
-  color: rgb(51, 51, 51, .8);
-
+.author-services-page {
+  padding: 4rem 1.5rem 5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  color: $white;
+  text-align: center;
 }
-.author-page {
-  padding: 4rem 2rem;
-  color: #fff;
-  background: transparent;
 
-  .fade-up {
-    /* Make elements visible by default for accessibility and no-JS scenarios */
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+.hero {
+  max-width: 880px;
+  margin-bottom: 4rem;
+
+  h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
   }
 
-  /* 
-   * Apply animation only when JS is enabled - add a class via script
-   * This ensures content is visible even if animation doesn't work
-   */
-  .js-animation-enabled .fade-up:not(.visible) {
-    opacity: 0;
-    transform: translateY(30px);
+  .subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #e7f7ff;
   }
 
-  .fade-up.visible,
-  .fade-up.refresh-animation {
-    opacity: 1;
-    transform: translateY(0);
+  .cta-button {
+    padding: 0.75rem 2.25rem;
+    background: $primary-light;
+    color: #1a1a1a;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: $primary;
+      color: $white;
+    }
+  }
+}
+
+.services-grid {
+  display: grid;
+  gap: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  margin-bottom: 4rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .header {
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.service-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  border: 1px solid rgba(255, 179, 71, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .service-icon {
+    margin-bottom: 1rem;
+
+    span {
+      font-size: 2.5rem;
+      color: $primary-light;
+    }
+  }
+
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: $white;
+  }
+
+  p {
+    color: #dcecf6;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      color: #e7f7ff;
+      margin-bottom: 0.5rem;
+      padding-left: 1.5rem;
+      position: relative;
+
+      &::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: $primary-light;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.process-section {
+  max-width: 960px;
+  width: 100%;
+  margin-bottom: 4rem;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .process-steps {
+    display: grid;
+    gap: 2rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 1024px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  .step {
     text-align: center;
-    margin-bottom: 3rem;
 
-    h1 {
-      font-size: 3rem;
+    .step-number {
+      font-size: 2rem;
       font-weight: 800;
-      color: $text-primary;
+      color: $primary-light;
+      margin-bottom: 1rem;
+      display: block;
     }
 
-    .subtitle {
+    h4 {
       font-size: 1.2rem;
-      color: #ccc;
-      margin-top: 0.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: $white;
     }
 
-    .tags {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 0.75rem;
+    p {
+      color: #dcecf6;
+      line-height: 1.6;
+    }
+  }
+}
 
-      .tag {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        padding: 0.5rem 1.25rem;
-        border-radius: 20px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border: 1px solid transparent;
-        
-        &:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: translateY(-2px);
-        }
-        
-        &.active {
-          background: #00aaff;
-          box-shadow: 0 0 15px rgba(0, 170, 255, 0.4);
-        }
-        
-        .count {
-          display: inline-block;
-          background: rgba(0, 0, 0, 0.2);
-          font-size: 0.75rem;
-          padding: 0.1rem 0.4rem;
-          border-radius: 12px;
-          margin-left: 0.5rem;
-          opacity: 0.8;
-        }
-        
-        &.reset {
-          background: rgba(255, 100, 100, 0.2);
-          border: 1px solid rgba(255, 100, 100, 0.3);
-          
-          &:hover {
-            background: rgba(255, 100, 100, 0.3);
-          }
-        }
+.releases-section {
+  max-width: 1200px;
+  width: 100%;
+  margin-bottom: 4rem;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .book-slideshow {
+    display: flex;
+    gap: 2rem;
+    overflow-x: auto;
+    padding: 1rem 0;
+    scroll-behavior: smooth;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $primary-light;
+      border-radius: 4px;
+
+      &:hover {
+        background: $primary;
       }
     }
   }
 
-  .loading-state {
-    text-align: center;
-    padding: 3rem 0;
-    
-    .loading-spinner {
-      margin: 1rem auto;
+  .book-container {
+    flex: 0 0 200px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    .book-cover {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: box-shadow 0.3s ease;
+
+      &:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    .book-info {
+      margin-top: 1rem;
+      text-align: center;
+
+      h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: $white;
+      }
+
+      p {
+        font-size: 0.9rem;
+        color: #dcecf6;
+        margin: 0;
+      }
+    }
+  }
+}
+
+.book-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+
+  .overlay-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #333;
       width: 40px;
       height: 40px;
-      border: 3px solid rgba(255, 255, 255, 0.2);
-      border-top-color: #00aaff;
       border-radius: 50%;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  }
-  
-  .error-state {
-    text-align: center;
-    padding: 3rem 0;
-    color: #ff6666;
-    
-    p {
-      font-size: 1.1rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .error-actions {
       display: flex;
-      gap: 1rem;
+      align-items: center;
       justify-content: center;
-      
-      button {
-        background: rgba(0, 0, 0, 0.3);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 0.5rem 1.25rem;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        
-        &:hover {
-          background: rgba(0, 0, 0, 0.5);
-        }
-        
-        &.retry-button {
-          background: #00aaff;
-          
-          &:hover {
-            background: #0088cc;
-          }
-        }
-      }
-    }
-  }
-  
-  .no-posts {
-    text-align: center;
-    padding: 3rem 0;
-    
-    .try-another {
-      display: block;
-      margin-top: 1rem;
-      color: #00aaff;
-      cursor: pointer;
-      text-decoration: underline;
-      
-      &:hover {
-        color: #0088cc;
-      }
-    }
-  }
-
-  .featured-posts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 4rem;
-
-    .post-card {
-      background: #fff;
-      color: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease;
+      transition: background 0.2s ease;
 
       &:hover {
-        transform: scale(1.02);
+        background: rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .book-details {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+
+      @media (max-width: 600px) {
+        flex-direction: column;
+        align-items: center;
       }
 
-      .post-img {
-        width: 100%;
-        height: 180px;
+      .overlay-cover {
+        width: 150px;
+        height: 225px;
         object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
 
-      .post-content {
-        padding: 1rem;
+      .book-meta {
+        flex: 1;
 
         h3 {
-          font-size: 1.2rem;
+          font-size: 1.5rem;
           font-weight: 700;
-        }
-
-        .date {
-          font-size: 0.9rem;
-          color: #666;
-          margin-top: 0.25rem;
-        }
-
-        p {
-          font-size: 1rem;
+          margin-bottom: 0.5rem;
           color: #333;
-          margin-top: 0.5rem;
         }
-      }
-    }
-  }
 
-  .newsletter {
-    background: linear-gradient(90deg, #002f4b, #005f83);
-    padding: 2rem;
-    text-align: center;
-    border-radius: 12px;
-    margin-bottom: 4rem;
-
-    h2 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-    }
-
-    p {
-      color: #ccc;
-      margin-bottom: 1rem;
-    }
-
-    .subscribe-button {
-      background: #00aaff;
-      border: none;
-      padding: 0.75rem 2rem;
-      font-weight: 700;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      color: #fff;
-      transition: background 0.3s;
-      box-shadow: 0 0 10px #00aaff;
-
-      &:hover {
-        background: #008ecc;
-      }
-    }
-  }
-
-  .popular-reads {
-    h2 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-    }
-
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-
-    .post-card {
-      background: #fff;
-      color: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.3s ease;
-
-      &:hover {
-        transform: scale(1.02);
-      }
-
-      .post-img {
-        width: 100%;
-        height: 160px;
-        object-fit: cover;
-      }
-
-      .post-content {
-        padding: 1rem;
-
-        h3 {
+        .author {
           font-size: 1.1rem;
+          color: $primary;
+          margin-bottom: 0.5rem;
           font-weight: 600;
         }
 
-        .date {
-          font-size: 0.85rem;
-          color: #555;
-          margin-top: 0.25rem;
+        .genre {
+          font-size: 0.9rem;
+          color: #666;
+          margin-bottom: 1rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
+
+        .description {
+          color: #555;
+          line-height: 1.6;
+        }
+      }
+    }
+
+    .overlay-actions {
+      display: flex;
+      gap: 1rem;
+
+      @media (max-width: 480px) {
+        flex-direction: column;
+      }
+
+      .overlay-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-align: center;
+
+        .icon {
+          font-size: 1.2rem;
+        }
+
+        &.author-btn {
+          background: $primary;
+          color: white;
+
+          &:hover {
+            background: $primary-light;
+            transform: translateY(-2px);
+          }
+        }
+
+        &.book-btn {
+          background: $secondary;
+          color: white;
+
+          &:hover {
+            background: lighten($secondary, 10%);
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+}
+
+.cta-section {
+  max-width: 720px;
+  text-align: center;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    color: #e7f7ff;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    .cta-button {
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+
+      &.primary {
+        background: $primary-light;
+        color: #1a1a1a;
+
+        &:hover {
+          background: $primary;
+          color: $white;
+        }
+      }
+
+      &.secondary {
+        background: transparent;
+        color: $primary-light;
+        border: 2px solid $primary-light;
+
+        &:hover {
+          background: $primary-light;
+          color: #1a1a1a;
+        }
+      }
+    }
+  }
+}
+
+// Icon classes for service cards
+.icon-book::before { content: '📖'; }
+.icon-publish::before { content: '🚀'; }
+.icon-edit::before { content: '✏️'; }
+.icon-tools::before { content: '🛠️'; }
+.icon-marketing::before { content: '📈'; }
+.icon-sales::before { content: '💰'; }
+
+// Animation classes
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 767px) {
+  .author-services-page {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .hero h1 {
+    font-size: 2.25rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .process-section .process-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-section .cta-buttons {
+    flex-direction: column;
+    align-items: center;
+
+    .cta-button {
+      width: 100%;
+      max-width: 300px;
+    }
+  }
+
+  .releases-section {
+    .book-slideshow {
+      gap: 1rem;
+      padding: 0.5rem 0;
+    }
+
+    .book-container {
+      flex: 0 0 150px;
+
+      .book-cover {
+        height: 225px;
+      }
+
+      .book-info {
+        h4 {
+          font-size: 1rem;
+        }
+
+        p {
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+
+  .book-overlay .overlay-content {
+    padding: 1.5rem;
+    margin: 1rem;
+
+    .book-details {
+      gap: 1rem;
+
+      .overlay-cover {
+        width: 120px;
+        height: 180px;
+      }
+
+      .book-meta h3 {
+        font-size: 1.3rem;
+      }
+    }
+
+    .overlay-actions {
+      .overlay-btn {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
       }
     }
   }

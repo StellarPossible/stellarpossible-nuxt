@@ -180,10 +180,7 @@ async function logout() {
       font-weight: 600;
       transition: color 0.2s;
 
-      &:hover {
-        color: $secondary;
-      }
-
+      &:hover,
       &.active {
         color: $primary-light;
       }

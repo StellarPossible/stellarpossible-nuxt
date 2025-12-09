@@ -21,6 +21,14 @@ $text-muted: rgba(255, 255, 255, 0.72);
 $border: rgba(84, 117, 128, 0.35);
 $shadow-color: rgba(10, 20, 32, 0.25);
 
+
+@font-face {
+  font-family: 'Chocolates';
+  src: url('@/assets/fonts/chocolates.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @font-face {
   font-family: 'Evermore';
   src: url('@/assets/fonts/Evermore.ttf') format('truetype');
