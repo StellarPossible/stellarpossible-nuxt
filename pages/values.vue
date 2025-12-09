@@ -300,7 +300,7 @@ h1 {
 .section h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffffff;
+  color: $text-primary;
   display: flex;  
   align-items: center;
   gap: 0.5rem;
@@ -370,7 +370,7 @@ h1 {
   background: rgba(0, 0, 0, 0.3);
   border-radius: 0.5rem;
   padding: 1rem;
-  color: #ffffff;
+  color: $text-primary;
 }
 
 .stats-grid {
@@ -491,7 +491,7 @@ h1 {
 
 .activity-section h5 {
   font-size: 1rem;
-  color: #ffffff;
+  color: $text-primary;
   margin-bottom: 0.75rem;
   font-weight: 600;
   display: flex;
@@ -559,7 +559,7 @@ h1 {
 }
 
 .activity-content strong {
-  color: #ffffff;
+  color: $text-primary;
   font-size: 0.9rem;
   line-height: 1.1;
 }
@@ -622,7 +622,7 @@ h1 {
 .team-member-info .role {
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: $text-primary;
   margin-bottom: 0.5rem;
 }
 
@@ -642,7 +642,7 @@ h1 {
   justify-content: center;
   font-size: 4rem;
   font-weight: bold;
-  color: #ffffff;
+  color: $text-primary;
   flex-shrink: 0;
 }
 

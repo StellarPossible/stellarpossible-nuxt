@@ -10,11 +10,11 @@ export type ContactEmail = {
 export async function sendContactEmail(payload: ContactEmail) {
   const config = useRuntimeConfig()
   const from = formatFrom(config.emailFrom)
-  const to = config.emailTo
+  const to = buildRecipientList(config.emailTo)
   const apiKey = config.resendApiKey
 
-  if (!from || !to) {
-    console.warn('[email] EMAIL_FROM or EMAIL_TO not configured; printing message to console instead.')
+  if (!from || to.length === 0) {
+    console.warn('[email] EMAIL_FROM or recipient list not configured; printing message to console instead.')
     console.info('[email] Contact message:', payload)
     return { simulated: true }
   }
@@ -73,4 +73,32 @@ function formatFrom(input: string): string {
   }
   // Otherwise return as-is (e.g., plain email address)
   return raw
+}
+
+function buildRecipientList(value: unknown): string[] {
+  const defaults = ['marine@stellarpossible.com', 'mlvalentonis@protonmail.com']
+  const configured = normalizeRecipients(value)
+  const combined = [...configured, ...defaults]
+  const unique = new Set<string>()
+  for (const address of combined) {
+    const normalized = address.trim()
+    if (normalized) unique.add(normalized)
+  }
+  return Array.from(unique)
+}
+
+function normalizeRecipients(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter(Boolean)
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(/[;,]/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return []
 }

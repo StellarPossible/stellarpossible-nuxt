@@ -27,18 +27,18 @@
         class="nav"
         :class="{ open: isMenuOpen }"
       >
-        <NuxtLink to="/software" active-class="active" @click="closeMenu">Software</NuxtLink>
-        <NuxtLink to="/web" active-class="active" @click="closeMenu">Web</NuxtLink>
-        <NuxtLink to="/author" active-class="active" @click="closeMenu">Author</NuxtLink>
-        <NuxtLink to="/values" active-class="active" @click="closeMenu">Values</NuxtLink>
+        <NuxtLink to="/software" active-class="active" @click="closeMenu">software</NuxtLink>
+        <NuxtLink to="/web" active-class="active" @click="closeMenu">web</NuxtLink>
+        <NuxtLink to="/author" active-class="active" @click="closeMenu">publish</NuxtLink>
+        <NuxtLink to="/values" active-class="active" @click="closeMenu">values</NuxtLink>
         
         
         <!-- Authentication Links -->
         <div v-if="user" class="auth-section">
-          <NuxtLink to="/dashboard" class="dashboard-link" @click="closeMenu">Dashboard</NuxtLink>
-          <button @click="logout" class="logout-btn">Logout</button>
+          <NuxtLink to="/dashboard" class="dashboard-link" @click="closeMenu">dashboard</NuxtLink>
+          <button @click="logout" class="logout-btn">logout</button>
         </div>
-        <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">Login</NuxtLink>
+        <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
       </nav>
     </div>
   </header>
@@ -165,7 +165,7 @@ async function logout() {
     gap: 2rem;
     opacity: 0.85;
     font-size: 1rem;
-    font-family: 'Evermore', 'Inter', sans-serif;
+    font-family: 'OldStyle', 'Inter', sans-serif;
 
     a {
       text-decoration: none;
@@ -173,9 +173,12 @@ async function logout() {
       font-weight: 600;
       transition: color 0.2s;
 
-      &:hover,
-      &.active {
+      &:hover {
         color: $secondary;
+      }
+
+      &.active {
+        color: $primary-light;
       }
     }
   }
