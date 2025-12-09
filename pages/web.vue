@@ -26,6 +26,38 @@
       </article>
     </div>
 
+    <section class="client-showcase">
+      <div class="client-card">
+        <div class="client-header">
+          <h2>Client Highlight</h2>
+          <a
+            :href="clientShowcase.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="client-link"
+          >
+            Visit Site
+          </a>
+        </div>
+        <h3>{{ clientShowcase.name }}</h3>
+        <p class="client-summary">{{ clientShowcase.summary }}</p>
+        <div class="client-details">
+          <div class="detail-group">
+            <h4>What We Delivered</h4>
+            <ul>
+              <li v-for="item in clientShowcase.deliverables" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+          <div class="detail-group">
+            <h4>Platform Highlights</h4>
+            <ul>
+              <li v-for="item in clientShowcase.highlights" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="process">
       <h2>How We Land Launches</h2>
       <div class="process-steps">
@@ -137,6 +169,23 @@ const webFaq = [
       'We decouple the CMS into a managed headless instance, sync media to object storage, and layer API caching in front. Your editorial team keeps the familiar dashboard while the frontend moves to a modern edge-hosted architecture.'
   }
 ]
+
+const clientShowcase = {
+  name: 'Vivarium Salon',
+  url: 'https://vivariumsalon.com',
+  summary:
+    'Vivarium Salon runs on a Nuxt headless WordPress platform hosted on our Hostinger VPS, giving their stylists and marketing crew a fast, fully managed web presence.',
+  deliverables: [
+    'Customer management workflows tailored for salon bookings',
+    'Search-optimized content modeling and deployment pipeline',
+    'Shopify storefront integration with Vivarium Salon retail'
+  ],
+  highlights: [
+    'Scalable architecture with reusable Nuxt components',
+    'Centralized content and commerce data managed by StellarPossible',
+    'Robust monitoring and updates handled by our managed hosting team'
+  ]
+}
 </script>
 
 <style scoped lang="scss">
@@ -244,6 +293,120 @@ const webFaq = [
       font-size: 2.25rem;
       color: #ffb347;
       margin-bottom: 0.25rem;
+    }
+  }
+}
+
+.client-showcase {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto 4rem;
+  display: flex;
+  justify-content: center;
+
+  .client-card {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 179, 71, 0.25);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: left;
+    color: #06192a;
+    box-shadow: 0 0 28px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
+    }
+  }
+
+  .client-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #1a1a1a;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  h3 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+  }
+
+  .client-summary {
+    color: #e7f7ff;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .client-details {
+    display: grid;
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .detail-group {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
+
+    h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffb347;
+      margin-bottom: 0.75rem;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+
+      li {
+        position: relative;
+        padding-left: 1.25rem;
+        color: #f8fbff;
+        line-height: 1.5;
+
+        &::before {
+          content: '•';
+          position: absolute;
+          left: 0;
+          color: #ffb347;
+          font-size: 1.4rem;
+          line-height: 1;
+        }
+      }
     }
   }
 }
@@ -396,7 +559,8 @@ const webFaq = [
   }
 
   .pillars,
-  .process-steps {
+  .process-steps,
+  .client-details {
     grid-template-columns: 1fr;
   }
 }
