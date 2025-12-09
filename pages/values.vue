@@ -268,7 +268,7 @@ const valuesFaq = [
 h1 {
   font-size: 2rem;
   font-weight: 800;
-  color: #00d1ff;
+  color: $primary-light;
   margin-bottom: 1.25rem;
 }
 
@@ -340,14 +340,14 @@ h1 {
   height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #00d1ff;
+  border: 3px solid $primary-light;
 }
 
 .github-link {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  color: #00d1ff;
+  color: $primary-light;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -383,13 +383,13 @@ h1 {
 /* Icon styling for headings */
 .section-icon {
   font-size: 1.05rem;
-  color: #00d1ff;
+  color: $primary-light;
   margin-right: 0.6rem;
 }
 
 .section-small-icon {
   font-size: 0.95rem;
-  color: #00d1ff;
+  color: $primary-light;
   margin-right: 0.45rem;
 }
 
@@ -403,7 +403,7 @@ h1 {
 .stat-number {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #00d1ff;
+  color: $primary-light;
   margin-bottom: 0.25rem;
 }
 
@@ -416,7 +416,7 @@ h1 {
 
 .languages-section h4 {
   font-size: 1rem;
-  color: #00d1ff;
+  color: $primary-light;
   margin-bottom: 0.75rem;
   font-weight: 600;
 }
@@ -453,7 +453,7 @@ h1 {
   top: 0;
   left: 0;
   height: 100%;
-  background: linear-gradient(90deg, #00d1ff, #0099cc);
+  background: linear-gradient(90deg, $primary-light, #0099cc);
   border-radius: 4px;
   width: 100%;
 }
@@ -461,14 +461,14 @@ h1 {
 .language-count {
   min-width: 30px;
   text-align: right;
-  color: #00d1ff;
+  color: $primary-light;
   font-weight: 500;
 }
 
 .language-size {
   min-width: 50px;
   text-align: right;
-  color: #00d1ff;
+  color: $primary-light;
   font-weight: 500;
   font-size: 0.8rem;
 }
@@ -480,7 +480,7 @@ h1 {
 
 .recent-activity h4 {
   font-size: 1.2rem;
-  color: #00d1ff;
+  color: $primary-light;
   margin-bottom: 1.5rem;
   font-weight: 600;
 }
@@ -510,7 +510,7 @@ h1 {
 .activity-toggle {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #00d1ff;
+  color: $primary-light;
   padding: 0.35rem 0.6rem;
   border-radius: 8px;
   font-weight: 700;
@@ -545,7 +545,7 @@ h1 {
   background: rgba(255, 255, 255, 0.05);
   padding: 0.75rem;
   border-radius: 0.25rem;
-  border-left: 3px solid #00d1ff;
+  border-left: 3px solid $primary-light;
   box-sizing: border-box;
   /* flexible: try to show two items per row when space allows */
   flex: 1 1 calc(50% - 0.75rem);
@@ -565,7 +565,7 @@ h1 {
 }
 
 .activity-repo {
-  color: #00d1ff;
+  color: $primary-light;
   font-size: 0.8rem;
   font-weight: 500;
 }
@@ -607,7 +607,7 @@ h1 {
   border-radius: 0.25rem;
   font-size: 0.7rem;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: #00d1ff;
+  color: $primary-light;
   margin-top: 0.25rem;
   align-self: flex-start;
 }
@@ -615,7 +615,7 @@ h1 {
 .team-member-info h3 {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #00d1ff;
+  color: $primary-light;
   margin-bottom: 0.25rem;
 }
 
@@ -635,8 +635,8 @@ h1 {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00d1ff, #0099cc);
-  border: 3px solid #00d1ff;
+  background: linear-gradient(135deg, $primary-light, #0099cc);
+  border: 3px solid $primary-light;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -652,7 +652,7 @@ h1 {
 }
 
 .team-member.hiring .team-member-info h3 {
-  color: #00d1ff;
+  color: $primary-light;
 }
 
 .cta {
@@ -671,7 +671,7 @@ h1 {
   font-weight: 600;
   font-size: 1rem;
   color: #000;
-  background-color: #00d1ff;
+  background-color: $primary-light;
   border-radius: 8px;
   text-decoration: none;
   transition: background-color 0.3s;

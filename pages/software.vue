@@ -137,7 +137,7 @@ const softwareFaq = [
 
   .cta-button {
     padding: 0.75rem 2.25rem;
-    background: #00d1ff;
+    background: $primary-light;
     color: #000;
     font-weight: 700;
     border-radius: 8px;
@@ -202,7 +202,7 @@ const softwareFaq = [
           content: '•';
           position: absolute;
           left: 0;
-          color: #00d1ff;
+          color: $primary-light;
           font-size: 1.4rem;
           line-height: 1;
         }
@@ -211,7 +211,7 @@ const softwareFaq = [
 
     .solution-icon {
       font-size: 2.25rem;
-      color: #00d1ff;
+      color: $primary-light;
       margin-bottom: 0.25rem;
     }
   }
@@ -235,7 +235,7 @@ const softwareFaq = [
 
   .cta-button {
     padding: 0.75rem 2.25rem;
-    background: #00d1ff;
+    background: $primary-light;
     color: #000;
     font-weight: 700;
     border-radius: 8px;
