@@ -27,13 +27,14 @@ export default defineNuxtConfig({
   routeRules: {
     // Static pages (can be prerendered)
     '/': { prerender: true },
-    '/about': { prerender: true },
+    '/values': { prerender: true },
     '/contact': { prerender: true },
-    '/products': { prerender: true },
+    '/software': { prerender: true },
+    '/web': { prerender: true },
     
     // Dynamic content from headless CMS
-    '/blog': { isr: true },
-    '/blog/**': { isr: 3600 }, // Cache for 1 hour
+    '/author': { isr: true },
+    '/author/**': { isr: 3600 }, // Cache for 1 hour
     
     // Authentication pages (client-side)
     '/login': { ssr: false },

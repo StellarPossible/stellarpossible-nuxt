@@ -28,9 +28,10 @@
         :class="{ open: isMenuOpen }"
       >
         <NuxtLink to="/" exact-active-class="active" @click="closeMenu">Home</NuxtLink>
-        <NuxtLink to="/about" active-class="active" @click="closeMenu">About</NuxtLink>
-        <NuxtLink to="/products" active-class="active" @click="closeMenu">Products</NuxtLink>
-        <NuxtLink to="/blog" active-class="active" @click="closeMenu">Education</NuxtLink>
+        <NuxtLink to="/software" active-class="active" @click="closeMenu">Software</NuxtLink>
+        <NuxtLink to="/web" active-class="active" @click="closeMenu">Web</NuxtLink>
+        <NuxtLink to="/author" active-class="active" @click="closeMenu">Author</NuxtLink>
+        <NuxtLink to="/values" active-class="active" @click="closeMenu">Values</NuxtLink>
         
         
         <!-- Authentication Links -->
