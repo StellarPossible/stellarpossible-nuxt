@@ -34,7 +34,7 @@
         <h3>Add-Ons</h3>
         <ul>
           <li>New Domain: $50/year</li>
-          <li>Additional Content Development Hours: $95/hour</li>
+          <li>Additional Content Development Hours: $115/hour</li>
         </ul>
         <p class="limited-time">* Initial single page site setup is included (for a limited time) in enrollment of one of the monthly packages.</p>
       </div>
@@ -111,40 +111,36 @@
 const packages = [
   {
     name: 'Starter Package',
-    price: '$200/month',
+    price: '$300/month',
     description: 'Perfect for small businesses or individuals starting online.',
     features: [
       '1-page site hosting',
-      'Keep your existing domain',
-      '2 hours of content development included',
+      '1 hour of content development included',
       'Basic SEO optimization',
       'Mobile responsive design',
-      'Email support'
+      'SP Support Basic'
     ]
   },
   {
     name: 'Growth Package',
-    price: '$400/month',
+    price: '$900/month',
     description: 'For businesses ready to expand their online presence.',
     features: [
       'Up to 5 pages',
-      'Domain hosting included',
-      '5 hours of content development',
+      '3 hours of content development',
       'Advanced SEO and analytics',
-      'Contact forms and integrations',
-      'Priority support'
+      'SP Support Plus',
     ]
   },
   {
     name: 'Enterprise Package',
-    price: '$700/month',
+    price: '$2200/month',
     description: 'Full-scale solutions for established businesses.',
     features: [
-      'Unlimited pages',
-      'Custom domain setup',
+      'up to 20 pages',
       '10 hours of content development',
+      'Advanced SEO and analytics',
       'E-commerce integration',
-      'Advanced analytics and reporting',
       'Dedicated account manager'
     ]
   }
