@@ -7,7 +7,7 @@
       </p>
       <div class="hero-buttons">
         <NuxtLink to="/contact" class="button primary">Get In Touch</NuxtLink>
-        <NuxtLink to="/products" class="button ghost">Products</NuxtLink>
+        <NuxtLink to="/software" class="button ghost">Software</NuxtLink>
       </div>
     </div>
   </section>
