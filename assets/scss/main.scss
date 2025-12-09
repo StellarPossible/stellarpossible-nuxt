@@ -29,3 +29,16 @@ body {
   height: 100vh;
   overflow: hidden;
 }
+
+// Disable scroll when mobile menu is open
+.menu-open {
+  overflow: hidden;
+}
+
+p {
+  font-family: 'Chocolates', serif;
+}
+
+h1,h2, h3, h4, h5, h6 {
+  font-family: 'OldStyle', sans-serif;
+}

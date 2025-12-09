@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 defineProps<{ scrolled: boolean }>()
 
@@ -55,6 +55,14 @@ import type { User } from '~/types/auth'
 const user = useState<User | null>('auth.user', () => null)
 
 const isHomePage = computed(() => route.path === '/')
+
+onMounted(() => {
+  if (process.client) {
+    watch(isMenuOpen, (open) => {
+      document.body.classList.toggle('menu-open', open)
+    }, { immediate: true })
+  }
+})
 
 function closeMenu() {
   isMenuOpen.value = false
@@ -163,8 +171,7 @@ async function logout() {
     display: flex;
     align-items: center;
     gap: 2rem;
-    opacity: 0.85;
-    font-size: 1rem;
+    font-size: 2rem;
     font-family: 'OldStyle', 'Inter', sans-serif;
 
     a {
@@ -173,10 +180,7 @@ async function logout() {
       font-weight: 600;
       transition: color 0.2s;
 
-      &:hover {
-        color: $secondary;
-      }
-
+      &:hover,
       &.active {
         color: $primary-light;
       }
