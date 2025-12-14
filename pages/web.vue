@@ -1,42 +1,73 @@
 <template>
   <section class="web-page">
     <div class="hero">
-      <h1>Web Solutions for Small Businesses & Individuals</h1>
-      <p>
-        Whether you're looking for a simple landing page and domain setup or a full-scale multi-page site, Stellar Possible is here to walk you through (and do most of the work!) everything.
-      </p>
-      <p>
-        We work with you, where you are at, wherever that is. Let us get to know each other, your goals and vision for the future, and begin a partnership of mutual investment.
-      </p>
-      <p>
-        Because when you succeed, we succeed.
-      </p>
-      <NuxtLink class="cta-button" to="/contact">Start Your Partnership</NuxtLink>
+      <h1>Simple, Managed Websites That Help You Grow</h1>
+      <p class="subhead">Get a fast, secure, and easy-to-manage site—without the headaches. We handle hosting, updates, and the technical work so you can focus on customers and content.</p>
+
+      <ul class="hero-benefits">
+        <li>Launch faster: single-page sites in days, multi-page in weeks</li>
+        <li>Managed hosting & security so you don't have to worry</li>
+        <li>Ongoing updates & a monthly support window that scales with you</li>
+      </ul>
+
+      <div class="hero-ctas">
+        <NuxtLink class="cta-button primary" to="/contact?source=web&audit=true">Get a Free Site Audit</NuxtLink>
+        <NuxtLink class="cta-button ghost" to="#packages">See Packages</NuxtLink>
+      </div>
     </div>
 
     <div class="packages">
       <h2>Our Packages</h2>
-      <div class="package-grid">
+      <div id="packages" class="package-grid">
         <article
           v-for="pkg in packages"
           :key="pkg.name"
           class="package-card"
         >
-          <h3>{{ pkg.name }}</h3>
+          <div class="card-top">
+            <h3>{{ pkg.name }}</h3>
+            <span v-if="pkg.popular" class="badge">Most Popular</span>
+          </div>
           <div class="price">{{ pkg.price }}</div>
-          <p>{{ pkg.description }}</p>
+          <p class="pkg-lead">{{ pkg.description }}</p>
           <ul>
             <li v-for="feature in pkg.features" :key="feature">{{ feature }}</li>
           </ul>
+          <div class="card-actions">
+            <NuxtLink class="cta-button small" :to="`/contact?package=${encodeURIComponent(pkg.name)}`">Choose {{ pkg.name }}</NuxtLink>
+            <NuxtLink class="link-secondary" :to="`/contact?package=${encodeURIComponent(pkg.name)}&quote=true`">Request a Quote</NuxtLink>
+          </div>
         </article>
       </div>
       <div class="addons">
         <h3>Add-Ons</h3>
         <ul>
           <li>New Domain: $50/year</li>
-          <li>Additional Content Development Hours: $115/hour</li>
+          <li>Additional web development support: $85/hour</li>
+          <li>Custom software development: $115/hour</li>
         </ul>
         <p class="limited-time">* Initial single page site setup is included (for a limited time) in enrollment of one of the monthly packages.</p>
+      </div>
+      <div class="hourly-overview">
+        <h3>Hourly Services</h3>
+        <div class="hourly-grid">
+          <article class="hourly-card">
+            <h4>Web Development — $85/hour</h4>
+            <ul>
+              <li>Configuring WordPress themes, plugins, and hosting</li>
+              <li>Content updates and minor UX adjustments</li>
+              <li>Performance tuning or accessibility fixes</li>
+            </ul>
+          </article>
+          <article class="hourly-card">
+            <h4>Custom Software — $115/hour</h4>
+            <ul>
+              <li>New feature development in Nuxt, Vue, or backend services</li>
+              <li>API integrations, automations, or data workflows</li>
+              <li>Architectural consulting and ongoing product support</li>
+            </ul>
+          </article>
+        </div>
       </div>
     </div>
 
@@ -47,6 +78,19 @@
           <span class="step-number">{{ step.order }}</span>
           <h3>{{ step.title }}</h3>
           <p>{{ step.summary }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust">
+      <h2>Trusted by Small Businesses</h2>
+      <div class="trust-inner">
+        <div class="testimonial">
+          <blockquote>“Vivarium Salon's site is fast and easy for our stylists to update. StellarPossible manages everything so our team can focus on bookings.”</blockquote>
+          <cite>— Vivarium Salon</cite>
+        </div>
+        <div class="trust-links">
+          <a :href="clientShowcase.url" target="_blank" rel="noopener noreferrer">Visit Vivarium Salon</a>
         </div>
       </div>
     </section>
@@ -97,12 +141,12 @@
       </div>
     </section>
 
-    <div class="final-cta">
+    <div id="contact" class="final-cta">
       <h2>Ready to Build Your Online Presence?</h2>
       <p>
         From a single landing page to a comprehensive multi-page site, we're here to help you succeed online. Let's start a partnership that grows with you.
       </p>
-      <NuxtLink class="cta-button" to="/contact">Get Started Today</NuxtLink>
+      <NuxtLink class="cta-button primary" to="/contact?source=web">Get Started Today</NuxtLink>
     </div>
   </section>
 </template>
@@ -111,59 +155,65 @@
 const packages = [
   {
     name: 'Starter Package',
-    price: '$300/month',
-    description: 'Perfect for small businesses or individuals starting online.',
+    price: '$150/month',
+    description: 'Managed essentials for a single-page presence and quick updates.',
     features: [
-      '1-page site hosting',
-      '1 hour of content development included',
+      '1 professionally managed page',
+      '1 hour of monthly development support',
+      'Basic monthly updates',
+      'Managed hosting and updates',
       'Basic SEO optimization',
-      'Mobile responsive design',
-      'SP Support Basic'
+      'Mobile responsive design'
     ]
   },
   {
     name: 'Growth Package',
-    price: '$900/month',
-    description: 'For businesses ready to expand their online presence.',
+    price: '$350/month',
+    description: 'Expand your presence with more pages and hands-on updates.',
     features: [
-      'Up to 5 pages',
-      '3 hours of content development',
+      'Up to 5 managed pages',
+      '3 hours of monthly development support',
+      'Managed hosting and staging',
       'Advanced SEO and analytics',
-      'SP Support Plus',
-    ]
+      'Priority support'
+    ],
+    popular: true
   },
   {
     name: 'Enterprise Package',
-    price: '$2200/month',
-    description: 'Full-scale solutions for established businesses.',
+    price: '$750/month',
+    description: 'For growing teams needing broader sites and steady iteration.',
     features: [
-      'up to 20 pages',
-      '10 hours of content development',
+      'Up to 15 managed pages',
+      '5 hours of monthly development support',
+      'Basic monthly updates',
+      'Basic monthly updates',
+      'Managed hosting with performance tuning',
       'Advanced SEO and analytics',
-      'E-commerce integration',
-      'Dedicated account manager'
+      'Quarterly roadmap reviews'
     ]
   }
 ]
+
 
 const process = [
   {
     order: '01',
     title: 'Discovery & Partnership',
     summary:
-      'We get to know you, your goals, and your vision. Understanding where you are now helps us build a roadmap for your success.'
+      'We learn your goals and priorities, then build a practical roadmap focused on measurable results.'
   },
   {
     order: '02',
     title: 'Design & Development',
     summary:
-      'We create and build your site, incorporating your content and ensuring it meets your needs. We handle most of the work so you can focus on your business.'
+      'We design and build fast, accessible pages, integrate tools you need, and keep you involved during key decisions.'
   },
   {
     order: '03',
     title: 'Launch & Support',
     summary:
-      'Your site goes live, and we provide ongoing support. As your business grows, we scale with you, adding features and content as needed.'
+      'We launch, monitor performance, and provide ongoing updates so your site keeps delivering value.'
   }
 ]
 
@@ -171,22 +221,27 @@ const webFaq = [
   {
     question: 'Do I need technical skills to get started?',
     answer:
-      'Not at all! We handle all the technical aspects. You provide your content and vision, and we take care of building and maintaining your site.'
+      'No technical experience needed — we handle setup, hosting, and maintenance. You provide goals and content; we handle the rest.'
   },
   {
     question: 'Can I keep my existing domain?',
     answer:
-      'Yes, if you already have a domain, we can host your site on it. If you need a new domain, we can help with that for an additional $50/year.'
+      'Yes — we can use your current domain or register and manage a new one for $50/year.'
   },
   {
     question: 'What if I need more content development time?',
     answer:
-      'Additional content development hours are available at $95/hour. We can help with writing, editing, or any content needs for your site.'
+      'Extra content or copy support is available at $95/hour — from writing to editing and image selection.'
+  },
+  {
+    question: 'How do I get started?',
+    answer:
+      "Start with a free site audit and brief call — we'll recommend the best package and timeline. Click 'Get a Free Site Audit' above to begin."
   },
   {
     question: 'Is the initial setup really free?',
     answer:
-      'For a limited time, yes! When you enroll in one of our monthly packages, the initial single-page site setup is included at no extra cost.'
+      'For a limited time, yes — an initial single-page setup is included with any monthly package. Ask us about upgrade options.'
   }
 ]
 
@@ -227,17 +282,46 @@ const clientShowcase = {
   h1 {
     font-size: 2.75rem;
     font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .subhead {
+    font-size: 1.15rem;
     margin-bottom: 1rem;
+    color: #dff6ff;
+    font-weight: 600;
+  }
+
+  .hero-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    li {
+      background: rgba(255,255,255,0.06);
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      color: #eaf9ff;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
   }
 
   p {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
     color: #e7f7ff;
   }
 
-  p:last-of-type {
-    margin-bottom: 2rem;
+  .hero-ctas {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 0.5rem;
   }
 
   .cta-button {
@@ -249,8 +333,25 @@ const clientShowcase = {
     text-decoration: none;
     transition: background 0.3s ease;
 
+    &.primary {
+      background: $primary-light;
+      color: #08141a;
+    }
+
+    &.ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.14);
+      color: $white;
+    }
+
+    &.small {
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+    }
+
     &:hover {
       background: #ff9330;
+      color: #08141a;
     }
   }
 }
@@ -275,6 +376,16 @@ const clientShowcase = {
     @media (min-width: 768px) {
       grid-template-columns: repeat(3, 1fr);
     }
+
+    .badge {
+      background: $primary-light;
+      color: #08141a;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      margin-left: 0.5rem;
+    }
   }
 
   .package-card {
@@ -288,10 +399,18 @@ const clientShowcase = {
     flex-direction: column;
     gap: 0.75rem;
 
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
     h3 {
       font-size: 1.55rem;
       font-weight: 700;
       color: $white;
+      margin: 0;
     }
 
     .price {
@@ -301,9 +420,11 @@ const clientShowcase = {
       margin-bottom: 0.5rem;
     }
 
-    p {
+    .pkg-lead {
       color: #dcecf6;
-      line-height: 1.5;
+      line-height: 1.4;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
     }
 
     ul {
@@ -330,6 +451,21 @@ const clientShowcase = {
         }
       }
     }
+
+    .card-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .link-secondary {
+      color: #dbeeff;
+      text-decoration: underline;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-left: 0.5rem;
+    }
   }
 
   .addons {
@@ -344,6 +480,66 @@ const clientShowcase = {
       color: $white;
       margin-bottom: 1rem;
     }
+  .hourly-overview {
+    margin-top: 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 2rem 1.5rem;
+
+    h3 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .hourly-grid {
+      display: grid;
+      gap: 1.5rem;
+
+      @media (min-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .hourly-card {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 179, 71, 0.25);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: left;
+
+      h4 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: $white;
+        margin-bottom: 0.75rem;
+      }
+
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        li {
+          color: #deeff9;
+          line-height: 1.5;
+          position: relative;
+          padding-left: 1.1rem;
+
+          &::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: $primary-light;
+          }
+        }
+      }
+    }
+  }
 
     ul {
       list-style: none;
@@ -483,83 +679,44 @@ const clientShowcase = {
       }
     }
   }
-}
 
-.process {
-  max-width: 960px;
-  width: 100%;
-  margin-bottom: 4rem;
 
-  h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-  }
-
-  .process-steps {
-    display: grid;
-    gap: 1.5rem;
-
-    @media (min-width: 768px) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  .process-card {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1.75rem 1.5rem;
-    text-align: left;
-    color: #04131f;
+  .trust {
+    margin-top: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
 
-    .step-number {
-      font-size: 1.25rem;
+    .trust-inner {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .testimonial {
+      max-width: 700px;
+    }
+
+    .testimonial blockquote {
+      font-size: 1.05rem;
+      color: #e7f7ff;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .testimonial cite {
+      color: #dbeeff;
       font-weight: 700;
-      color: $primary-light;
     }
 
-    h3 {
-      font-size: 1.3rem;
+    .trust-links a {
+      background: rgba(255,255,255,0.08);
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      color: $white;
+      text-decoration: none;
       font-weight: 700;
-      color: #fff;
-    }
-
-    p {
-      color: #dfeef8;
-      line-height: 1.6;
-    }
-  }
-}
-
-.final-cta {
-  max-width: 720px;
-
-  h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-    color: #e7f7ff;
-  }
-
-  .cta-button {
-    padding: 0.75rem 2.25rem;
-    background: $primary-light;
-    color: #1a1a1a;
-    font-weight: 700;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background 0.3s ease;
-
-    &:hover {
-      background: #ff9330;
     }
   }
 }
@@ -598,6 +755,7 @@ const clientShowcase = {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 1rem;
 
       &::marker {
         display: none;
@@ -621,7 +779,7 @@ const clientShowcase = {
 
     p {
       margin-top: 0.75rem;
-      line-height: 1.6;
+      line-height: 1;
       color: #e7f7ff;
     }
   }
@@ -632,10 +790,18 @@ const clientShowcase = {
     font-size: 2.25rem;
   }
 
+  .hero-benefits {
+    gap: 0.5rem;
+  }
+
   .package-grid,
   .process-steps,
   .client-details {
     grid-template-columns: 1fr;
+  }
+
+  .hero-ctas {
+    flex-direction: column;
   }
 }
 </style>

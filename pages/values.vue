@@ -47,7 +47,7 @@
             </div>
             <div class="team-member-info">
               <h3>Marine</h3>
-              <p class="role">CEO and Lead Developer</p>
+            <i>  <p class="role">CEO and Lead Developer</p> </i>
               <p>
                 Marine leads our team with a focus on innovative API-driven solutions and modern web architectures. With extensive experience in full-stack development, they ensure our projects deliver exceptional user experiences and robust backend systems.
               </p>
@@ -308,7 +308,7 @@ h1 {
 }
 
 .section p {
-  font-size: 1.1rem;
+  font-size: .9rem;
   line-height: 1.1;
   color: #e2e2e2;
 }
@@ -731,7 +731,7 @@ h1 {
 
     p {
       margin-top: 0.75rem;
-      line-height: 1.6;
+      line-height: 1;
       color: #d8edf9;
     }
   }
