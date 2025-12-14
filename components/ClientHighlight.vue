@@ -25,7 +25,6 @@
               <li>Full site hosting and uptime monitoring</li>
               <li>API development & integration with 3rd-party tools</li>
               <li>Secure email + newsletter system with Mailchimp</li>
-              <li>Advanced site security & HIPAA-aligned data protection</li>
               <li>Ongoing UI/UX improvements and accessibility upgrades</li>
             </ul>
           </div>
