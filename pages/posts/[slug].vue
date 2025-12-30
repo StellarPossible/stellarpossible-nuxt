@@ -132,7 +132,7 @@ onMounted(() => {
       <div class="error-state">
         <p>{{ error }}</p>
         <button @click="fetchPost" class="retry-button">Try Again</button>
-        <NuxtLink to="/author" class="back-btn">
+        <NuxtLink to="/write" class="back-btn">
           Back to Author
         </NuxtLink>
       </div>
@@ -145,7 +145,7 @@ onMounted(() => {
             <NuxtLink 
               v-for="category in post.categories.nodes" 
               :key="category.id"
-              :to="`/author?category=${category.slug}`" 
+              :to="`/write?category=${category.slug}`" 
               class="category"
             >
               {{ category.name }}
@@ -173,7 +173,7 @@ onMounted(() => {
         <NuxtLink 
           v-for="tag in post.tags.nodes" 
           :key="tag.id"
-          :to="`/author?tag=${tag.slug}`" 
+          :to="`/write?tag=${tag.slug}`" 
           class="tag"
         >
           {{ tag.name }}
@@ -181,7 +181,7 @@ onMounted(() => {
       </div>
       
       <div class="post-navigation">
-        <NuxtLink to="/author" class="back-btn">
+        <NuxtLink to="/write" class="back-btn">
           <Icon icon="mdi:arrow-left" /> Back to Author
         </NuxtLink>
       </div>

@@ -2,7 +2,7 @@
   <section class="card">
     <h2>Quick Actions</h2>
     <div class="actions">
-      <NuxtLink to="/author" class="action">
+      <NuxtLink to="/write" class="action">
         <Icon icon="mdi:book-open-page-variant" />
         <span>Read Author Updates</span>
       </NuxtLink>

@@ -29,7 +29,7 @@
       >
         <NuxtLink to="/software" active-class="active" @click="closeMenu">software</NuxtLink>
         <NuxtLink to="/web" active-class="active" @click="closeMenu">web</NuxtLink>
-        <NuxtLink to="/author" active-class="active" @click="closeMenu">publish</NuxtLink>
+        <NuxtLink to="/write" active-class="active" @click="closeMenu">write</NuxtLink>
         <NuxtLink to="/values" active-class="active" @click="closeMenu">values</NuxtLink>
         
         

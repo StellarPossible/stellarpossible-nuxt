@@ -204,7 +204,7 @@ const recentBooks = [
     genre: "Technology",
     cover: "https://via.placeholder.com/200x300/123146/ffffff?text=Book+1",
     description: "A comprehensive guide to navigating the digital age and emerging technologies.",
-    authorLink: "/author/sarah-chen",
+    authorLink: "/write/sarah-chen",
     purchaseLink: "https://amazon.com/book1"
   },
   {
@@ -214,7 +214,7 @@ const recentBooks = [
     genre: "Business",
     cover: "https://via.placeholder.com/200x300/547580/ffffff?text=Book+2",
     description: "Transform your leadership style with mindfulness and emotional intelligence.",
-    authorLink: "/author/marcus-rodriguez",
+    authorLink: "/write/marcus-rodriguez",
     purchaseLink: "https://amazon.com/book2"
   },
   {
@@ -224,7 +224,7 @@ const recentBooks = [
     genre: "Environment",
     cover: "https://via.placeholder.com/200x300/2d4558/ffffff?text=Book+3",
     description: "Exploring solutions for a sustainable planet and equitable future.",
-    authorLink: "/author/emily-watson",
+    authorLink: "/write/emily-watson",
     purchaseLink: "https://amazon.com/book3"
   },
   {
@@ -234,7 +234,7 @@ const recentBooks = [
     genre: "Programming",
     cover: "https://via.placeholder.com/200x300/241321/ffffff?text=Book+4",
     description: "Unlock your creativity through code and build amazing digital experiences.",
-    authorLink: "/author/alex-thompson",
+    authorLink: "/write/alex-thompson",
     purchaseLink: "https://amazon.com/book4"
   },
   {
@@ -244,7 +244,7 @@ const recentBooks = [
     genre: "Writing",
     cover: "https://via.placeholder.com/200x300/0a1116/ffffff?text=Book+5",
     description: "Master the craft of storytelling and captivate your audience.",
-    authorLink: "/author/lisa-park",
+    authorLink: "/write/lisa-park",
     purchaseLink: "https://amazon.com/book5"
   }
 ]
@@ -732,7 +732,6 @@ onMounted(() => {
       }
     }
   }
-}
 
 // Icon classes for service cards
 .icon-book::before { content: '📖'; }
@@ -831,4 +830,5 @@ onMounted(() => {
     }
   }
 }
-</style>
+}
+    </style>
