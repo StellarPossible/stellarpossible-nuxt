@@ -29,7 +29,15 @@
       >
         <NuxtLink to="/software" active-class="active" @click="closeMenu">software</NuxtLink>
         <NuxtLink to="/web" active-class="active" @click="closeMenu">web</NuxtLink>
-        <NuxtLink to="/write" active-class="active" @click="closeMenu">write</NuxtLink>
+        <div class="nav-item has-submenu">
+          <NuxtLink to="/write" active-class="active" @click="closeMenu">write</NuxtLink>
+          <ul class="submenu" role="menu">
+            <li role="none"><NuxtLink to="/write/self-publish" @click="closeMenu">Self-Publish</NuxtLink></li>
+            <li role="none"><NuxtLink to="/write/mstompsword" @click="closeMenu">M Stompsword</NuxtLink></li>
+            <li role="none"><NuxtLink to="/write/make-me" @click="closeMenu">Make Me</NuxtLink></li>
+            <li role="none"><NuxtLink to="/blog" @click="closeMenu">Explore</NuxtLink></li>
+          </ul>
+        </div>
         <NuxtLink to="/values" active-class="active" @click="closeMenu">values</NuxtLink>
         
         
@@ -90,7 +98,7 @@ async function logout() {
   right: 0;
   width: 100%;
   z-index: 2000;
-  overflow: hidden;
+  overflow: visible;
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
 
   &::before {
@@ -185,20 +193,59 @@ async function logout() {
         color: $primary-light;
       }
     }
-  }
 
-  .auth-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    
-    .dashboard-link {
-      text-decoration: none;
-      color: white;
-      font-weight: 600;
-      transition: color 0.2s;
+    /* Submenu for write */
+    .nav-item {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+
+      .submenu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        background: rgba(0,0,0,0.9);
+        border-radius: 8px;
+        padding: 0.5rem;
+        min-width: 160px;
+        flex-direction: column;
+        gap: 0.25rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        z-index: 3000;
+      }
+
+      &:hover .submenu,
+      &:focus-within .submenu {
+        display: flex;
+      }
+
+      .submenu a {
+        font-size: 1rem;
+        padding: 0.5rem 0.75rem;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+      }
+
+      .submenu a:hover {
+        background: rgba(255,255,255,0.04);
+        color: $primary-light;
+      }
     }
-    
+
+    @media (max-width: 768px) {
+      .nav-item .submenu {
+        position: static;
+        display: none;
+        padding-left: 1rem;
+      }
+
+      .nav.open .nav-item .submenu {
+        display: flex;
+      }
+    }
+
     .logout-btn {
       background: rgba(255, 255, 255, 0.1);
       color: white;

@@ -33,8 +33,8 @@ export default defineNuxtConfig({
     '/web': { prerender: true },
     
     // Dynamic content from headless CMS
-    '/write': { isr: true },
-    '/write/**': { isr: 3600 }, // Cache for 1 hour
+    '/write': { prerender: true },
+    '/write/**': { prerender: true }, // Prerender write subpages
     
     // Authentication pages (client-side)
     '/login': { ssr: false },
