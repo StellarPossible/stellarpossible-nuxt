@@ -220,6 +220,10 @@ jobs:
             export USE_JWT='${{ secrets.USE_JWT }}'
             export JWT_SECRET='${{ secrets.JWT_SECRET }}'
             export ADMIN_EMAIL='${{ secrets.ADMIN_EMAIL }}'
+            export STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}'
+            export STRIPE_PRICE_MONTHLY='${{ secrets.STRIPE_PRICE_MONTHLY }}'
+            export STRIPE_PRICE_ANNUAL='${{ secrets.STRIPE_PRICE_ANNUAL }}'
+            export NUXT_PUBLIC_SITE_URL='${{ secrets.NUXT_PUBLIC_SITE_URL }}'
             
             bash /tmp/deploy-wrapper.sh
           "

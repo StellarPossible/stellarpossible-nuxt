@@ -1,33 +1,13 @@
-<script setup>
-import HeroContent from '@/components/HeroContent.vue'
-import { useQuery } from '@vue/apollo-composable'
-import { gql } from '@apollo/client/core'
-
-const GET_SITE_INFO = gql`
-  query GetSiteInfo {
-    generalSettings {
-      title
-      description
-    }
-  }
-`
-
-const { result: data, loading: pending, error } = useQuery(GET_SITE_INFO)
+<script setup lang="ts">
+// Home page content is rendered by HeroContent in app.vue when route is /
+useHead({
+  title: 'StellarPossible',
+  meta: [
+    { name: 'description', content: 'Your ideas. Our tech. Infinite possibility. Human-focused solutions for creatives, educators, and visionaries.' }
+  ]
+})
 </script>
 
 <template>
-  <div>
-    <header v-if="data?.generalSettings">
-      <p v-if="data.generalSettings.description">{{ data.generalSettings.description }}</p>
-    </header>
-    
-    <HeroContent />
-
-    <div v-if="pending">Loading...</div>
-    <div v-if="error" class="error">Error: {{ error.message }}</div>
-
-    <main>
-      <!-- <HeroPlanets /> -->
-    </main>
-  </div>
+  <div />
 </template>

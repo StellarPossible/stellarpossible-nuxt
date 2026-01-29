@@ -1,5 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
-  redirect: '/author'
+  redirect: '/services'
 })
 </script>
+
+<template>
+  <div />
+</template>
