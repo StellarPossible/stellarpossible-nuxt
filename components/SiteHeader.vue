@@ -27,25 +27,10 @@
         class="nav"
         :class="{ open: isMenuOpen }"
       >
-        <NuxtLink to="/software" active-class="active" @click="closeMenu">software</NuxtLink>
-        <NuxtLink to="/web" active-class="active" @click="closeMenu">web</NuxtLink>
-        <div class="nav-item has-submenu">
-          <NuxtLink to="/write" active-class="active" @click="closeMenu">write</NuxtLink>
-          <ul class="submenu" role="menu">
-            <li role="none"><NuxtLink to="/write/self-publish" @click="closeMenu">Self-Publish</NuxtLink></li>
-            <li role="none"><NuxtLink to="/write/mstompsword" @click="closeMenu">M Stompsword</NuxtLink></li>
-            <li role="none"><NuxtLink to="/write/make-me" @click="closeMenu">Make Me</NuxtLink></li>
-            <li role="none"><NuxtLink to="/blog" @click="closeMenu">Explore</NuxtLink></li>
-          </ul>
-        </div>
-        <NuxtLink to="/values" active-class="active" @click="closeMenu">values</NuxtLink>
-        
-        
-        <!-- Authentication Links -->
-        <div v-if="user" class="auth-section">
-          <NuxtLink to="/dashboard" class="dashboard-link" @click="closeMenu">dashboard</NuxtLink>
-          <button @click="logout" class="logout-btn">logout</button>
-        </div>
+        <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
+        <template v-if="user">
+          <button type="button" class="logout-btn" @click="logout">logout</button>
+        </template>
         <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
       </nav>
     </div>
@@ -80,7 +65,7 @@ async function logout() {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
     user.value = null
-    await navigateTo('/')
+    await navigateTo('/services')
   } catch (error) {
     console.error('Logout failed:', error)
   }

@@ -23,22 +23,13 @@ export default defineNuxtConfig({
   // Full SSR for headless frontend
   ssr: true,
 
-  // Route rules optimized for headless CMS
+  // Route rules
   routeRules: {
-    // Static pages (can be prerendered)
     '/': { prerender: true },
-    '/values': { prerender: true },
-    '/contact': { prerender: true },
-    '/software': { prerender: true },
-    '/web': { prerender: true },
-    
-    // Dynamic content from headless CMS
-    '/write': { prerender: true },
-    '/write/**': { prerender: true }, // Prerender write subpages
-    
-    // Authentication pages (client-side)
+    '/services': { prerender: true },
+    '/services/success': { prerender: true },
+    '/services/cancel': { prerender: true },
     '/login': { ssr: false },
-    '/register': { ssr: false },
     
     // API routes (server-side only)
     '/api/**': { 
@@ -70,12 +61,26 @@ export default defineNuxtConfig({
     
     // Public keys (client-side accessible)
     public: {
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
       wpUser: process.env.WP_USER || '',
       // Updated for headless CMS subdirectory
       wpGraphqlEndpoint: process.env.WP_GRAPHQL_ENDPOINT || 'https://stellarpossible.com/cms/graphql',
       wpRestEndpoint: process.env.WP_REST_ENDPOINT || 'https://stellarpossible.com/cms/wp-json',
-      useJWT: process.env.USE_JWT || 'true'
+      useJWT: process.env.USE_JWT || 'true',
+      // WooCommerce store (CMS) – used for subscription/checkout links
+      wooStoreUrl: process.env.WOO_STORE_URL || 'https://stellarpossible.com/cms',
+      // Optional: product/variation IDs for add-to-cart links (set after creating products in WooCommerce)
+      wooProductHostingId: process.env.WOO_PRODUCT_HOSTING_ID || '',
+      wooVariationMonthlyId: process.env.WOO_VARIATION_MONTHLY_ID || '',
+      wooVariationAnnualId: process.env.WOO_VARIATION_ANNUAL_ID || '',
+      wooVariation3YearId: process.env.WOO_VARIATION_3YEAR_ID || ''
     },
+
+    // Stripe (server-only) – for custom subscription checkout
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+    stripePriceMonthly: process.env.STRIPE_PRICE_MONTHLY || '',
+    stripePriceAnnual: process.env.STRIPE_PRICE_ANNUAL || '',
+    stripePrice3Year: process.env.STRIPE_PRICE_3YEAR || '',
 
     // Email/private server-side config
     emailFrom: process.env.EMAIL_FROM || '',
