@@ -6,8 +6,8 @@
         Human-focused solutions for creatives, educators, and visionaries.
       </p>
       <div class="hero-buttons">
-        <NuxtLink to="/contact" class="button primary">Get In Touch</NuxtLink>
-        <NuxtLink to="/software" class="button ghost">Software</NuxtLink>
+        <NuxtLink to="/services" class="button primary">Services</NuxtLink>
+        <NuxtLink to="/login" class="button ghost">Login</NuxtLink>
       </div>
     </div>
   </section>

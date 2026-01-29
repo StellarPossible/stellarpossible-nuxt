@@ -1,8 +1,26 @@
 <template>
   <header :class="['site-header', { scrolled }]">
     <div class="container" :class="{ 'home-layout': isHomePage }">
-      <NuxtLink 
-        to="/" 
+      <div class="header-left">
+        <button
+          class="menu-toggle"
+          @click="isMenuOpen = !isMenuOpen"
+          aria-label="Toggle navigation"
+        >
+          <span :class="{ open: isMenuOpen }"></span>
+          <span :class="{ open: isMenuOpen }"></span>
+          <span :class="{ open: isMenuOpen }"></span>
+        </button>
+        <nav class="nav nav-left" :class="{ open: isMenuOpen }">
+          <template v-if="user">
+            <button type="button" class="logout-btn" @click="logout">logout</button>
+          </template>
+          <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
+        </nav>
+      </div>
+
+      <NuxtLink
+        to="/"
         class="logo"
         :class="{ 'logo-hidden': isHomePage }"
       >
@@ -13,27 +31,19 @@
         />
       </NuxtLink>
 
-      <button
-        class="menu-toggle"
-        @click="isMenuOpen = !isMenuOpen"
-        aria-label="Toggle navigation"
-      >
-        <span :class="{ open: isMenuOpen }"></span>
-        <span :class="{ open: isMenuOpen }"></span>
-        <span :class="{ open: isMenuOpen }"></span>
-      </button>
-
-      <nav
-        class="nav"
-        :class="{ open: isMenuOpen }"
-      >
+      <nav class="nav nav-right" :class="{ open: isMenuOpen }">
         <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
-        <template v-if="user">
-          <button type="button" class="logout-btn" @click="logout">logout</button>
-        </template>
-        <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
       </nav>
     </div>
+
+    <!-- Mobile drawer: single panel with both links -->
+    <nav class="nav-drawer" :class="{ open: isMenuOpen }" aria-hidden="true">
+      <template v-if="user">
+        <button type="button" class="logout-btn" @click="logout">logout</button>
+      </template>
+      <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
+      <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
+    </nav>
   </header>
 </template>
 
@@ -103,10 +113,26 @@ async function logout() {
 
   .container {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
+    gap: 2rem;
     margin: auto;
     padding: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .nav-left,
+  .nav-right {
+    display: flex;
+    align-items: center;
   }
 
   .logo {
@@ -165,6 +191,7 @@ async function logout() {
     align-items: center;
     gap: 2rem;
     font-size: 2rem;
+    min-width: 0;
     font-family: 'OldStyle', 'Inter', sans-serif;
 
     a {
@@ -254,6 +281,10 @@ async function logout() {
     }
   }
 
+  .nav-drawer {
+    display: none;
+  }
+
   @media (max-width: 768px) {
     .logo > img {
       width: 5rem;
@@ -263,50 +294,57 @@ async function logout() {
       display: flex;
     }
 
-    .nav {
+    .nav-left,
+    .nav-right {
+      display: none;
+    }
+
+    .nav-drawer {
+      display: flex;
       padding: 0 1rem;
       margin: 0;
       position: fixed;
-      bottom: 0;
+      top: 0;
       right: 0;
+      bottom: 0;
       height: 100vh;
       background: $primary;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 1.5rem;
       box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
       transform: translateX(100%);
       transition: transform 0.3s;
       z-index: 1050;
       width: 100%;
-      justify-content: center;
+      font-size: 2rem;
+      font-family: 'OldStyle', 'Inter', sans-serif;
 
       a {
         font-size: 1.2rem;
-        width: 100%;
-        text-align: right;
+        text-decoration: none;
+        color: white;
+        font-weight: 600;
+
+        &.active {
+          color: $primary-light;
+        }
+      }
+
+      .logout-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
       }
 
       &.open {
         transform: translateX(0);
-      }
-    }
-
-    .auth-section {
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.5rem;
-      width: 100%;
-      
-      .dashboard-link {
-        text-align: right;
-        width: 100%;
-      }
-      
-      .logout-btn {
-        width: auto;
-        text-align: right;
-        font-size: 1rem;
-        padding: 0.75rem 1.5rem;
       }
     }
   }

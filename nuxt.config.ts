@@ -25,7 +25,7 @@ export default defineNuxtConfig({
 
   // Route rules
   routeRules: {
-    '/': { prerender: true },
+    '/': { prerender: true }, // Home page (HeroContent in app.vue)
     '/services': { prerender: true },
     '/services/success': { prerender: true },
     '/services/cancel': { prerender: true },
@@ -80,7 +80,6 @@ export default defineNuxtConfig({
     stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
     stripePriceMonthly: process.env.STRIPE_PRICE_MONTHLY || '',
     stripePriceAnnual: process.env.STRIPE_PRICE_ANNUAL || '',
-    stripePrice3Year: process.env.STRIPE_PRICE_3YEAR || '',
 
     // Email/private server-side config
     emailFrom: process.env.EMAIL_FROM || '',

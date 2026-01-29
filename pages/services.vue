@@ -3,7 +3,7 @@
     <div class="hero">
       <h1>Services</h1>
       <p>
-        Managed hosting for your site. One plan, three ways to pay—choose monthly, save 10% with annual, or 20% with a 3-year commitment.
+        Managed hosting for your site. Choose monthly or save 10% with an annual subscription.
       </p>
     </div>
 
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-type PlanId = 'monthly' | 'annual' | '3year'
+type PlanId = 'monthly' | 'annual'
 
 const plans = [
   {
@@ -74,21 +74,6 @@ const plans = [
       'Equivalent to $27/month'
     ],
     cta: 'Subscribe annually'
-  },
-  {
-    id: '3year' as PlanId,
-    name: '3-Year',
-    priceDisplay: '$864',
-    period: 'total',
-    savings: 'Save 20%',
-    badge: 'Best value',
-    featured: false,
-    features: [
-      'Everything in Annual',
-      'One payment every 3 years',
-      'Equivalent to $24/month'
-    ],
-    cta: 'Subscribe for 3 years'
   }
 ]
 
@@ -113,7 +98,7 @@ async function goToCheckout(planId: PlanId) {
 useHead({
   title: 'Services | StellarPossible',
   meta: [
-    { name: 'description', content: 'Managed site hosting—$30/month, or save 10% with annual and 20% with a 3-year subscription.' }
+    { name: 'description', content: 'Managed site hosting—$30/month, or save 10% with an annual subscription.' }
   ]
 })
 </script>

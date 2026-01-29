@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 
-const PLAN_IDS = ['monthly', 'annual', '3year'] as const
+const PLAN_IDS = ['monthly', 'annual'] as const
 export type PlanId = (typeof PLAN_IDS)[number]
 
 export default defineEventHandler(async (event) => {
@@ -11,14 +11,13 @@ export default defineEventHandler(async (event) => {
   if (!plan || !PLAN_IDS.includes(plan as PlanId)) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Invalid plan. Use monthly, annual, or 3year.'
+      statusMessage: 'Invalid plan. Use monthly or annual.'
     })
   }
 
   const secretKey = config.stripeSecretKey
   const priceMonthly = config.stripePriceMonthly
   const priceAnnual = config.stripePriceAnnual
-  const price3Year = config.stripePrice3Year
 
   if (!secretKey) {
     throw createError({
@@ -27,17 +26,19 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const priceId =
-    plan === 'monthly'
-      ? priceMonthly
-      : plan === 'annual'
-        ? priceAnnual
-        : price3Year
+  const priceId = (plan === 'monthly' ? priceMonthly : priceAnnual)?.trim()
 
   if (!priceId) {
     throw createError({
       statusCode: 500,
-      statusMessage: `Stripe price not configured for plan: ${plan}. Set STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL, STRIPE_PRICE_3YEAR.`
+      statusMessage: `Stripe price not configured for plan: ${plan}. Set STRIPE_PRICE_MONTHLY and STRIPE_PRICE_ANNUAL in .env.`
+    })
+  }
+
+  if (!priceId.startsWith('price_')) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: `STRIPE_PRICE_${plan === 'monthly' ? 'MONTHLY' : 'ANNUAL'} must be a Stripe Price ID (starts with price_), not a dollar amount. Create a recurring price in Stripe Dashboard → Product → Add price, then copy the Price ID.`
     })
   }
 
