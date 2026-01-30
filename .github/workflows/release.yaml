@@ -160,6 +160,21 @@ jobs:
           scp -v "$TARFILE" ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:${{ env.DEPLOY_PATH }}/nuxt-app/
           echo "✅ Image upload complete!"
 
+      - name: 🔐 Patchy verifies Stripe secrets
+        run: |
+          if [ -z "$STRIPE_SECRET_KEY" ]; then
+            echo "::error::STRIPE_SECRET_KEY is not set. Add it in Settings → Secrets and variables → Actions (Repository secrets)."
+            exit 1
+          fi
+          if [ -z "$STRIPE_PRICE_MONTHLY" ] || [ -z "$STRIPE_PRICE_ANNUAL" ]; then
+            echo "::warning::STRIPE_PRICE_MONTHLY or STRIPE_PRICE_ANNUAL is missing. Subscription checkout may fail."
+          fi
+          echo "✅ Stripe secrets are set (values not shown)."
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PRICE_MONTHLY: ${{ secrets.STRIPE_PRICE_MONTHLY }}
+          STRIPE_PRICE_ANNUAL: ${{ secrets.STRIPE_PRICE_ANNUAL }}
+
       - name: 🎯 Patchy deploys the application
         run: |
           # Copy our utility scripts to the server

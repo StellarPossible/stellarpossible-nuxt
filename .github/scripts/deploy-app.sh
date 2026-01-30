@@ -185,6 +185,13 @@ elif [ "$DEPLOY_METHOD" = "manual" ] && [ -n "$TAR_FILE" ] && [ -f "$TAR_FILE" ]
   fi
 fi
 
+# Verify Stripe secret is present (do not print value)
+if [ -z "$STRIPE_SECRET_KEY" ]; then
+  print_warning "STRIPE_SECRET_KEY is empty - add it as a GitHub Actions secret and re-deploy."
+else
+  print_success "STRIPE_SECRET_KEY is set."
+fi
+
 # Create environment file
 print_info "Creating environment file..."
 cat > .env << EOF
@@ -207,11 +214,11 @@ HOST=0.0.0.0
 # Admin Configuration
 ADMIN_EMAIL=$ADMIN_EMAIL
 
-# Stripe (subscriptions)
-STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-STRIPE_PRICE_MONTHLY=$STRIPE_PRICE_MONTHLY
-STRIPE_PRICE_ANNUAL=$STRIPE_PRICE_ANNUAL
-NUXT_PUBLIC_SITE_URL=$NUXT_PUBLIC_SITE_URL
+# Stripe (subscriptions) - quoted so special characters are preserved
+STRIPE_SECRET_KEY="$STRIPE_SECRET_KEY"
+STRIPE_PRICE_MONTHLY="$STRIPE_PRICE_MONTHLY"
+STRIPE_PRICE_ANNUAL="$STRIPE_PRICE_ANNUAL"
+NUXT_PUBLIC_SITE_URL="$NUXT_PUBLIC_SITE_URL"
 EOF
 
 # Create logs directory with proper permissions
