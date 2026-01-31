@@ -2,8 +2,8 @@
   <section class="services-page">
     <div class="hero">
       <h1>Services</h1>
-      <p>
-        Managed hosting for your site. Choose monthly or save 10% with an annual subscription.
+      <p class="hero-subtitle">
+        Managed hosting for your site. Choose monthly or save with annual billing.
       </p>
     </div>
 
@@ -15,7 +15,7 @@
         :class="{ featured: plan.featured }"
       >
         <div v-if="plan.badge" class="plan-badge">{{ plan.badge }}</div>
-        <h2>{{ plan.name }}</h2>
+        <h2 class="plan-name">{{ plan.name }}</h2>
         <div class="plan-price">
           <span class="amount">{{ plan.priceDisplay }}</span>
           <span class="period">{{ plan.period }}</span>
@@ -35,9 +35,9 @@
       </article>
     </div>
 
-    <div class="fine-print">
-      <p>Subscriptions are billed securely via Stripe. Cancel or change your plan anytime from your Stripe customer portal or by contacting us.</p>
-    </div>
+    <p class="fine-print">
+      Subscriptions are billed securely via Stripe. Cancel or change your plan anytime from your Stripe customer portal or by contacting us.
+    </p>
   </section>
 </template>
 
@@ -65,13 +65,12 @@ const plans = [
     name: 'Annual',
     priceDisplay: '$324',
     period: '/year',
-    savings: 'Save 10%',
+    savings: 'Save $36 with annual billing',
     badge: 'Popular',
     featured: true,
     features: [
       'Everything in Monthly',
-      'Billed once per year',
-      'Equivalent to $27/month'
+      'Billed once per year'
     ],
     cta: 'Subscribe annually'
   }
@@ -105,7 +104,7 @@ useHead({
 
 <style scoped lang="scss">
 .services-page {
-  padding: 4rem 1.5rem 5rem;
+  padding: 3.5rem 1.5rem 4.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -116,110 +115,126 @@ useHead({
 }
 
 .hero {
-  max-width: 42rem;
-  margin-bottom: 3rem;
+  max-width: 38rem;
+  margin-bottom: 2.5rem;
 
   h1 {
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    margin-bottom: 0.75rem;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    margin-bottom: 0.5rem;
     font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
-  p {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.88);
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.82);
   }
 }
 
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
-  max-width: 960px;
+  max-width: 640px;
   width: 100%;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 560px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .plan-card {
   position: relative;
-  background: rgba(18, 49, 70, 0.6);
-  border: 1px solid rgba(84, 117, 128, 0.35);
-  border-radius: 12px;
-  padding: 2rem 1.5rem;
+  background: rgba(18, 49, 70, 0.55);
+  border: 1px solid rgba(84, 117, 128, 0.3);
+  border-radius: 14px;
+  padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 
   &:hover {
-    border-color: rgba(84, 117, 128, 0.6);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-color: rgba(84, 117, 128, 0.5);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    background: rgba(18, 49, 70, 0.65);
   }
 
   &.featured {
-    border-color: rgba(84, 117, 128, 0.6);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(84, 117, 128, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    background: rgba(18, 49, 70, 0.6);
   }
 
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+  .plan-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+    letter-spacing: -0.01em;
   }
 
   .plan-badge {
     position: absolute;
-    top: -0.5rem;
+    top: -0.375rem;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--primary-medium, #2d4558);
+    background: rgba(84, 117, 128, 0.5);
     color: #fff;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
     border-radius: 999px;
   }
 
   .plan-price {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.125rem;
 
     .amount {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .period {
-      font-size: 1rem;
-      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.9375rem;
+      color: rgba(255, 255, 255, 0.7);
     }
   }
 
   .savings {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 1rem;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
   }
 
   .plan-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.25rem;
     text-align: left;
     width: 100%;
 
     li {
-      padding: 0.35rem 0;
+      padding: 0.3rem 0;
       padding-left: 1.25rem;
       position: relative;
+      font-size: 0.9375rem;
+      color: rgba(255, 255, 255, 0.88);
 
       &::before {
         content: '✓';
         position: absolute;
         left: 0;
-        color: rgba(84, 117, 128, 0.9);
+        color: rgba(84, 117, 128, 0.95);
+        font-weight: 600;
       }
     }
   }
@@ -227,7 +242,8 @@ useHead({
   .cta-button {
     display: inline-block;
     margin-top: auto;
-    padding: 0.75rem 1.5rem;
+    padding: 0.65rem 1.35rem;
+    font-size: 0.9375rem;
     background: var(--primary-medium, #2d4558);
     color: #fff;
     font-weight: 600;
@@ -249,13 +265,9 @@ useHead({
 }
 
 .fine-print {
-  max-width: 36rem;
-  margin-top: 1rem;
-
-  p {
-    font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.65);
-    line-height: 1.5;
-  }
+  max-width: 32rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
 }
 </style>

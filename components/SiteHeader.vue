@@ -11,38 +11,46 @@
           <span :class="{ open: isMenuOpen }"></span>
           <span :class="{ open: isMenuOpen }"></span>
         </button>
+      </div>
+
+      <div class="header-center">
         <nav class="nav nav-left" :class="{ open: isMenuOpen }">
+          <NuxtLink to="/products" active-class="active" @click="closeMenu">products</NuxtLink>
+        </nav>
+        <NuxtLink
+          to="/"
+          class="logo"
+          :class="{ 'logo-hidden': isHomePage }"
+        >
+          <div v-if="isHomePage" class="logo-backdrop"></div>
+          <img
+            src="~/public/images/primary/spicon.png"
+            alt="Stellar Possible logo"
+          />
+        </NuxtLink>
+        <nav class="nav nav-right" :class="{ open: isMenuOpen }">
+          <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <nav class="nav" :class="{ open: isMenuOpen }">
           <template v-if="user">
             <button type="button" class="logout-btn" @click="logout">logout</button>
           </template>
           <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
         </nav>
       </div>
-
-      <NuxtLink
-        to="/"
-        class="logo"
-        :class="{ 'logo-hidden': isHomePage }"
-      >
-        <div v-if="isHomePage" class="logo-backdrop"></div>
-        <img
-          src="~/public/images/primary/spicon.png"
-          alt="Stellar Possible logo"
-        />
-      </NuxtLink>
-
-      <nav class="nav nav-right" :class="{ open: isMenuOpen }">
-        <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
-      </nav>
     </div>
 
     <!-- Mobile drawer: single panel with both links -->
     <nav class="nav-drawer" :class="{ open: isMenuOpen }" aria-hidden="true">
+      <NuxtLink to="/products" active-class="active" @click="closeMenu">products</NuxtLink>
+      <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
       <template v-if="user">
         <button type="button" class="logout-btn" @click="logout">logout</button>
       </template>
       <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
-      <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
     </nav>
   </header>
 </template>
@@ -113,7 +121,7 @@ async function logout() {
 
   .container {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     gap: 2rem;
     margin: auto;
@@ -125,7 +133,23 @@ async function logout() {
   .header-left {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    min-width: 0;
+    flex: 1;
+    justify-content: flex-start;
+  }
+
+  .header-center {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
     min-width: 0;
   }
 
@@ -138,6 +162,7 @@ async function logout() {
   .logo {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     transition: opacity 0.3s ease;
     position: relative;
 

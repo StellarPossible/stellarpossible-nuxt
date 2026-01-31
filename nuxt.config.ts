@@ -26,6 +26,7 @@ export default defineNuxtConfig({
   // Route rules
   routeRules: {
     '/': { prerender: true }, // Home page (HeroContent in app.vue)
+    '/products': { prerender: true },
     '/services': { prerender: true },
     '/services/success': { prerender: true },
     '/services/cancel': { prerender: true },
