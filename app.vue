@@ -4,7 +4,7 @@
     <div v-if="isHomePage" class="homepage-overlay"></div>
 
     <!-- Header with scroll prop -->
-    <SiteHeader :scrolled="scrolledPastThreshold" />
+    <SiteHeader :scrolled="!scrolledPastThreshold" />
 
     <main class="main-content">
       <div class="page-content">

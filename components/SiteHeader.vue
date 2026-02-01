@@ -114,15 +114,15 @@ async function logout() {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
     z-index: -1;
     transition: background 0.3s ease, backdrop-filter 0.3s ease;
   }
 
   &.scrolled::before {
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
   }
 
   .container {
@@ -131,9 +131,10 @@ async function logout() {
     align-items: center;
     gap: 2rem;
     margin: auto;
-    padding: 0.5rem;
+    padding: 0.5rem 1.5rem;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .header-left {
@@ -157,6 +158,7 @@ async function logout() {
     flex: 1;
     justify-content: flex-end;
     min-width: 0;
+    padding-left: 0.5rem;
 
     .nav {
       gap: 0.75rem;

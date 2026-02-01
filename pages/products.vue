@@ -10,8 +10,56 @@
         </p>
       </header>
 
+      <!-- Client Portfolio Section -->
+      <section class="portfolio">
+        <div class="portfolio-header">
+          <h2 class="portfolio-title">Client Portfolio</h2>
+          <p class="portfolio-subtitle">Trusted by businesses to deliver exceptional web experiences</p>
+        </div>
+        
+        <div class="portfolio-grid">
+          <a
+            v-for="client in clients"
+            :key="client.id"
+            :href="client.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="client-card"
+            :class="{ 'client-card-dark': client.darkTheme }"
+          >
+            <div class="client-logo-wrap">
+              <img
+                v-if="client.logoAbove"
+                :src="client.logoAbove"
+                :alt="''"
+                class="client-logo-above"
+                aria-hidden="true"
+              />
+              <img :src="client.logo" :alt="client.title" class="client-logo" />
+            </div>
+            <div class="client-info">
+              <h3 class="client-name">{{ client.title }}</h3>
+              <p class="client-type">{{ client.type }}</p>
+              <p class="client-description">{{ client.description }}</p>
+            </div>
+            <span class="client-cta">
+              View Site
+              <ClientOnly>
+                <Icon icon="mdi:open-in-new" />
+                <template #fallback><span>↗</span></template>
+              </ClientOnly>
+            </span>
+          </a>
+        </div>
+      </section>
+
       <!-- Featured Project -->
-      <article class="featured">
+      <section class="featured-section">
+        <header class="featured-section-header">
+          <h2 class="featured-section-title">Featured Project</h2>
+          <p class="featured-section-subtitle">A closer look at one of our flagship engagements</p>
+        </header>
+        <article class="featured">
         <div class="featured-content">
           <div class="featured-badge">
             <ClientOnly>
@@ -97,48 +145,6 @@
           </div>
         </div>
       </article>
-
-      <!-- Client Portfolio Section -->
-      <section class="portfolio">
-        <div class="portfolio-header">
-          <h2 class="portfolio-title">Client Portfolio</h2>
-          <p class="portfolio-subtitle">Trusted by businesses to deliver exceptional web experiences</p>
-        </div>
-        
-        <div class="portfolio-grid">
-          <a
-            v-for="client in clients"
-            :key="client.id"
-            :href="client.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="client-card"
-            :class="{ 'client-card-dark': client.darkTheme }"
-          >
-            <div class="client-logo-wrap">
-              <img
-                v-if="client.logoAbove"
-                :src="client.logoAbove"
-                :alt="''"
-                class="client-logo-above"
-                aria-hidden="true"
-              />
-              <img :src="client.logo" :alt="client.title" class="client-logo" />
-            </div>
-            <div class="client-info">
-              <h3 class="client-name">{{ client.title }}</h3>
-              <p class="client-type">{{ client.type }}</p>
-              <p class="client-description">{{ client.description }}</p>
-            </div>
-            <span class="client-cta">
-              View Site
-              <ClientOnly>
-                <Icon icon="mdi:open-in-new" />
-                <template #fallback><span>↗</span></template>
-              </ClientOnly>
-            </span>
-          </a>
-        </div>
       </section>
 
       <!-- CTA Section -->
@@ -229,6 +235,11 @@ useHead({
 .hero {
   text-align: center;
   margin-bottom: 4rem;
+  padding: 2.5rem 1.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 24px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .hero-badge {
@@ -238,11 +249,12 @@ useHead({
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 100px;
   margin-bottom: 1.25rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .hero-title {
@@ -251,34 +263,69 @@ useHead({
   letter-spacing: -0.03em;
   line-height: 1.1;
   margin: 0 0 1rem;
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%);
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.9) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7)) drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4));
 }
 
 .hero-subtitle {
   font-size: 1.125rem;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.9);
   max-width: 540px;
   margin: 0 auto;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
-// Featured Project
+// Featured Project Section
+.featured-section {
+  margin-bottom: 5rem;
+}
+
+.featured-section-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.featured-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.featured-section-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
 .featured {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
   align-items: center;
   padding: 3rem;
-  margin-bottom: 5rem;
   background: #fff;
   border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.02),
-    0 12px 24px rgba(0, 0, 0, 0.06),
-    0 24px 48px rgba(0, 0, 0, 0.04);
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 6px 16px rgba(0, 0, 0, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.04),
+    0 24px 64px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+
+  &:hover {
+    box-shadow: 
+      0 2px 6px rgba(0, 0, 0, 0.04),
+      0 12px 24px rgba(0, 0, 0, 0.08),
+      0 24px 48px rgba(0, 0, 0, 0.06),
+      0 32px 80px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .featured-content {
@@ -291,23 +338,25 @@ useHead({
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 1rem;
   font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #d4a574;
-  background: linear-gradient(135deg, #fef9f3 0%, #fdf6ed 100%);
-  border: 1px solid rgba(212, 165, 116, 0.25);
+  color: #b8860b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid rgba(212, 165, 116, 0.35);
   border-radius: 100px;
   margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .featured-title {
   font-size: 2rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #1a1a2e;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: #0f172a;
   margin: 0 0 0.5rem;
 }
 
@@ -356,15 +405,25 @@ useHead({
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 50%, #6d28d9 100%);
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(99, 102, 241, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.06),
+      0 8px 24px rgba(99, 102, 241, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   svg {
@@ -390,13 +449,16 @@ useHead({
   justify-content: center;
   width: 140px;
   height: 140px;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
   border-radius: 28px;
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 2px 8px rgba(59, 130, 246, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   .featured-icon {
     font-size: 4rem;
-    color: #3b82f6;
+    color: #2563eb;
   }
 
   .icon-placeholder {
