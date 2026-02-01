@@ -4,56 +4,57 @@
       <div class="header-left">
         <button
           class="menu-toggle"
-          @click="isMenuOpen = !isMenuOpen"
+          :class="{ open: isMenuOpen }"
+          :aria-expanded="isMenuOpen"
           aria-label="Toggle navigation"
+          @click="isMenuOpen = !isMenuOpen"
         >
-          <span :class="{ open: isMenuOpen }"></span>
-          <span :class="{ open: isMenuOpen }"></span>
-          <span :class="{ open: isMenuOpen }"></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
       </div>
 
-      <div class="header-center">
-        <nav class="nav nav-left" :class="{ open: isMenuOpen }">
-          <NuxtLink to="/products" active-class="active" @click="closeMenu">products</NuxtLink>
-        </nav>
-        <NuxtLink
-          to="/"
-          class="logo"
-          :class="{ 'logo-hidden': isHomePage }"
-        >
-          <div v-if="isHomePage" class="logo-backdrop"></div>
-          <img
-            src="~/public/images/primary/spicon.png"
-            alt="Stellar Possible logo"
-          />
-        </NuxtLink>
-        <nav class="nav nav-right" :class="{ open: isMenuOpen }">
-          <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
-        </nav>
-      </div>
+      <NuxtLink
+        to="/"
+        class="logo"
+        :class="{ 'logo-hidden': isHomePage }"
+        @click="closeMenu"
+      >
+        <div v-if="isHomePage" class="logo-backdrop"></div>
+        <img
+          src="~/public/images/primary/spicon.png"
+          alt="Stellar Possible logo"
+        />
+      </NuxtLink>
 
-      <div class="header-right">
-        <nav class="nav" :class="{ open: isMenuOpen }">
-          <template v-if="user">
-            <NuxtLink to="/dashboard" class="nav-icon-link" active-class="active" @click="closeMenu" aria-label="Dashboard">
-              <Icon icon="mdi:view-dashboard" />
-            </NuxtLink>
-            <button type="button" class="logout-btn-icon" @click="logout" aria-label="Logout">
-              <Icon icon="mdi:logout" />
-            </button>
-          </template>
-          <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
-        </nav>
+      <div class="header-right" aria-hidden="true">
+        <!-- Spacer for balance; nav is in slide-out -->
       </div>
     </div>
 
-    <!-- Mobile drawer: single panel with both links -->
-    <nav class="nav-drawer" :class="{ open: isMenuOpen }" aria-hidden="true">
+    <!-- Backdrop: close menu when clicking outside -->
+    <div
+      class="drawer-backdrop"
+      :class="{ open: isMenuOpen }"
+      aria-hidden="true"
+      @click="closeMenu"
+    />
+
+    <!-- Slide-out menu: all viewports -->
+    <nav
+      class="nav-drawer"
+      :class="{ open: isMenuOpen }"
+      aria-label="Main navigation"
+      :aria-hidden="!isMenuOpen"
+    >
       <NuxtLink to="/products" active-class="active" @click="closeMenu">products</NuxtLink>
       <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
       <template v-if="user">
-        <NuxtLink to="/dashboard" active-class="active" @click="closeMenu">dashboard</NuxtLink>
+        <NuxtLink to="/dashboard" active-class="active" @click="closeMenu" class="drawer-link-with-icon">
+          <Icon icon="mdi:view-dashboard" />
+          <span>dashboard</span>
+        </NuxtLink>
         <button type="button" class="logout-btn" @click="logout">logout</button>
       </template>
       <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
@@ -62,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 defineProps<{ scrolled: boolean }>()
 
@@ -73,11 +74,26 @@ const user = useState<User | null>('auth.user', () => null)
 
 const isHomePage = computed(() => route.path === '/')
 
+function handleEscape(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeMenu()
+}
+
 onMounted(() => {
   if (process.client) {
     watch(isMenuOpen, (open) => {
       document.body.classList.toggle('menu-open', open)
+      if (open) {
+        window.addEventListener('keydown', handleEscape)
+      } else {
+        window.removeEventListener('keydown', handleEscape)
+      }
     }, { immediate: true })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (process.client) {
+    window.removeEventListener('keydown', handleEscape)
   }
 })
 
@@ -121,11 +137,13 @@ async function logout() {
   }
 
   &.scrolled::before {
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(6px);
   }
 
   .container {
+    position: relative;
+    z-index: 2100;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -145,30 +163,9 @@ async function logout() {
     justify-content: flex-start;
   }
 
-  .header-center {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-  }
-
   .header-right {
-    display: flex;
-    align-items: center;
     flex: 1;
-    justify-content: flex-end;
     min-width: 0;
-    padding-left: 0.5rem;
-
-    .nav {
-      gap: 0.75rem;
-    }
-  }
-
-  .nav-left,
-  .nav-right {
-    display: flex;
-    align-items: center;
   }
 
   .logo {
@@ -186,7 +183,7 @@ async function logout() {
 
   .menu-toggle {
     position: relative;
-    display: none;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -196,7 +193,7 @@ async function logout() {
     border: none;
     cursor: pointer;
     z-index: 1100;
-    margin: 1rem;
+    margin: 0;
 
     span {
       position: absolute;
@@ -205,219 +202,127 @@ async function logout() {
       height: 0.25rem;
       background: $white;
       border-radius: 2px;
-      transition: 0.3s;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     span:nth-child(1) { top: 0.5rem; }
     span:nth-child(2) { top: 1.125rem; }
     span:nth-child(3) { top: 1.75rem; }
 
-    & span.open:nth-child(1) {
+    &.open span:nth-child(1) {
       transform: translateY(0.625rem) rotate(45deg);
     }
-    & span.open:nth-child(2) {
+    &.open span:nth-child(2) {
       opacity: 0;
     }
-    & span.open:nth-child(3) {
+    &.open span:nth-child(3) {
       transform: translateY(-0.625rem) rotate(-45deg);
     }
   }
 
-  .nav {
+  /* Backdrop: close menu when clicking outside */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+
+    &.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  /* Slide-out menu: all viewports */
+  .nav-drawer {
     display: flex;
-    align-items: center;
-    gap: 2rem;
-    font-size: 2rem;
-    min-width: 0;
-    font-family: 'OldStyle', 'Inter', sans-serif;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    min-width: 280px;
+    padding: 6rem 2rem 2rem;
+    background: $primary;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1050;
+    font-family: 'Chocolates', serif;
+    overflow-y: auto;
+    visibility: hidden;
 
     a {
+      display: block;
+      padding: 0.75rem 0;
+      font-size: 1.25rem;
       text-decoration: none;
       color: white;
       font-weight: 600;
       transition: color 0.2s;
 
-      &:hover,
       &.active {
         color: $primary-light;
       }
-    }
 
-    /* Submenu for write */
-    .nav-item {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-
-      .submenu {
-        display: none;
-        position: absolute;
-        top: calc(100% + 0.5rem);
-        left: 0;
-        background: rgba(0,0,0,0.9);
-        border-radius: 8px;
-        padding: 0.5rem;
-        min-width: 160px;
-        flex-direction: column;
-        gap: 0.25rem;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-        z-index: 3000;
-      }
-
-      &:hover .submenu,
-      &:focus-within .submenu {
-        display: flex;
-      }
-
-      .submenu a {
-        font-size: 1rem;
-        padding: 0.5rem 0.75rem;
-        color: white;
-        text-decoration: none;
-        border-radius: 6px;
-      }
-
-      .submenu a:hover {
-        background: rgba(255,255,255,0.04);
+      &:hover {
         color: $primary-light;
       }
-    }
 
-    @media (max-width: 768px) {
-      .nav-item .submenu {
-        position: static;
-        display: none;
-        padding-left: 1rem;
-      }
+      &.drawer-link-with-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
 
-      .nav.open .nav-item .submenu {
-        display: flex;
+        svg {
+          font-size: 1.25rem;
+        }
       }
     }
 
     .logout-btn {
-      background: rgba(255, 255, 255, 0.1);
+      margin-top: 0.5rem;
+      padding: 0.75rem 0;
+      background: transparent;
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
+      border: none;
+      font-size: 1.25rem;
       font-weight: 600;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
-      }
-      
-      &:active {
-        transform: translateY(0);
-      }
-    }
-
-    .logout-btn-icon,
-    .nav-icon-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 0.5rem;
-      border-radius: 50%;
+      font-family: 'Chocolates', serif;
       cursor: pointer;
-      font-size: 1.2rem;
-      transition: all 0.2s ease;
-      width: 2.5rem;
-      height: 2.5rem;
-      text-decoration: none;
+      transition: color 0.2s;
+      text-align: right;
+      width: 100%;
+      display: block;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
-        color: white;
+        color: $primary-light;
       }
+    }
 
-      &:active {
-        transform: translateY(0);
-      }
-
-      &.active {
-        background: rgba(255, 255, 255, 0.25);
-        border-color: rgba(255, 255, 255, 0.4);
-      }
+    &.open {
+      transform: translateX(0);
+      visibility: visible;
     }
   }
 
-  .nav-drawer {
-    display: none;
-  }
+  @media (max-width: 480px) {
+    .nav-drawer {
+      max-width: 100%;
+      min-width: 100%;
+      padding: 6rem 1.5rem 2rem;
+    }
 
-  @media (max-width: 768px) {
     .logo > img {
       width: 5rem;
-    }
-
-    .menu-toggle {
-      display: flex;
-    }
-
-    .nav-left,
-    .nav-right,
-    .header-right {
-      display: none;
-    }
-
-    .nav-drawer {
-      display: flex;
-      padding: 0 1rem;
-      margin: 0;
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      height: 100vh;
-      background: $primary;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 1.5rem;
-      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-      transform: translateX(100%);
-      transition: transform 0.3s;
-      z-index: 1050;
-      width: 100%;
-      font-size: 2rem;
-      font-family: 'OldStyle', 'Inter', sans-serif;
-
-      a {
-        font-size: 1.2rem;
-        text-decoration: none;
-        color: white;
-        font-weight: 600;
-
-        &.active {
-          color: $primary-light;
-        }
-      }
-
-      .logout-btn {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 600;
-      }
-
-      &.open {
-        transform: translateX(0);
-      }
     }
   }
 }
