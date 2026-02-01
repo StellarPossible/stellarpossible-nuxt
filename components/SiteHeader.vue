@@ -36,7 +36,12 @@
       <div class="header-right">
         <nav class="nav" :class="{ open: isMenuOpen }">
           <template v-if="user">
-            <button type="button" class="logout-btn" @click="logout">logout</button>
+            <NuxtLink to="/dashboard" class="nav-icon-link" active-class="active" @click="closeMenu" aria-label="Dashboard">
+              <Icon icon="mdi:view-dashboard" />
+            </NuxtLink>
+            <button type="button" class="logout-btn-icon" @click="logout" aria-label="Logout">
+              <Icon icon="mdi:logout" />
+            </button>
           </template>
           <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
         </nav>
@@ -48,6 +53,7 @@
       <NuxtLink to="/products" active-class="active" @click="closeMenu">products</NuxtLink>
       <NuxtLink to="/services" active-class="active" @click="closeMenu">services</NuxtLink>
       <template v-if="user">
+        <NuxtLink to="/dashboard" active-class="active" @click="closeMenu">dashboard</NuxtLink>
         <button type="button" class="logout-btn" @click="logout">logout</button>
       </template>
       <NuxtLink v-else to="/login" active-class="active" @click="closeMenu">login</NuxtLink>
@@ -151,6 +157,10 @@ async function logout() {
     flex: 1;
     justify-content: flex-end;
     min-width: 0;
+
+    .nav {
+      gap: 0.75rem;
+    }
   }
 
   .nav-left,
@@ -304,6 +314,40 @@ async function logout() {
         transform: translateY(0);
       }
     }
+
+    .logout-btn-icon,
+    .nav-icon-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.5rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      width: 2.5rem;
+      height: 2.5rem;
+      text-decoration: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+        color: white;
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      &.active {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+    }
   }
 
   .nav-drawer {
@@ -320,7 +364,8 @@ async function logout() {
     }
 
     .nav-left,
-    .nav-right {
+    .nav-right,
+    .header-right {
       display: none;
     }
 

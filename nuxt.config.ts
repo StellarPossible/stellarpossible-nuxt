@@ -31,6 +31,7 @@ export default defineNuxtConfig({
     '/services/success': { prerender: true },
     '/services/cancel': { prerender: true },
     '/login': { ssr: false },
+    '/dashboard': { ssr: true }, // Requires auth, not prerendered
     
     // API routes (server-side only)
     '/api/**': { 
