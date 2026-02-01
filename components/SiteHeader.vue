@@ -131,9 +131,10 @@ async function logout() {
     align-items: center;
     gap: 2rem;
     margin: auto;
-    padding: 0.5rem;
+    padding: 0.5rem 1.5rem;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
   }
 
   .header-left {
@@ -157,6 +158,7 @@ async function logout() {
     flex: 1;
     justify-content: flex-end;
     min-width: 0;
+    padding-left: 0.5rem;
 
     .nav {
       gap: 0.75rem;
