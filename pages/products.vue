@@ -331,6 +331,7 @@ useHead({
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .featured-badge {
@@ -399,6 +400,7 @@ useHead({
 .featured-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.75rem;
   font-size: 1rem;
@@ -408,6 +410,8 @@ useHead({
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.25s ease;
+  box-sizing: border-box;
+  max-width: 100%;
   box-shadow: 
     0 1px 2px rgba(0, 0, 0, 0.05),
     0 4px 12px rgba(99, 102, 241, 0.35),
@@ -670,6 +674,13 @@ useHead({
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
   backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+.cta-content {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cta-title {
@@ -688,6 +699,7 @@ useHead({
 .cta-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 1rem 2rem;
   font-size: 1rem;
@@ -697,6 +709,8 @@ useHead({
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.25s ease;
+  box-sizing: border-box;
+  max-width: 100%;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 
   &:hover {

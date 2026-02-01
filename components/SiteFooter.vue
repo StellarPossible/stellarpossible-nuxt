@@ -1,20 +1,25 @@
 <template>
   <footer class="site-footer" :class="{ 'theme-light': theme === 'light', 'scrolled': scrolled }">
     <div class="footer-content">
-  <button type="button" class="contact-btn" aria-label="Contact StellarPossible" @click="open()">Contact</button>
+      <button type="button" class="contact-btn" aria-label="Contact StellarPossible" @click="open()">Contact</button>
+      <nav v-if="showCrossNav" class="footer-cross-nav" aria-label="Site navigation">
+        <NuxtLink to="/services" class="footer-cross-link">Services</NuxtLink>
+        <span class="footer-cross-sep" aria-hidden="true">·</span>
+        <NuxtLink to="/products" class="footer-cross-link">Our Work</NuxtLink>
+      </nav>
       <span class="copyright">&copy; {{ year }} StellarPossible, LLC</span>
       <a
         href="https://instagram.com/stellarpossible"
         target="_blank"
         rel="noopener"
         aria-label="Instagram"
-        class="social-icon"
+        class="social-icon social-icon-ig"
       >
-        <svg viewBox="0 0 32 32" width="32" height="32" fill="none">
-          <circle class="ig-bg" cx="16" cy="16" r="14" />
-          <rect x="9" y="9" width="14" height="14" rx="7" class="ig-square"/>
-          <circle cx="16" cy="16" r="4" class="ig-circle"/>
-          <circle cx="21" cy="11" r="1.5" class="ig-dot"/>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
+          <!-- Classic Instagram camera: rounded square + lens + viewfinder dot -->
+          <path class="ig-body" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="ig-lens" cx="12" cy="12" r="4" stroke-width="2"/>
+          <circle class="ig-dot" cx="16.5" cy="7.5" r="1.25" fill="currentColor"/>
         </svg>
       </a>
     </div>
@@ -24,9 +29,15 @@
 <script setup lang="ts">
 defineProps<{ scrolled?: boolean }>()
 
+const route = useRoute()
 const year = new Date().getFullYear()
 const { open } = useContactModal()
 const { theme } = useTheme()
+
+const showCrossNav = computed(() => {
+  const path = route.path
+  return path !== '/' && !path.startsWith('/dashboard')
+})
 </script>
 
 <style scoped lang="scss">
@@ -79,11 +90,49 @@ const { theme } = useTheme()
 
   .footer-content {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 1.25rem;
+    gap: 0.75rem 1.25rem;
     position: relative;
     z-index: 1;
+  }
+
+  .footer-cross-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .footer-cross-link {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .footer-cross-link:hover {
+    color: #fff;
+  }
+
+  .footer-cross-sep {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.875rem;
+    user-select: none;
+  }
+
+  &.theme-light .footer-cross-link {
+    color: rgba(26, 26, 46, 0.9);
+  }
+
+  &.theme-light .footer-cross-link:hover {
+    color: #1a1a2e;
+  }
+
+  &.theme-light .footer-cross-sep {
+    color: rgba(26, 26, 46, 0.4);
   }
 
   .contact-btn {
@@ -135,23 +184,44 @@ const { theme } = useTheme()
   }
 
   .social-icon {
-    display: inline-block;
-    transition: transform 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    transition: transform 0.25s ease, color 0.25s ease;
     svg {
       vertical-align: middle;
     }
     &:hover {
-      transform: scale(1.2) rotate(-10deg);
-      .ig-bg {
+      transform: scale(1.15);
+    }
+  }
+
+  /* Instagram icon: theme-matched by default, recognizable camera shape */
+  .social-icon-ig {
+    .ig-body {
+      stroke: currentColor;
+      fill: none;
+      transition: stroke 0.25s ease;
+    }
+    .ig-lens {
+      stroke: currentColor;
+      fill: none;
+      transition: stroke 0.25s ease;
+    }
+    .ig-dot {
+      fill: currentColor;
+      transition: fill 0.25s ease;
+    }
+    /* Subtle Instagram accent on the viewfinder dot so it reads as IG */
+    .ig-dot {
+      opacity: 0.9;
+    }
+    &:hover {
+      color: #e1306c; /* Instagram coral-pink */
+      .ig-body,
+      .ig-lens {
         stroke: #e1306c;
-        stroke-width: 2;
-        animation: igPulse 0.7s;
-      }
-      .ig-square {
-        fill: #e1306c;
-      }
-      .ig-circle {
-        fill: #fff;
       }
       .ig-dot {
         fill: #e1306c;
@@ -159,35 +229,25 @@ const { theme } = useTheme()
     }
   }
 
-  .ig-bg {
-    stroke: #fff;
-    stroke-width: 1;
-    fill: none;
-    transition: stroke 0.3s;
-  }
-  &.theme-light .ig-bg {
-    stroke: #1a1a2e;
-  }
-  .ig-square {
-    fill: #fff;
-    transition: fill 0.3s;
-  }
-  &.theme-light .ig-square {
-    fill: #1a1a2e;
-  }
-  .ig-circle {
-    fill: #e1306c;
-    transition: fill 0.3s;
-  }
-  .ig-dot {
-    fill: #fff;
-    transition: fill 0.3s;
-  }
-
-  @keyframes igPulse {
-    0% { stroke-width: 2; }
-    50% { stroke-width: 6; }
-    100% { stroke-width: 2; }
+  &.theme-light .social-icon-ig {
+    color: #1a1a2e;
+    .ig-body,
+    .ig-lens {
+      stroke: #1a1a2e;
+    }
+    .ig-dot {
+      fill: #1a1a2e;
+    }
+    &:hover {
+      color: #e1306c;
+      .ig-body,
+      .ig-lens {
+        stroke: #e1306c;
+      }
+      .ig-dot {
+        fill: #e1306c;
+      }
+    }
   }
 }
 </style>

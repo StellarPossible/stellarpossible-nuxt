@@ -16,12 +16,62 @@
         <li>Rapid response and communication via StellarPossible Slack</li>
         <li>Optimized files + custom color palette with hex keys</li>
         <li>Multiple versions + file types</li>
+        <li>Original PSD file (all commissioned designs)</li>
       </ul>
     </div>
 
-    <!-- Design services: primary offer -->
-    <div class="services-section">
-      <h2 class="section-title">Design services</h2>
+    <!-- Tabs: zero scroll, one panel at a time -->
+    <div class="services-tabs" role="tablist" aria-label="Service categories">
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'design'"
+        :class="['tab-trigger', { active: activeTab === 'design' }]"
+        @click="activeTab = 'design'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:palette-outline" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Design</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'software'"
+        :class="['tab-trigger', { active: activeTab === 'software' }]"
+        @click="activeTab = 'software'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:code-tags" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Tool Development</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'hosting'"
+        :class="['tab-trigger', { active: activeTab === 'hosting' }]"
+        @click="activeTab = 'hosting'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:server" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Web Management</span>
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <!-- Design panel -->
+      <div
+        v-show="activeTab === 'design'"
+        role="tabpanel"
+        class="tab-panel"
+      >
+        <div class="services-section">
+          <h2 class="section-title">Design</h2>
       <p class="section-subtitle">One fixed price. No surprises. Final files ready for print and web.</p>
       <div class="services-grid design-grid">
         <article
@@ -58,26 +108,39 @@
           </button>
         </article>
       </div>
-    </div>
-
-    <!-- StellarPossible Slack Hub -->
-    <section class="slack-section">
-      <h2 class="section-title">Stay connected</h2>
-      <p class="slack-intro">
-        Every client gets access to the StellarPossible Slack Hub for fast updates, file sharing, and direct communication.
-      </p>
-      <div class="slack-visual">
-        <img
-          src="/images/primary/SPSlackSS.png"
-          alt="StellarPossible Slack Hub — desktop view of the SP Slack workspace"
-          class="slack-screenshot"
-        />
+        </div>
       </div>
-    </section>
 
-    <!-- Hosting plans -->
-    <div class="services-section hosting-section">
-      <h2 class="section-title">Managed hosting</h2>
+      <!-- Tool Development panel -->
+      <div
+        v-show="activeTab === 'software'"
+        role="tabpanel"
+        class="tab-panel"
+      >
+        <div class="services-section software-section">
+          <h2 class="section-title">Tool Development</h2>
+      <p class="section-subtitle">
+        Custom software, scripts, tools, and integrations. From one-off automations to full applications—built to your specs.
+      </p>
+      <div class="software-cta-block">
+        <p class="software-intro">
+          Need a script, internal tool, API, or something else? We scope the project, agree on a fixed price, and deliver with the same “every service includes” benefits.
+        </p>
+        <button type="button" class="cta-button cta-primary cta-software" @click="openContact">
+          Discuss your project
+        </button>
+      </div>
+        </div>
+      </div>
+
+      <!-- Web Management panel -->
+      <div
+        v-show="activeTab === 'hosting'"
+        role="tabpanel"
+        class="tab-panel"
+      >
+        <div class="services-section hosting-section">
+          <h2 class="section-title">Web Management</h2>
       <p class="section-subtitle">
         Reliable hosting for your site. Choose monthly or save with annual billing.
       </p>
@@ -98,39 +161,95 @@
           <ul class="plan-features">
             <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
           </ul>
-          <NuxtLink
-            v-if="!user"
-            to="/login?tab=register"
-            class="cta-button cta-primary"
-          >
-            Get started
-          </NuxtLink>
-          <button
-            v-else
-            type="button"
-            class="cta-button cta-primary"
-            :class="{ 'cta-featured': plan.featured }"
-            :disabled="loadingPlan === plan.id"
-            @click="goToCheckout(plan.id)"
-          >
-            {{ loadingPlan === plan.id ? 'Redirecting…' : 'Get started' }}
-          </button>
+          <template v-if="plan.id === 'addon'">
+            <button
+              type="button"
+              class="cta-button cta-primary"
+              @click="openContact"
+            >
+              Get a quote
+            </button>
+          </template>
+          <template v-else>
+            <NuxtLink
+              v-if="!user"
+              to="/login?tab=register"
+              class="cta-button cta-primary"
+            >
+              Get started
+            </NuxtLink>
+            <button
+              v-else
+              type="button"
+              class="cta-button cta-primary"
+              :class="{ 'cta-featured': plan.featured }"
+              :disabled="loadingPlan === plan.id"
+              @click="goToCheckout(plan.id)"
+            >
+              {{ loadingPlan === plan.id ? 'Redirecting…' : 'Get started' }}
+            </button>
+          </template>
         </article>
+      </div>
+        </div>
       </div>
     </div>
 
-    <p class="fine-print">
-      Hosting subscriptions are billed securely via Stripe. Cancel or change your plan anytime from your Stripe customer portal or by contacting us.
-    </p>
+    <!-- Slack highlight hero card: below services, above See our work -->
+    <section class="slack-hero-card" aria-label="StellarPossible Slack Hub">
+      <div class="slack-hero-inner">
+        <div class="slack-hero-content">
+          <h2 class="slack-hero-title">Stay connected</h2>
+          <p class="slack-hero-text">
+            Every client gets access to the StellarPossible Slack Hub for fast updates, file sharing, and direct communication.
+          </p>
+          <a
+            href="https://stellarpossible.slack.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="slack-hero-cta"
+          >
+            Join the Welcome channel
+            <ClientOnly>
+              <Icon icon="mdi:open-in-new" aria-hidden />
+              <template #fallback><span aria-hidden>↗</span></template>
+            </ClientOnly>
+          </a>
+        </div>
+        <div class="slack-hero-visual">
+          <img
+            src="/images/primary/SPSlackSS.png"
+            alt="StellarPossible Slack Hub — #github channel"
+            class="slack-hero-img"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Cross-page CTA: See our work -->
+    <section class="cross-cta-section" aria-label="Explore our work">
+      <h2 class="cross-cta-title">See our work</h2>
+      <p class="cross-cta-subtitle">View client projects and featured case studies.</p>
+      <NuxtLink to="/products" class="cross-cta-button">
+        View client portfolio
+        <ClientOnly>
+          <Icon icon="mdi:arrow-right" />
+          <template #fallback><span>→</span></template>
+        </ClientOnly>
+      </NuxtLink>
+    </section>
   </section>
 </template>
 
 <script setup lang="ts">
 import type { User } from '~/types/auth'
 
-type PlanId = 'monthly' | 'annual'
+type PlanId = 'monthly' | 'annual' | 'addon'
 
 const user = useState<User | null>('auth.user', () => null)
+
+type TabId = 'design' | 'software' | 'hosting'
+const activeTab = ref<TabId>('hosting')
 
 const designServices = [
   {
@@ -179,9 +298,25 @@ const plans = [
     features: [
       'Everything in Monthly',
       'Billed once per year',
+      'Cancel anytime',
       'All “Every service includes” benefits'
     ],
     cta: 'Signup'
+  },
+  {
+    id: 'addon' as PlanId,
+    name: 'Additional changes',
+    priceDisplay: '$150',
+    period: '/hour',
+    savings: null as string | null,
+    badge: null as string | null,
+    featured: false,
+    features: [
+      'Site changes & updates',
+      'Billed in 15‑minute increments',
+      'Invoiced prior to work'
+    ],
+    cta: 'Get a quote'
   }
 ]
 
@@ -251,6 +386,70 @@ useHead({
   }
 }
 
+.services-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.tab-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.tab-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.tab-trigger.active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tab-trigger:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.tab-trigger svg {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.tab-panels {
+  width: 100%;
+  max-width: 900px;
+}
+
+.tab-panel {
+  margin-bottom: 0;
+}
+
 .included-block {
   max-width: 38rem;
   width: 100%;
@@ -294,39 +493,125 @@ useHead({
   }
 }
 
-.slack-section {
+/* Slack highlight hero card: below services, above See our work — compact, less prominent */
+.slack-hero-card {
   width: 100%;
-  max-width: 900px;
-  margin-bottom: 3rem;
+  max-width: 42rem;
+  margin: 2rem auto 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(18, 49, 70, 0.5);
+  border: 1px solid rgba(84, 117, 128, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
-.slack-intro {
-  font-size: 1rem;
-  line-height: 1.6;
+.slack-hero-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.slack-hero-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.slack-hero-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.375rem;
+  letter-spacing: -0.01em;
+}
+
+.slack-hero-text {
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.82);
-  max-width: 36rem;
-  margin: 0 auto 1.5rem;
+  margin: 0 0 1rem;
 }
 
-.slack-visual {
+.slack-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #123146;
+  background: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.slack-hero-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.slack-hero-cta svg {
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+.slack-hero-visual {
+  flex-shrink: 0;
   width: 100%;
-  border-radius: 12px;
+  max-width: 220px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(84, 117, 128, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
-.slack-screenshot {
+.slack-hero-img {
   display: block;
   width: 100%;
   height: auto;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: top left;
+}
+
+@media (max-width: 520px) {
+  .slack-hero-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .slack-hero-visual {
+    max-width: 100%;
+  }
 }
 
 .services-section {
   width: 100%;
   max-width: 900px;
   margin-bottom: 3rem;
+}
+
+.software-section {
+  .software-cta-block {
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 1.75rem 1.5rem;
+    background: rgba(18, 49, 70, 0.5);
+    border: 1px solid rgba(84, 117, 128, 0.35);
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .software-intro {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+    margin: 0 0 1.5rem;
+  }
+
+  .cta-software {
+    margin-top: 0;
+  }
 }
 
 .section-title {
@@ -566,10 +851,57 @@ useHead({
   }
 }
 
-.fine-print {
+/* Cross-page CTA: See our work */
+.cross-cta-section {
+  margin-top: 3.5rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
   max-width: 36rem;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.6);
-  line-height: 1.5;
+}
+
+.cross-cta-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+}
+
+.cross-cta-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 1.5rem;
+}
+
+.cross-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #123146;
+  background: #fff;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cross-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.cross-cta-button svg {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.cross-cta-button:hover svg {
+  transform: translateX(3px);
 }
 </style>
