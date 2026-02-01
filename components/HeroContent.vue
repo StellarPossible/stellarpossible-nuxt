@@ -6,12 +6,22 @@
         Human-focused solutions for creatives, educators, and visionaries.
       </p>
       <div class="hero-buttons">
-        <NuxtLink to="/services" class="button primary">Services</NuxtLink>
-        <NuxtLink to="/login" class="button ghost">Login</NuxtLink>
+        <NuxtLink v-if="user" to="/news" class="button latest">
+          Latest from <img src="/images/primary/spicon.png" alt="Stellar Possible" class="hero-btn-icon" />
+        </NuxtLink>
+        <NuxtLink v-else to="/services" class="button primary">Services</NuxtLink>
+        <NuxtLink v-if="user" to="/dashboard" class="button ghost">Manage Account</NuxtLink>
+        <NuxtLink v-else to="/login" class="button ghost">Login</NuxtLink>
       </div>
     </div>
   </section>
 </template>
+
+<script setup lang="ts">
+import type { User } from '~/types/auth'
+
+const user = useState<User | null>('auth.user', () => null)
+</script>
 
 <style scoped lang="scss">
 @use '@/assets/scss/variables.scss' as *;
@@ -20,52 +30,60 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 6rem 2rem;
+  padding: 6rem 2rem 4rem;
   min-height: 100vh;
   position: relative;
   z-index: 2;
+  box-sizing: border-box;
 
   .hero-backdrop {
     text-align: center;
-    padding: 1rem;
-    backdrop-filter: blur(8px);
-    background-color: rgba(0, 0, 0, 0.45);
-    border-radius: 1rem;
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    padding: 2rem 2.5rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
     max-width: 900px;
-    margin-top: -8rem;
+    margin-top: -6rem;
     color: #fff;
   }
 
   h1 {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 3.5rem;
-    font-weight: 600;
-    line-height: 4rem;
-    margin: 0;
+    font-family: 'OldStyle';
+    font-size: clamp(1.75rem, 5vw, 3.5rem);
+    font-weight: 300;
+    line-height: 1.2;
+    margin: 0 0 0.75rem;
+    letter-spacing: .5px;
   }
 
   p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    opacity: 0.9;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    margin: 0 0 2rem;
+    opacity: 0.92;
+    line-height: 1.5;
   }
 
   .hero-buttons {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: 1.5rem;
+    align-items: center;
+    gap: 1rem;
 
     .button {
-      padding: 1rem 2rem;
+      padding: 0.875rem 1.75rem;
       font-size: 1rem;
       font-weight: 600;
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
       text-decoration: none;
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       text-align: center;
 
       &.primary {
@@ -73,43 +91,88 @@
         color: $primary;
       }
 
+      &.latest {
+        background-color: #1a1a2e !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+      }
+
+      &.latest,
+      &.latest:hover,
+      &.latest:focus {
+        color: #ffffff !important;
+      }
+
+      &.latest .hero-btn-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-left: 0.35rem;
+        filter: brightness(1.1);
+        object-fit: contain;
+      }
+
       &.ghost {
         background-color: transparent;
         color: white;
-        border: 1px solid white;
+        border: 1px solid rgba(255, 255, 255, 0.6);
       }
 
       &.primary:hover {
-        background-color: #f0f0f0;
+        background-color: #f5f5f5;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
       }
-      
-      &.ghost:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+
+      &.latest:hover {
+        background-color: #0e0f1a !important;
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.35);
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .hero-btn-icon {
+        display: inline-block;
+        vertical-align: middle;
+        width: 1.375rem;
+        height: 1.375rem;
+        margin-left: 0.35rem;
+        object-fit: contain;
+      }
+
+      &.ghost:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.8);
+        transform: translateY(-2px);
+      }
+
+      &:focus-visible {
+        outline: 2px solid white;
+        outline-offset: 3px;
       }
     }
   }
 }
 
-@media screen and (max-width: 1024px) {
-  .hero-content h1 {
-    font-size: 2.5rem;
-    line-height: 2.75rem;
+@media screen and (max-width: 768px) {
+  .hero-content {
+    padding: 5rem 1.25rem 3rem;
+  }
+
+  .hero-content .hero-backdrop {
+    padding: 1.5rem 1.25rem;
+    margin-top: -4rem;
   }
 
   .hero-content .hero-buttons {
     flex-direction: column;
-    gap: 1rem;
-    
-  }
-}
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
 
-@media screen and (max-width: 425px) {
-  .hero-content h1 {
-    font-size: 1.75rem;
-    line-height: 2rem;
+    .button {
+      width: 100%;
+    }
   }
 }
 </style>

@@ -12,7 +12,7 @@
           :class="{ active: isRegistering }" 
           @click="switchToRegister"
         >
-          Register
+          Create Account
         </button>
       </div>
 
@@ -53,6 +53,15 @@
             <Icon :icon="showLoginPassword ? 'mdi:eye-off' : 'mdi:eye'" />
           </span>
         </div>
+        <label class="remember-me">
+          <input
+            v-model="rememberMe"
+            type="checkbox"
+            name="remember-me"
+            aria-label="Remember me on this device"
+          />
+          <span>Remember me</span>
+        </label>
         <button type="submit" :disabled="isLoading" class="submit-btn">
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
         </button>
@@ -146,6 +155,8 @@ const debugInfo = ref<any>(null)
 const showDebug = process.dev // Only show in development
 const showLoginPassword = ref(false)
 const showRegisterPassword = ref(false)
+
+const rememberMe = ref(true)
 
 const loginForm = ref({
   username: '',
@@ -273,6 +284,7 @@ async function login() {
       body: {
         username: loginForm.value.username,
         password: loginForm.value.password,
+        rememberMe: rememberMe.value,
       },
     })
 
@@ -454,6 +466,25 @@ onMounted(() => {
     &::placeholder {
       color: #6c757d;
     }
+  }
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #495057;
+  user-select: none;
+  input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: $primary;
+  }
+  span {
+    flex: 1;
   }
 }
 

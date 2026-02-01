@@ -1,5 +1,5 @@
 <template>
-  <header :class="['site-header', { scrolled, 'menu-on-left': menuSide === 'left', 'theme-light': theme === 'light', 'menu-open': isMenuOpen }]">
+  <header ref="headerEl" :class="['site-header', { scrolled, 'menu-on-left': menuSide === 'left', 'theme-light': theme === 'light', 'menu-open': isMenuOpen }]">
     <div class="container" :class="{ 'home-layout': isHomePage }">
       <div class="header-left">
         <button
@@ -67,11 +67,14 @@
           <header class="drawer-header">
             <button
               type="button"
-              class="drawer-close"
+              class="drawer-toggle"
+              :class="{ open: isMenuOpen }"
               aria-label="Close menu"
               @click="closeMenu"
             >
-              <Icon icon="mdi:close" />
+              <span></span>
+              <span></span>
+              <span></span>
             </button>
             <div class="drawer-side-pills" role="group" aria-label="Menu side">
               <button
@@ -91,27 +94,27 @@
             </div>
           </header>
           <div class="drawer-nav-links">
-            <NuxtLink to="/products" active-class="active" class="drawer-link" title="products" aria-label="products" @click="closeMenu">
+            <NuxtLink to="/products" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:package-variant" aria-hidden />
-              <span class="drawer-link-text">products</span>
+              <span>products</span>
             </NuxtLink>
-            <NuxtLink to="/services" active-class="active" class="drawer-link" title="services" aria-label="services" @click="closeMenu">
+            <NuxtLink to="/services" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:hand-heart" aria-hidden />
-              <span class="drawer-link-text">services</span>
+              <span>services</span>
             </NuxtLink>
             <template v-if="user">
-              <NuxtLink to="/dashboard" active-class="active" class="drawer-link" title="dashboard" aria-label="dashboard" @click="closeMenu">
+              <NuxtLink to="/dashboard" active-class="active" class="drawer-link" @click="closeMenu">
                 <Icon icon="mdi:view-dashboard" aria-hidden />
-                <span class="drawer-link-text">dashboard</span>
+                <span>dashboard</span>
               </NuxtLink>
-              <button type="button" class="drawer-link drawer-btn" title="logout" aria-label="logout" @click="logout">
+              <button type="button" class="drawer-link drawer-btn" @click="logout">
                 <Icon icon="mdi:logout" aria-hidden />
-                <span class="drawer-link-text">logout</span>
+                <span>logout</span>
               </button>
             </template>
-            <NuxtLink v-else to="/login" active-class="active" class="drawer-link" title="login" aria-label="login" @click="closeMenu">
+            <NuxtLink v-else to="/login" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:login" aria-hidden />
-              <span class="drawer-link-text">login</span>
+              <span>login</span>
             </NuxtLink>
           </div>
 
@@ -125,6 +128,7 @@
               <Icon v-if="theme === 'dark'" icon="mdi:weather-sunny" />
               <Icon v-else icon="mdi:weather-night" />
             </button>
+            <p class="drawer-preferences-hint" aria-live="polite">Theme & menu side saved to this device.</p>
           </div>
         </nav>
       </Teleport>
@@ -142,9 +146,18 @@ defineProps<{ scrolled: boolean }>()
 
 const { menuSide, setMenuSide } = useMenuSide()
 const { theme, toggleTheme } = useTheme()
+const headerEl = ref<HTMLElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
 const isMenuOpen = ref(false)
 const route = useRoute()
 const user = useState<User | null>('auth.user', () => null)
+
+function syncHeaderHeight() {
+  if (import.meta.client && headerEl.value) {
+    const h = headerEl.value.offsetHeight
+    document.documentElement.style.setProperty('--site-header-height', `${h}px`)
+  }
+}
 
 const isHomePage = computed(() => route.path === '/')
 
@@ -154,9 +167,13 @@ function handleEscape(e: KeyboardEvent) {
 
 onMounted(() => {
   if (process.client) {
+    syncHeaderHeight()
+    resizeObserver = new ResizeObserver(syncHeaderHeight)
+    if (headerEl.value) resizeObserver.observe(headerEl.value)
     watch(isMenuOpen, (open) => {
       document.body.classList.toggle('menu-open', open)
       if (open) {
+        syncHeaderHeight()
         window.addEventListener('keydown', handleEscape)
       } else {
         window.removeEventListener('keydown', handleEscape)
@@ -168,6 +185,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (process.client) {
     window.removeEventListener('keydown', handleEscape)
+    if (resizeObserver && headerEl.value) resizeObserver.unobserve(headerEl.value)
   }
 })
 
@@ -241,6 +259,9 @@ async function logout() {
   .header-right {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 
   .logo {
@@ -342,75 +363,130 @@ async function logout() {
   pointer-events: none;
 }
 
-/* Slim strip attached to viewport edge; minimal width so site stays browsable */
+/* Dropdown under header: max 85vw width, centered, unobtrusive, pro-level */
 .site-header-drawer {
-  display: flex;
+  --header-height: var(--site-header-height, 4rem);
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-snappy: cubic-bezier(0.32, 0.72, 0, 1);
   position: fixed !important;
-  top: 0;
-  bottom: 0;
-  width: 72px;
-  min-width: 72px;
-  max-width: 72px;
-  padding: 0 0.5rem 0.5rem;
-  padding-top: env(safe-area-inset-top, 0.5rem);
-  background: $primary;
+  top: var(--header-height);
+  left: 50%;
+  width: min(100%, 85vw);
+  min-width: 280px;
+  max-width: 85vw;
+  box-sizing: border-box;
+  display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  flex-wrap: nowrap;
+  height: fit-content;
+  max-height: calc(100vh - var(--header-height));
+  padding: 0 1rem 0.75rem;
+  padding-top: 0.375rem;
+  background: $primary;
   font-family: 'Chocolates', serif;
   overflow-y: auto;
-  overflow-x: hidden;
   visibility: hidden;
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition:
+    transform 0.32s var(--ease-out-snappy),
+    visibility 0s linear 0.32s;
   z-index: 10001;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  border-radius: 0 0 14px 14px;
+  transform: translate(-50%, 0) scaleY(0);
+  transform-origin: top center;
+  opacity: 1;
+  pointer-events: none;
+  overflow: hidden;
 }
-.site-header-drawer.drawer-left {
-  border-left: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+.site-header-drawer.open {
+  visibility: visible;
+  transition:
+    transform 0.32s var(--ease-out-snappy),
+    visibility 0s,
+    opacity 0.24s var(--ease-out);
+  transform: translate(-50%, 0) scaleY(1);
+  opacity: 1;
+  pointer-events: auto;
+  overflow-y: auto;
 }
+/* Staggered content fade-in when opening */
 .site-header-drawer .drawer-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   width: 100%;
   flex-shrink: 0;
-  padding-bottom: 0.5rem;
+  padding: 0.375rem 0;
   margin-bottom: 0.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+  transition-delay: 0s;
 }
+.site-header-drawer.open .drawer-header {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.06s;
+}
+.site-header-drawer .drawer-nav-links {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+  transition-delay: 0s;
+}
+.site-header-drawer.open .drawer-nav-links {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.1s;
+}
+.site-header-drawer .drawer-footer {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
+  transition-delay: 0s;
+}
+.site-header-drawer.open .drawer-footer {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.14s;
+}
+/* R mode: X left, L R right */
 .site-header-drawer.drawer-right .drawer-header {
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
 }
+.site-header-drawer.drawer-right .drawer-toggle {
+  order: 0;
+  margin-right: auto;
+}
+.site-header-drawer.drawer-right .drawer-side-pills {
+  order: 0;
+  margin-left: 0;
+}
+/* L mode: L R left, hamburger/X right */
 .site-header-drawer.drawer-left .drawer-header {
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.site-header-drawer.drawer-left .drawer-toggle {
+  order: 1;
+  margin-left: auto;
+}
+.site-header-drawer.drawer-left .drawer-side-pills {
+  order: 0;
+  margin-right: 0;
 }
 .site-header-drawer.drawer-theme-light .drawer-header {
   border-bottom-color: rgba(0, 0, 0, 0.08);
 }
-/* Header: X and L R stacked in slim strip */
-.site-header-drawer.drawer-right .drawer-close {
-  order: 0;
-}
-.site-header-drawer.drawer-right .drawer-side-pills {
-  order: 1;
-}
-.site-header-drawer.drawer-left .drawer-close {
-  order: 1;
-}
-.site-header-drawer.drawer-left .drawer-side-pills {
-  order: 0;
-}
 .site-header-drawer.drawer-theme-light {
-  background: rgba(226, 232, 240, 0.98);
-  border-left-color: rgba(0, 0, 0, 0.06);
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
-}
-.site-header-drawer.drawer-theme-light.drawer-left {
-  border-right-color: rgba(0, 0, 0, 0.06);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 .site-header-drawer.drawer-theme-light .drawer-link,
 .site-header-drawer.drawer-theme-light .drawer-btn {
@@ -421,136 +497,146 @@ async function logout() {
 .site-header-drawer.drawer-theme-light .drawer-btn:hover {
   color: $primary;
 }
-.site-header-drawer .drawer-close {
+/* Drawer header toggle: hamburger that morphs to X (same control as main header) */
+.site-header-drawer .drawer-toggle {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  position: relative;
   width: 2.5rem;
   height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, transform 0.25s ease, opacity 0.25s ease;
   flex-shrink: 0;
+  transition: background 0.2s ease;
 }
-.site-header-drawer .drawer-close svg {
-  font-size: 1.375rem;
+.site-header-drawer .drawer-toggle span {
+  position: absolute;
+  left: 50%;
+  margin-left: -1.25rem;
+  width: 2.5rem;
+  height: 0.25rem;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
-.site-header-drawer .drawer-close:hover {
-  background: rgba(255, 255, 255, 0.22);
+.site-header-drawer .drawer-toggle span:nth-child(1) { top: 0.5rem; }
+.site-header-drawer .drawer-toggle span:nth-child(2) { top: 1.125rem; }
+.site-header-drawer .drawer-toggle span:nth-child(3) { top: 1.75rem; }
+.site-header-drawer .drawer-toggle.open span:nth-child(1) {
+  top: 1.125rem;
+  transform: rotate(45deg);
 }
-.site-header-drawer .drawer-close:focus-visible {
+.site-header-drawer .drawer-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+.site-header-drawer .drawer-toggle.open span:nth-child(3) {
+  top: 1.125rem;
+  transform: rotate(-45deg);
+}
+.site-header-drawer .drawer-toggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.site-header-drawer .drawer-toggle:focus-visible {
   outline: 2px solid white;
   outline-offset: 2px;
 }
-/* X "lands" when drawer opens (ham animates into this) */
-.site-header-drawer:not(.open) .drawer-close {
-  opacity: 0;
-  transform: scale(0.85);
-}
-.site-header-drawer.open .drawer-close {
-  opacity: 1;
-  transform: scale(1);
-}
-.site-header-drawer.drawer-theme-light .drawer-close {
+.site-header-drawer.drawer-theme-light .drawer-toggle {
   background: rgba(0, 0, 0, 0.08);
-  color: #1a1a2e;
 }
-.site-header-drawer.drawer-theme-light .drawer-close:hover {
+.site-header-drawer.drawer-theme-light .drawer-toggle span {
+  background: #1a1a2e;
+}
+.site-header-drawer.drawer-theme-light .drawer-toggle:hover {
   background: rgba(0, 0, 0, 0.14);
 }
-.site-header-drawer.drawer-theme-light .drawer-close:focus-visible {
+.site-header-drawer.drawer-theme-light .drawer-toggle:focus-visible {
   outline-color: #1a1a2e;
 }
 .site-header-drawer .drawer-nav-links {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.25rem;
-  flex: 1;
-  min-height: 0;
+  gap: 0.125rem 0.75rem;
+  padding: 0.25rem 0;
+  flex-shrink: 0;
 }
-.site-header-drawer.drawer-right {
-  right: 0;
-  left: auto;
-  align-items: center;
-  transform: translateX(100%);
+.site-header-drawer.drawer-right .drawer-nav-links {
+  justify-content: flex-end;
 }
-.site-header-drawer.drawer-right.open {
-  transform: translateX(0);
-  visibility: visible;
-}
-.site-header-drawer.drawer-left {
-  left: 0;
-  right: auto;
-  align-items: center;
-  transform: translateX(-100%);
-}
-.site-header-drawer.drawer-left.open {
-  transform: translateX(0);
-  visibility: visible;
+.site-header-drawer.drawer-left .drawer-nav-links {
+  justify-content: flex-start;
 }
 
 .site-header-drawer .drawer-link,
 .site-header-drawer .drawer-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
-  padding: 0.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+  gap: 0.375rem;
+  padding: 0.5rem 0.625rem;
+  min-height: 2.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   font-family: 'Chocolates', serif;
-  color: white;
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   background: none;
   border: none;
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
-  width: 100%;
-  min-width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.25rem;
+  border-radius: 8px;
   box-sizing: border-box;
 }
 .site-header-drawer .drawer-link:hover,
 .site-header-drawer .drawer-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
 }
 .site-header-drawer .drawer-link svg,
 .site-header-drawer .drawer-btn svg {
-  font-size: 1.375rem;
+  font-size: 1rem;
   flex-shrink: 0;
+  opacity: 0.9;
 }
-.site-header-drawer .drawer-link-text {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+.site-header-drawer .drawer-link.active {
+  color: $primary-light;
+  font-weight: 600;
 }
-.site-header-drawer .drawer-link.active,
-.site-header-drawer .drawer-link:hover,
+.site-header-drawer .drawer-link.active:hover,
 .site-header-drawer .drawer-btn:hover {
   color: $primary-light;
 }
+.site-header-drawer.drawer-right .drawer-btn {
+  margin-left: auto;
+}
+.site-header-drawer.drawer-left .drawer-btn {
+  margin-right: auto;
+}
 
-/* Footer: theme icon only in slim strip */
+/* Footer: theme + hint, compact */
 .drawer-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding-top: 0.5rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.375rem;
   margin-top: 0.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+}
+.site-header-drawer.drawer-right .drawer-footer {
+  flex-direction: row;
+}
+.site-header-drawer.drawer-left .drawer-footer {
+  flex-direction: row-reverse;
 }
 .site-header-drawer.drawer-theme-light .drawer-footer {
   border-top-color: rgba(0, 0, 0, 0.08);
@@ -559,18 +645,29 @@ async function logout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
 .drawer-footer-btn svg {
-  font-size: 1.25rem;
+  font-size: 1rem;
+}
+.drawer-preferences-hint {
+  margin: 0;
+  font-size: 0.625rem;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.5);
+}
+.site-header-drawer.drawer-theme-light .drawer-preferences-hint {
+  color: rgba(0, 0, 0, 0.45);
 }
 .drawer-footer-btn:hover {
   background: rgba(255, 255, 255, 0.2);
@@ -596,25 +693,28 @@ async function logout() {
   justify-content: center;
 }
 .drawer-side-pills button {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.625rem;
+  height: 1.625rem;
+  min-width: 1.625rem;
+  min-height: 1.625rem;
   padding: 0;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 600;
   font-family: 'Chocolates', serif;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
   border: none;
-  border-radius: 0.25rem;
+  border-radius: 5px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
 .drawer-side-pills button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 }
 .drawer-side-pills button.active {
-  background: rgba(255, 255, 255, 0.25);
-  color: white;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 .drawer-side-pills button:focus-visible {
   outline: 2px solid white;
@@ -635,13 +735,27 @@ async function logout() {
   outline-color: #1a1a2e;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .site-header-drawer {
-    width: 72px;
-    min-width: 72px;
-    max-width: 72px;
-    padding: 0 0.5rem 0.5rem;
-    padding-top: env(safe-area-inset-top, 0.5rem);
+    width: min(100%, 95vw);
+    max-width: 95vw;
+  }
+  .site-header-drawer .drawer-nav-links {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .site-header-drawer.drawer-right .drawer-nav-links,
+  .site-header-drawer.drawer-left .drawer-nav-links {
+    justify-content: flex-start;
+  }
+  .site-header-drawer .drawer-link,
+  .site-header-drawer .drawer-btn {
+    width: 100%;
+  }
+  .site-header-drawer.drawer-right .drawer-btn,
+  .site-header-drawer.drawer-left .drawer-btn {
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 </style>
