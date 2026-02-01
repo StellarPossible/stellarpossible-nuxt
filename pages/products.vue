@@ -72,7 +72,7 @@
           <p class="featured-tagline">Compliance education for mental health professionals</p>
           <p class="featured-description">
             Full-stack platform transformation: site architecture, security hardening, 
-            custom dashboard tools, and ongoing hosting with 99.9% uptime.
+            custom dashboard tools, and ongoing hosting with 99.9% uptime since 2022.
           </p>
           <ul class="featured-features">
             <li>
@@ -136,11 +136,7 @@
           <div class="featured-stats">
             <div class="stat">
               <span class="stat-value">99.9%</span>
-              <span class="stat-label">Uptime</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">3+</span>
-              <span class="stat-label">Years Managed</span>
+              <span class="stat-label">Uptime since 2022</span>
             </div>
           </div>
         </div>
@@ -195,7 +191,7 @@ const clients: Client[] = [
     description: 'Brand identity, custom website build, and reliable hosting.',
     url: 'https://cascabeleventcompany.com',
     logo: '/images/primary/cascabellogo.png',
-    darkTheme: true
+    darkTheme: false
   },
   {
     id: 'vivarium-salon',
@@ -236,10 +232,12 @@ useHead({
   text-align: center;
   margin-bottom: 4rem;
   padding: 2.5rem 1.5rem;
+  padding-top: 3rem;
   background: rgba(0, 0, 0, 0.4);
   border-radius: 24px;
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: visible;
 }
 
 .hero-badge {
@@ -261,8 +259,9 @@ useHead({
   font-size: clamp(2.5rem, 6vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.1;
+  line-height: 1.35;
   margin: 0 0 1rem;
+  padding-top: 0.15em;
   background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.9) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -524,19 +523,22 @@ useHead({
 .client-card {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.02),
-    0 8px 16px rgba(0, 0, 0, 0.04);
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 8px 16px rgba(0, 0, 0, 0.06);
 
   &:hover {
     transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.92);
     box-shadow: 
-      0 4px 8px rgba(0, 0, 0, 0.04),
-      0 16px 32px rgba(0, 0, 0, 0.08);
+      0 4px 8px rgba(0, 0, 0, 0.06),
+      0 16px 32px rgba(0, 0, 0, 0.1);
 
     .client-cta {
       color: #667eea;

@@ -13,10 +13,26 @@
       <ul class="included-list">
         <li>Unlimited revisions</li>
         <li>30-minute get-to-know-you consult with Marine—in person or via Google Meet</li>
+        <li>Rapid response and communication via StellarPossible Slack</li>
         <li>Optimized files + custom color palette with hex keys</li>
         <li>Multiple versions + file types</li>
       </ul>
     </div>
+
+    <!-- StellarPossible Slack Hub -->
+    <section class="slack-section">
+      <h2 class="section-title">Stay connected</h2>
+      <p class="slack-intro">
+        Every client gets access to the StellarPossible Slack Hub for fast updates, file sharing, and direct communication.
+      </p>
+      <div class="slack-visual">
+        <img
+          src="/images/primary/SPSlackSS.png"
+          alt="StellarPossible Slack Hub — desktop view of the SP Slack workspace"
+          class="slack-screenshot"
+        />
+      </div>
+    </section>
 
     <!-- Design services -->
     <div class="services-section">
@@ -279,6 +295,35 @@ useHead({
       font-weight: 600;
     }
   }
+}
+
+.slack-section {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 3rem;
+}
+
+.slack-intro {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 36rem;
+  margin: 0 auto 1.5rem;
+}
+
+.slack-visual {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(84, 117, 128, 0.25);
+}
+
+.slack-screenshot {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .services-section {

@@ -137,11 +137,13 @@ async function logout() {
   }
 
   &.scrolled::before {
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(6px);
   }
 
   .container {
+    position: relative;
+    z-index: 2100;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -222,7 +224,7 @@ async function logout() {
   .drawer-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 1040;
     opacity: 0;
     pointer-events: none;
@@ -243,18 +245,20 @@ async function logout() {
     bottom: 0;
     width: 100%;
     max-width: 320px;
-    padding: 5rem 2rem 2rem;
+    min-width: 280px;
+    padding: 6rem 2rem 2rem;
     background: $primary;
     flex-direction: column;
     align-items: flex-end;
     justify-content: flex-start;
-    gap: 0.25rem;
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.2);
+    gap: 0.5rem;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
     transform: translateX(100%);
     transition: transform 0.3s ease;
     z-index: 1050;
     font-family: 'Chocolates', serif;
     overflow-y: auto;
+    visibility: hidden;
 
     a {
       display: block;
@@ -306,13 +310,15 @@ async function logout() {
 
     &.open {
       transform: translateX(0);
+      visibility: visible;
     }
   }
 
   @media (max-width: 480px) {
     .nav-drawer {
       max-width: 100%;
-      padding: 5rem 1.5rem 2rem;
+      min-width: 100%;
+      padding: 6rem 1.5rem 2rem;
     }
 
     .logo > img {
