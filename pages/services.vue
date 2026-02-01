@@ -1,13 +1,13 @@
 <template>
   <section class="services-page">
     <div class="hero">
-      <h1>Services</h1>
+      <h1>Design & hosting that gets you there</h1>
       <p class="hero-subtitle">
-        Custom design—logos, book covers, and graphics—plus managed hosting for your site.
+        Custom logos and book covers—plus managed hosting. Every service includes unlimited revisions, a consult with Marine, and direct Slack access.
       </p>
     </div>
 
-    <!-- What's included with every service -->
+    <!-- What's included: trust block above the fold -->
     <div class="included-block">
       <h2 class="included-title">Every service includes</h2>
       <ul class="included-list">
@@ -17,6 +17,47 @@
         <li>Optimized files + custom color palette with hex keys</li>
         <li>Multiple versions + file types</li>
       </ul>
+    </div>
+
+    <!-- Design services: primary offer -->
+    <div class="services-section">
+      <h2 class="section-title">Design services</h2>
+      <p class="section-subtitle">One fixed price. No surprises. Final files ready for print and web.</p>
+      <div class="services-grid design-grid">
+        <article
+          v-for="service in designServices"
+          :key="service.id"
+          class="service-card"
+        >
+          <h3 class="service-name">{{ service.name }}</h3>
+          <p v-if="service.price" class="service-price">{{ service.price }}</p>
+          <p class="service-description">{{ service.description }}</p>
+          <NuxtLink
+            v-if="service.orderLink && !user"
+            to="/login?tab=register"
+            class="cta-button cta-primary"
+          >
+            Get yours
+          </NuxtLink>
+          <a
+            v-else-if="service.orderLink"
+            :href="service.orderLink"
+            class="cta-button cta-primary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Get yours
+          </a>
+          <button
+            v-else
+            type="button"
+            class="cta-button cta-primary"
+            @click="openContact"
+          >
+            {{ service.cta }}
+          </button>
+        </article>
+      </div>
     </div>
 
     <!-- StellarPossible Slack Hub -->
@@ -34,48 +75,8 @@
       </div>
     </section>
 
-    <!-- Design services -->
-    <div class="services-section">
-      <h2 class="section-title">Design services</h2>
-      <div class="services-grid design-grid">
-        <article
-          v-for="service in designServices"
-          :key="service.id"
-          class="service-card"
-        >
-          <h3 class="service-name">{{ service.name }}</h3>
-          <p v-if="service.price" class="service-price">{{ service.price }}</p>
-          <p class="service-description">{{ service.description }}</p>
-          <NuxtLink
-            v-if="service.orderLink && !user"
-            to="/login?tab=register"
-            class="cta-button"
-          >
-            Get Yours
-          </NuxtLink>
-          <a
-            v-else-if="service.orderLink"
-            :href="service.orderLink"
-            class="cta-button"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Get Yours
-          </a>
-          <button
-            v-else
-            type="button"
-            class="cta-button cta-outline"
-            @click="openContact"
-          >
-            {{ service.cta }}
-          </button>
-        </article>
-      </div>
-    </div>
-
     <!-- Hosting plans -->
-    <div class="services-section">
+    <div class="services-section hosting-section">
       <h2 class="section-title">Managed hosting</h2>
       <p class="section-subtitle">
         Reliable hosting for your site. Choose monthly or save with annual billing.
@@ -100,18 +101,19 @@
           <NuxtLink
             v-if="!user"
             to="/login?tab=register"
-            class="cta-button"
+            class="cta-button cta-primary"
           >
-            {{ plan.cta }}
+            Get started
           </NuxtLink>
           <button
             v-else
             type="button"
-            class="cta-button"
+            class="cta-button cta-primary"
+            :class="{ 'cta-featured': plan.featured }"
             :disabled="loadingPlan === plan.id"
             @click="goToCheckout(plan.id)"
           >
-            {{ loadingPlan === plan.id ? 'Redirecting…' : plan.cta }}
+            {{ loadingPlan === plan.id ? 'Redirecting…' : 'Get started' }}
           </button>
         </article>
       </div>
@@ -135,7 +137,7 @@ const designServices = [
     id: 'custom-logo',
     name: 'Custom logo',
     price: '$450',
-    orderLink: '#' as string, // Replace with your Stripe Payment Link for logo when ready
+    orderLink: '#' as string,
     description: 'A distinctive logo tailored to your brand—concept, refinement, and final files ready for print and web.',
     cta: 'Get a quote'
   },
@@ -143,16 +145,8 @@ const designServices = [
     id: 'book-cover',
     name: 'Book cover (KDP + Amazon optimized)',
     price: '$1,350',
-    orderLink: '#' as string, // Replace with your Stripe Payment Link for book cover when ready
+    orderLink: '#' as string,
     description: 'Professional book cover design sized and formatted for Kindle Direct Publishing and Amazon—front, spine, and back; ebook and print.',
-    cta: 'Get a quote'
-  },
-  {
-    id: 'graphic-design',
-    name: 'Graphic design',
-    price: null as string | null,
-    orderLink: null as string | null,
-    description: 'Marketing visuals, social graphics, one-sheets, and other print or digital assets—on-brand and ready to use.',
     cta: 'Get a quote'
   }
 ]
@@ -219,7 +213,7 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: 'Custom logo, book cover (KDP + Amazon), and graphic design—plus managed site hosting. Every service includes unlimited revisions, a consult with Marine, and optimized files.'
+      content: 'Custom logo and book cover design (KDP + Amazon)—plus managed site hosting. Every service includes unlimited revisions, a consult with Marine, and optimized files.'
     }
   ]
 })
@@ -238,32 +232,35 @@ useHead({
 }
 
 .hero {
-  max-width: 40rem;
-  margin-bottom: 2rem;
+  max-width: 42rem;
+  margin-bottom: 2.5rem;
 
   h1 {
-    font-size: clamp(2rem, 4vw, 2.5rem);
-    margin-bottom: 0.5rem;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    margin-bottom: 0.75rem;
     font-weight: 700;
     letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #fff;
   }
 
   .hero-subtitle {
-    font-size: 1rem;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 
 .included-block {
-  max-width: 36rem;
+  max-width: 38rem;
   width: 100%;
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   padding: 1.5rem 1.75rem;
-  background: rgba(18, 49, 70, 0.5);
-  border: 1px solid rgba(84, 117, 128, 0.3);
+  background: rgba(18, 49, 70, 0.6);
+  border: 1px solid rgba(84, 117, 128, 0.35);
   border-radius: 14px;
   text-align: left;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .included-title {
@@ -333,26 +330,30 @@ useHead({
 }
 
 .section-title {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
+  color: #fff;
 }
 
 .section-subtitle {
-  font-size: 0.9375rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 1.25rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .design-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   margin-top: 1rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .design-grid {
     grid-template-columns: 1fr;
   }
@@ -360,19 +361,20 @@ useHead({
 
 .service-card {
   background: rgba(18, 49, 70, 0.55);
-  border: 1px solid rgba(84, 117, 128, 0.3);
+  border: 1px solid rgba(84, 117, 128, 0.35);
   border-radius: 14px;
   padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.2s;
 
   &:hover {
-    border-color: rgba(84, 117, 128, 0.5);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-    background: rgba(18, 49, 70, 0.65);
+    border-color: rgba(84, 117, 128, 0.55);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    background: rgba(18, 49, 70, 0.7);
+    transform: translateY(-2px);
   }
 }
 
@@ -434,9 +436,9 @@ useHead({
   }
 
   &.featured {
-    border-color: rgba(84, 117, 128, 0.5);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    background: rgba(18, 49, 70, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+    background: rgba(18, 49, 70, 0.7);
   }
 
   .plan-name {
@@ -451,14 +453,15 @@ useHead({
     top: -0.375rem;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(84, 117, 128, 0.5);
-    color: #fff;
+    background: #fff;
+    color: #123146;
     font-size: 0.7rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 0.2rem 0.6rem;
+    padding: 0.25rem 0.65rem;
     border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .plan-price {
@@ -511,26 +514,44 @@ useHead({
 .cta-button {
   display: inline-block;
   margin-top: auto;
-  padding: 0.65rem 1.35rem;
-  font-size: 0.9375rem;
-  background: var(--primary-medium, #2d4558);
-  color: #fff;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   text-align: center;
 
   &:hover:not(:disabled) {
-    background: var(--primary-light, #547580);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 
   &:disabled {
     opacity: 0.8;
     cursor: not-allowed;
+  }
+
+  &.cta-primary {
+    background: #fff;
+    color: #123146;
+
+    &:hover:not(:disabled) {
+      background: #f0f4f8;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &.cta-featured {
+    background: #fff;
+    color: #123146;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+
+    &:hover:not(:disabled) {
+      background: #f0f4f8;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+    }
   }
 
   &.cta-outline {

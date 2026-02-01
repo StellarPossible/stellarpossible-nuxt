@@ -3,7 +3,8 @@ import type { WordPressUser } from '~/types/auth'
 export default defineEventHandler(async (event) => {
   console.log('=== LOGIN ENDPOINT CALLED ===')
   
-  const { username, password } = await readBody(event)
+  const body = await readBody(event)
+  const { username, password, rememberMe = true } = body
   const config = useRuntimeConfig()
   
   console.log('Username:', username)
@@ -65,15 +66,18 @@ export default defineEventHandler(async (event) => {
     // Create a simple session token
     const sessionToken = Buffer.from(`${response.username}:${Date.now()}`).toString('base64')
     
+    // Cookie duration: 30 days if "Remember me", else 24 hours (session-like)
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24
+
     // Set auth token cookie
     setCookie(event, 'auth-token', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // secure in production
-      sameSite: 'lax', // Changed to lax to work better with redirects
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge,
       path: '/'
     })
-    
+
     // Store user data in a separate cookie for session validation
     const userData = {
       id: response.id,
@@ -82,12 +86,12 @@ export default defineEventHandler(async (event) => {
       name: response.name,
       roles: response.roles
     }
-    
+
     setCookie(event, 'user-data', JSON.stringify(userData), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', // Changed to lax to work better with redirects
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax',
+      maxAge,
       path: '/'
     })
     
