@@ -73,7 +73,7 @@ watch(isHomePage, (isHome) => {
   color: $white;
   position: relative;
   background: var(--primary-color, #0e0f1a)
-    url('/images/primary/galaxyBackground.png') no-repeat center center;
+    url('/images/primary/galaxyBackgroundV2.png') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
   overflow: hidden;
