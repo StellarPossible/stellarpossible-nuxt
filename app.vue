@@ -76,7 +76,8 @@ watch(isHomePage, (isHome) => {
     url('/images/primary/galaxyBackgroundV2.png') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
-  overflow: hidden;
+  /* overflow: visible so fixed nav-drawer (hamburger slide-out) is not clipped on home/dashboard */
+  overflow: visible;
 
   &.show-logo::after {
     content: '';
