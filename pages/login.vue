@@ -130,8 +130,16 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
 const isRegistering = ref(false)
 const isLoading = ref(false)
+
+// Open Register tab when coming from Order/Subscribe with ?tab=register
+onMounted(() => {
+  if (route.query.tab === 'register') {
+    isRegistering.value = true
+  }
+})
 const error = ref('')
 const success = ref('')
 const debugInfo = ref<any>(null)

@@ -114,15 +114,15 @@ async function logout() {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
     z-index: -1;
     transition: background 0.3s ease, backdrop-filter 0.3s ease;
   }
 
   &.scrolled::before {
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
   }
 
   .container {
