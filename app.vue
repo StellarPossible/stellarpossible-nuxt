@@ -1,5 +1,5 @@
 <template>
-  <div class="layout-wrapper" :class="{ 'show-logo': isHomePage }">
+  <div class="layout-wrapper" :class="{ 'show-logo': isHomePage, 'theme-dark': theme === 'dark', 'theme-light': theme === 'light' }">
     <!-- Homepage background overlay fade -->
     <div v-if="isHomePage" class="homepage-overlay"></div>
 
@@ -22,7 +22,7 @@
   <!-- Contact modal -->
   <ContactModal />
 
-  <SiteFooter />
+  <SiteFooter :scrolled="scrolledPastThreshold" />
 </template>
 
 <script setup lang="ts">
@@ -34,6 +34,7 @@ import ContactModal from '@/components/ContactModal.vue'
 import FloatingHelp from '@/components/FloatingHelp.vue'
 
 const route = useRoute()
+const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
 
 const scrolledPastThreshold = ref(false)
@@ -72,12 +73,28 @@ watch(isHomePage, (isHome) => {
   font-family: 'Inter', sans-serif;
   color: $white;
   position: relative;
-  background: var(--primary-color, #0e0f1a)
-    url('/images/primary/galaxyBackgroundV2.png') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-position: center center;
   /* overflow: visible so fixed nav-drawer (hamburger slide-out) is not clipped on home/dashboard */
   overflow: visible;
+
+  &.theme-dark {
+    background-color: var(--primary-color, #0e0f1a);
+    background-image: url('/images/primary/galaxyBackgroundV2.png');
+  }
+
+  &.theme-light {
+    background-color: #f0f4f8;
+    background-image: url('/images/primary/galaxyBackgroundLIGHT.png');
+    color: #1a1a2e;
+  }
+  /* Ensure main content text is readable in light mode */
+  &.theme-light .main-content,
+  &.theme-light .page-content {
+    color: #1a1a2e;
+  }
 
   &.show-logo::after {
     content: '';
@@ -89,6 +106,14 @@ watch(isHomePage, (isHome) => {
       to bottom,
       rgba(0, 0, 0, 0) 60%,
       rgba(0, 0, 0, 0.95) 100%
+    );
+  }
+
+  &.theme-light.show-logo::after {
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(240, 244, 248, 0.9) 100%
     );
   }
 }

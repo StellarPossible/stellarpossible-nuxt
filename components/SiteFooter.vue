@@ -1,5 +1,5 @@
 <template>
-  <footer class="site-footer">
+  <footer class="site-footer" :class="{ 'theme-light': theme === 'light', 'scrolled': scrolled }">
     <div class="footer-content">
   <button type="button" class="contact-btn" aria-label="Contact StellarPossible" @click="open()">Contact</button>
       <span class="copyright">&copy; {{ year }} StellarPossible, LLC</span>
@@ -22,27 +22,31 @@
 </template>
 
 <script setup lang="ts">
+defineProps<{ scrolled?: boolean }>()
+
 const year = new Date().getFullYear()
 const { open } = useContactModal()
+const { theme } = useTheme()
 </script>
 
 <style scoped lang="scss">
 @use '@/assets/scss/variables.scss' as *;
 
 .site-footer {
-  position: fixed; // changed from relative
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   width: 100%;
-  padding: .5rem;
-  background: $primary opacify($color: $dark, $amount: 0);
+  padding: 0.5rem;
+  background: $primary;
   color: $white;
   font-family: 'Montserrat', sans-serif;
   text-align: center;
   font-size: 1.5rem;
-  z-index: 3000; // higher than .layout-wrapper (which is 2000)
+  z-index: 3000;
   overflow: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
 
   &::before {
     content: '';
@@ -53,6 +57,24 @@ const { open } = useContactModal()
     background-attachment: fixed;
     filter: blur(3px);
     z-index: -1;
+    transition: opacity 0.3s ease;
+  }
+
+  &.scrolled::before {
+    opacity: 0.25;
+  }
+
+  &.theme-light {
+    /* Soft blue-grey to complement light galaxy background */
+    background: rgba(226, 232, 240, 0.92);
+    color: #1a1a2e;
+    &::before {
+      background: rgba(226, 232, 240, 0.92);
+      filter: none;
+    }
+    &.scrolled::before {
+      opacity: 0.25;
+    }
   }
 
   .footer-content {
@@ -65,20 +87,30 @@ const { open } = useContactModal()
   }
 
   .contact-btn {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     color: $white;
-    border: 1px solid rgba(255,255,255,0.24);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     padding: 0.3rem 0.65rem;
     border-radius: 10px;
     text-decoration: none;
     font-weight: 600;
     font-size: 0.95rem;
     letter-spacing: 0.01em;
-    transition: background .2s ease, border-color .2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease;
 
     &:hover {
-      background: rgba(255,255,255,0.16);
-      border-color: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &.theme-light .contact-btn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #1a1a2e;
+    border-color: rgba(0, 0, 0, 0.15);
+    &:hover {
+      background: rgba(0, 0, 0, 0.1);
+      border-color: rgba(0, 0, 0, 0.25);
     }
   }
 
@@ -87,7 +119,11 @@ const { open } = useContactModal()
     letter-spacing: 0.02em;
     color: $white;
     opacity: 0.9;
-    
+  }
+
+  &.theme-light .copyright {
+    color: #1a1a2e;
+    opacity: 0.85;
   }
 
 @media (max-width: 768px) {
@@ -129,9 +165,15 @@ const { open } = useContactModal()
     fill: none;
     transition: stroke 0.3s;
   }
+  &.theme-light .ig-bg {
+    stroke: #1a1a2e;
+  }
   .ig-square {
     fill: #fff;
     transition: fill 0.3s;
+  }
+  &.theme-light .ig-square {
+    fill: #1a1a2e;
   }
   .ig-circle {
     fill: #e1306c;
