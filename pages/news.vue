@@ -13,6 +13,14 @@
         Latest updates and news will appear here.
       </p>
     </div>
+
+    <nav class="news-cross-nav" aria-label="Site navigation">
+      <NuxtLink to="/services" class="news-cross-link">Services</NuxtLink>
+      <span class="news-cross-sep" aria-hidden="true">·</span>
+      <NuxtLink to="/products" class="news-cross-link">Our Work</NuxtLink>
+      <span class="news-cross-sep" aria-hidden="true">·</span>
+      <button type="button" class="news-cross-link news-cross-contact" @click="openContact">Contact</button>
+    </nav>
   </section>
 </template>
 
@@ -20,6 +28,8 @@
 definePageMeta({
   middleware: 'auth'
 })
+
+const { open: openContact } = useContactModal()
 </script>
 
 <style scoped lang="scss">
@@ -67,5 +77,38 @@ definePageMeta({
     text-align: center;
     font-size: 1rem;
   }
+}
+
+.news-cross-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.news-cross-link {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.news-cross-link:hover {
+  color: $white;
+}
+
+.news-cross-sep {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.875rem;
+  user-select: none;
 }
 </style>

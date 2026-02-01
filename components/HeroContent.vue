@@ -45,8 +45,11 @@ const user = useState<User | null>('auth.user', () => null)
     border-radius: 1.25rem;
     box-shadow: 0 8px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
     max-width: 900px;
+    width: 100%;
     margin-top: -6rem;
     color: #fff;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 
   h1 {
@@ -71,6 +74,8 @@ const user = useState<User | null>('auth.user', () => null)
     justify-content: center;
     align-items: center;
     gap: 1rem;
+    min-width: 0;
+    max-width: 100%;
 
     .button {
       padding: 0.875rem 1.75rem;
@@ -85,6 +90,8 @@ const user = useState<User | null>('auth.user', () => null)
       align-items: center;
       justify-content: center;
       text-align: center;
+      box-sizing: border-box;
+      max-width: 100%;
 
       &.primary {
         background-color: white;
@@ -104,11 +111,14 @@ const user = useState<User | null>('auth.user', () => null)
       }
 
       &.latest .hero-btn-icon {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: auto;
+        max-width: 2.25rem;
+        height: 1.125rem;
         margin-left: 0.35rem;
+        flex-shrink: 0;
         filter: brightness(1.1);
         object-fit: contain;
+        object-position: left center;
       }
 
       &.ghost {
@@ -134,10 +144,13 @@ const user = useState<User | null>('auth.user', () => null)
       .hero-btn-icon {
         display: inline-block;
         vertical-align: middle;
-        width: 1.375rem;
-        height: 1.375rem;
+        width: auto;
+        max-width: 2rem;
+        height: 1.25rem;
         margin-left: 0.35rem;
+        flex-shrink: 0;
         object-fit: contain;
+        object-position: left center;
       }
 
       &.ghost:hover {

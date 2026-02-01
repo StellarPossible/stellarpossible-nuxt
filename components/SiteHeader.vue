@@ -128,7 +128,6 @@
               <Icon v-if="theme === 'dark'" icon="mdi:weather-sunny" />
               <Icon v-else icon="mdi:weather-night" />
             </button>
-            <p class="drawer-preferences-hint" aria-live="polite">Theme & menu side saved to this device.</p>
           </div>
         </nav>
       </Teleport>
@@ -363,7 +362,7 @@ async function logout() {
   pointer-events: none;
 }
 
-/* Dropdown under header: max 85vw width, centered, unobtrusive, pro-level */
+/* Dropdown: semi-transparent glass panel, pro-level */
 .site-header-drawer {
   --header-height: var(--site-header-height, 4rem);
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -380,9 +379,11 @@ async function logout() {
   flex-wrap: nowrap;
   height: fit-content;
   max-height: calc(100vh - var(--header-height));
-  padding: 0 1rem 0.75rem;
-  padding-top: 0.375rem;
-  background: $primary;
+  padding: 0 1.125rem 0.875rem;
+  padding-top: 0.5rem;
+  background: rgba(18, 49, 70, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   font-family: 'Chocolates', serif;
   overflow-y: auto;
   visibility: hidden;
@@ -390,8 +391,12 @@ async function logout() {
     transform 0.32s var(--ease-out-snappy),
     visibility 0s linear 0.32s;
   z-index: 10001;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  border-radius: 0 0 14px 14px;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.2),
+    0 12px 24px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0 0 16px 16px;
   transform: translate(-50%, 0) scaleY(0);
   transform-origin: top center;
   opacity: 1;
@@ -418,9 +423,9 @@ async function logout() {
   gap: 0.5rem;
   width: 100%;
   flex-shrink: 0;
-  padding: 0.375rem 0;
-  margin-bottom: 0.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 0;
+  margin-bottom: 0.375rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   opacity: 0;
   transform: translateY(-6px);
   transition: opacity 0.22s var(--ease-out), transform 0.22s var(--ease-out);
@@ -483,21 +488,35 @@ async function logout() {
   border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 .site-header-drawer.drawer-theme-light {
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.1),
+    0 12px 24px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 .site-header-drawer.drawer-theme-light .drawer-link,
 .site-header-drawer.drawer-theme-light .drawer-btn {
   color: #1a1a2e;
 }
-.site-header-drawer.drawer-theme-light .drawer-link.active,
+.site-header-drawer.drawer-theme-light .drawer-link.active {
+  color: $primary;
+  background: rgba(18, 49, 70, 0.08);
+  border-color: rgba(18, 49, 70, 0.1);
+}
 .site-header-drawer.drawer-theme-light .drawer-link:hover,
 .site-header-drawer.drawer-theme-light .drawer-btn:hover {
   color: $primary;
+  background: rgba(18, 49, 70, 0.06);
+  border-color: rgba(18, 49, 70, 0.08);
 }
-/* Drawer header toggle: hamburger that morphs to X (same control as main header) */
+.site-header-drawer.drawer-theme-light .drawer-link.active:hover {
+  background: rgba(18, 49, 70, 0.12);
+  border-color: rgba(18, 49, 70, 0.14);
+}
+/* Drawer header toggle: hamburger → X, glass-style */
 .site-header-drawer .drawer-toggle {
   display: flex;
   flex-direction: column;
@@ -509,12 +528,12 @@ async function logout() {
   min-width: 2.5rem;
   min-height: 2.5rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.08);
-  border: none;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .site-header-drawer .drawer-toggle span {
   position: absolute;
@@ -541,20 +560,23 @@ async function logout() {
   transform: rotate(-45deg);
 }
 .site-header-drawer .drawer-toggle:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 .site-header-drawer .drawer-toggle:focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid rgba(255, 255, 255, 0.6);
   outline-offset: 2px;
 }
 .site-header-drawer.drawer-theme-light .drawer-toggle {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 .site-header-drawer.drawer-theme-light .drawer-toggle span {
   background: #1a1a2e;
 }
 .site-header-drawer.drawer-theme-light .drawer-toggle:hover {
-  background: rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 .site-header-drawer.drawer-theme-light .drawer-toggle:focus-visible {
   outline-color: #1a1a2e;
@@ -564,8 +586,8 @@ async function logout() {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.125rem 0.75rem;
-  padding: 0.25rem 0;
+  gap: 0.25rem 0.75rem;
+  padding: 0.375rem 0;
   flex-shrink: 0;
 }
 .site-header-drawer.drawer-right .drawer-nav-links {
@@ -580,39 +602,44 @@ async function logout() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.625rem;
+  gap: 0.4375rem;
+  padding: 0.5625rem 0.75rem;
   min-height: 2.5rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   font-family: 'Chocolates', serif;
-  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.94);
   text-decoration: none;
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
-  transition: color 0.2s, background 0.2s;
-  border-radius: 8px;
   box-sizing: border-box;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 .site-header-drawer .drawer-link:hover,
 .site-header-drawer .drawer-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 .site-header-drawer .drawer-link svg,
 .site-header-drawer .drawer-btn svg {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   flex-shrink: 0;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 .site-header-drawer .drawer-link.active {
   color: $primary-light;
   font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.04);
 }
 .site-header-drawer .drawer-link.active:hover,
 .site-header-drawer .drawer-btn:hover {
   color: $primary-light;
+  background: rgba(255, 255, 255, 0.1);
 }
 .site-header-drawer.drawer-right .drawer-btn {
   margin-left: auto;
@@ -621,15 +648,15 @@ async function logout() {
   margin-right: auto;
 }
 
-/* Footer: theme + hint, compact */
+/* Footer: theme + hint, glass-style */
 .drawer-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding-top: 0.375rem;
-  margin-top: 0.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.5rem;
+  margin-top: 0.375rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 .site-header-drawer.drawer-right .drawer-footer {
@@ -651,37 +678,31 @@ async function logout() {
   min-height: 2rem;
   padding: 0;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
-  border: none;
-  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .drawer-footer-btn svg {
   font-size: 1rem;
 }
-.drawer-preferences-hint {
-  margin: 0;
-  font-size: 0.625rem;
-  line-height: 1.25;
-  color: rgba(255, 255, 255, 0.5);
-}
-.site-header-drawer.drawer-theme-light .drawer-preferences-hint {
-  color: rgba(0, 0, 0, 0.45);
-}
 .drawer-footer-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 .drawer-footer-btn:focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid rgba(255, 255, 255, 0.5);
   outline-offset: 2px;
 }
 .site-header-drawer.drawer-theme-light .drawer-footer-btn {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.05);
   color: #1a1a2e;
+  border-color: rgba(0, 0, 0, 0.06);
 }
 .site-header-drawer.drawer-theme-light .drawer-footer-btn:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 .site-header-drawer.drawer-theme-light .drawer-footer-btn:focus-visible {
   outline-color: #1a1a2e;
@@ -693,42 +714,48 @@ async function logout() {
   justify-content: center;
 }
 .drawer-side-pills button {
-  width: 1.625rem;
-  height: 1.625rem;
-  min-width: 1.625rem;
-  min-height: 1.625rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
   padding: 0;
   font-size: 0.625rem;
   font-weight: 600;
   font-family: 'Chocolates', serif;
+  letter-spacing: 0.02em;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .drawer-side-pills button:hover {
   background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 .drawer-side-pills button.active {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 .drawer-side-pills button:focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid rgba(255, 255, 255, 0.5);
   outline-offset: 2px;
 }
 .site-header-drawer.drawer-theme-light .drawer-side-pills button {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.72);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 .site-header-drawer.drawer-theme-light .drawer-side-pills button:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 .site-header-drawer.drawer-theme-light .drawer-side-pills button.active {
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, 0.14);
+  border-color: rgba(0, 0, 0, 0.1);
   color: #1a1a2e;
 }
 .site-header-drawer.drawer-theme-light .drawer-side-pills button:focus-visible {
