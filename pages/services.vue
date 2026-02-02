@@ -161,16 +161,7 @@
           <ul class="plan-features">
             <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
           </ul>
-          <template v-if="plan.id === 'addon'">
-            <button
-              type="button"
-              class="cta-button cta-primary"
-              @click="openContact"
-            >
-              Get a quote
-            </button>
-          </template>
-          <template v-else>
+          <template v-if="plan.id !== 'addon'">
             <NuxtLink
               v-if="!user"
               to="/login?tab=register"
@@ -189,6 +180,40 @@
               {{ loadingPlan === plan.id ? 'Redirecting…' : 'Get started' }}
             </button>
           </template>
+        </article>
+      </div>
+
+      <!-- Website builds: fixed-price offerings -->
+      <h3 class="builds-heading">Website builds</h3>
+      <div class="builds-grid">
+        <article class="plan-card build-card">
+          <h3 class="plan-name">Single-page site</h3>
+          <div class="plan-price">
+            <span class="amount">$550</span>
+            <span class="period"></span>
+          </div>
+          <p class="build-description">Simple, one-page site build. Ideal for portfolios, landing pages, or a focused business presence.</p>
+        </article>
+        <article class="plan-card build-card">
+          <h3 class="plan-name">Additional pages</h3>
+          <div class="plan-price">
+            <span class="amount">$400</span>
+            <span class="period">/page</span>
+          </div>
+          <p class="build-description">Add more pages to your site. Priced per page for clarity and scalability.</p>
+        </article>
+        <article class="plan-card build-card build-card-cta">
+          <h3 class="plan-name">Nuxt.js + WordPress</h3>
+          <div class="plan-price">
+            <span class="amount">$3,500</span>
+            <span class="period">+</span>
+          </div>
+          <p class="build-description">
+            Full-featured Nuxt.js front end with a WordPress backend. A significant upgrade for small businesses: fast, secure, SEO-friendly sites with a familiar content editor, headless architecture for reliability, and modern tooling that scales as you grow.
+          </p>
+          <button type="button" class="cta-button cta-primary" @click="openContact">
+            Get In Touch
+          </button>
         </article>
       </div>
         </div>
@@ -364,11 +389,19 @@ useHead({
   background: rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(3px);
   text-align: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .hero {
   max-width: 42rem;
+  width: 100%;
+  min-width: 0;
   margin-bottom: 2.5rem;
+  box-sizing: border-box;
 
   h1 {
     font-size: clamp(2rem, 5vw, 2.75rem);
@@ -415,8 +448,10 @@ useHead({
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: min(7.5rem, 100%); /* prevent shrink/overlap; wrap instead */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-trigger:hover {
@@ -441,6 +476,91 @@ useHead({
   opacity: 0.9;
 }
 
+/* Stack tabs vertically on tablet and mobile to prevent overlap */
+@media (max-width: 880px) {
+  .services-tabs {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.375rem;
+    padding: 0.375rem;
+    margin-bottom: 1.25rem;
+    max-width: 100%;
+  }
+
+  .tab-trigger {
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    flex: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .tab-trigger span {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .services-page {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .hero {
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .hero .hero-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .included-block {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .included-list {
+    font-size: 0.875rem;
+  }
+
+  .services-section {
+    margin-bottom: 2rem;
+    padding: 0 0.25rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .plan-card,
+  .service-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .cross-cta-section {
+    margin-top: 2rem;
+    padding: 2rem 1rem;
+  }
+
+  .cross-cta-title {
+    font-size: 1.25rem;
+  }
+}
+
 .tab-panels {
   width: 100%;
   max-width: 900px;
@@ -453,6 +573,7 @@ useHead({
 .included-block {
   max-width: 38rem;
   width: 100%;
+  min-width: 0;
   margin-bottom: 2.5rem;
   padding: 1.5rem 1.75rem;
   background: rgba(18, 49, 70, 0.6);
@@ -460,6 +581,9 @@ useHead({
   border-radius: 14px;
   text-align: left;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .included-title {
@@ -477,6 +601,9 @@ useHead({
   font-size: 0.9375rem;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.88);
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 
   li {
     padding: 0.25rem 0;
@@ -504,6 +631,8 @@ useHead({
   border-radius: 16px;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .slack-hero-inner {
@@ -511,6 +640,7 @@ useHead({
   flex-wrap: wrap;
   align-items: center;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .slack-hero-content {
@@ -558,9 +688,11 @@ useHead({
 }
 
 .slack-hero-visual {
-  flex-shrink: 0;
+  flex: 0 1 auto;
   width: 100%;
   max-width: 220px;
+  max-height: 200px;
+  min-width: 0;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -571,8 +703,10 @@ useHead({
   display: block;
   width: 100%;
   height: auto;
+  max-height: 200px;
   object-fit: cover;
   object-position: top left;
+  vertical-align: middle;
 }
 
 @media (max-width: 520px) {
@@ -582,6 +716,10 @@ useHead({
   }
   .slack-hero-visual {
     max-width: 100%;
+    max-height: 220px;
+  }
+  .slack-hero-img {
+    max-height: 220px;
   }
 }
 
@@ -700,6 +838,43 @@ useHead({
   .plans-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.builds-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 2.5rem 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.builds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 900px;
+  margin-top: 0.5rem;
+}
+
+.build-card {
+  .plan-price .period {
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.build-description {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 1.25rem;
+  text-align: center;
+  flex: 1;
+}
+
+.build-card-cta .build-description {
+  margin-bottom: 1rem;
 }
 
 .plan-card {
