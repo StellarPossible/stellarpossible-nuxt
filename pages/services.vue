@@ -3,21 +3,8 @@
     <div class="hero">
       <h1>Design & hosting that gets you there</h1>
       <p class="hero-subtitle">
-        Custom logos and book covers—plus managed hosting. Every service includes unlimited revisions, a consult with Marine, and direct Slack access.
+        Custom logos and book covers—plus managed hosting. Revisions for design; consult and Slack for web and software clients.
       </p>
-    </div>
-
-    <!-- What's included: trust block above the fold -->
-    <div class="included-block">
-      <h2 class="included-title">Every service includes</h2>
-      <ul class="included-list">
-        <li>Unlimited revisions</li>
-        <li>30-minute get-to-know-you consult with Marine—in person or via Google Meet</li>
-        <li>Rapid response and communication via StellarPossible Slack</li>
-        <li>Optimized files + custom color palette with hex keys</li>
-        <li>Multiple versions + file types</li>
-        <li>Original PSD file (all commissioned designs)</li>
-      </ul>
     </div>
 
     <!-- Tabs: zero scroll, one panel at a time -->
@@ -73,6 +60,15 @@
         <div class="services-section">
           <h2 class="section-title">Design</h2>
       <p class="section-subtitle">One fixed price. No surprises. Final files ready for print and web.</p>
+      <div class="design-deliverables">
+        <h3 class="design-deliverables-title">Included with design</h3>
+        <ul class="design-deliverables-list">
+          <li>Unlimited revisions</li>
+          <li>Optimized files + custom color palette with hex keys</li>
+          <li>Multiple versions + file types</li>
+          <li>Original PSD file (all commissioned designs)</li>
+        </ul>
+      </div>
       <div class="services-grid design-grid">
         <article
           v-for="service in designServices"
@@ -122,6 +118,13 @@
       <p class="section-subtitle">
         Custom software, scripts, tools, and integrations. From one-off automations to full applications—built to your specs.
       </p>
+      <div class="included-block included-web-software">
+        <h3 class="included-block-title">Included for web & software clients</h3>
+        <ul class="included-list">
+          <li>30-minute get-to-know-you consult with Marine—in person or via Google Meet</li>
+          <li>Rapid response and communication via StellarPossible Slack</li>
+        </ul>
+      </div>
       <div class="software-cta-block">
         <p class="software-intro">
           Need a script, internal tool, API, or something else? We scope the project, agree on a fixed price, and deliver with the same “every service includes” benefits.
@@ -144,6 +147,13 @@
       <p class="section-subtitle">
         Reliable hosting for your site. Choose monthly or save with annual billing.
       </p>
+      <div class="included-block included-web-software">
+        <h3 class="included-block-title">Included for web & software clients</h3>
+        <ul class="included-list">
+          <li>30-minute get-to-know-you consult with Marine—in person or via Google Meet</li>
+          <li>Rapid response and communication via StellarPossible Slack</li>
+        </ul>
+      </div>
       <div class="plans-grid">
         <article
           v-for="plan in plans"
@@ -594,6 +604,20 @@ useHead({
   color: rgba(255, 255, 255, 0.95);
 }
 
+.included-block-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.included-web-software {
+  margin-bottom: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .included-list {
   list-style: none;
   padding: 0;
@@ -767,6 +791,47 @@ useHead({
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+.design-deliverables {
+  max-width: 28rem;
+  margin: 0 auto 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(18, 49, 70, 0.4);
+  border: 1px solid rgba(84, 117, 128, 0.25);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.design-deliverables-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.design-deliverables-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.88);
+
+  li {
+    padding: 0.2rem 0;
+    padding-left: 1.25rem;
+    position: relative;
+
+    &::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: rgba(132, 165, 175, 0.95);
+      font-weight: 600;
+    }
+  }
 }
 
 .design-grid {
