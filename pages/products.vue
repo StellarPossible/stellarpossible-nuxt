@@ -652,9 +652,9 @@ useHead({
 }
 
 .client-logo-above {
-  max-height: 80px;
   width: auto;
   object-fit: contain;
+  width: 8rem;
 }
 
 .client-logo {
@@ -816,10 +816,6 @@ useHead({
     margin-bottom: 0;
   }
 
-  .client-logo-above {
-    max-height: 50px;
-  }
-
   .client-info {
     text-align: left;
     flex: 1;
@@ -863,10 +859,6 @@ useHead({
   .client-logo-wrap {
     width: 100%;
     min-height: 140px;
-  }
-
-  .client-logo-above {
-    max-height: 70px;
   }
 
   .client-info {

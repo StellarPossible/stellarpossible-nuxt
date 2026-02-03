@@ -1,51 +1,54 @@
 <template>
   <header ref="headerEl" :class="['site-header', { scrolled, 'menu-on-left': menuSide === 'left', 'theme-light': theme === 'light', 'menu-open': isMenuOpen }]">
     <div class="container" :class="{ 'home-layout': isHomePage }">
-      <div class="header-left">
-        <button
-          v-if="menuSide === 'right'"
-          class="menu-toggle"
-          :class="{ open: isMenuOpen }"
-          :aria-expanded="isMenuOpen"
-          aria-label="Toggle navigation menu"
-          @click="isMenuOpen = !isMenuOpen"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <template v-else>
-          <!-- Spacer when menu is on right side -->
-        </template>
-      </div>
+      <div class="header-top">
+        <div class="header-left">
+          <button
+            v-if="menuSide === 'right'"
+            class="menu-toggle"
+            :class="{ open: isMenuOpen }"
+            :aria-expanded="isMenuOpen"
+            aria-label="Toggle navigation menu"
+            @click="isMenuOpen = !isMenuOpen"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <template v-else>
+            <!-- Spacer when menu is on right side -->
+          </template>
+        </div>
 
-      <NuxtLink
-        to="/"
-        class="logo"
-        :class="{ 'logo-hidden': isHomePage }"
-        @click="closeMenu"
-      >
-        <div v-if="isHomePage" class="logo-backdrop"></div>
-        <img
-          src="~/public/images/primary/spicon.png"
-          alt="Stellar Possible logo"
-        />
-      </NuxtLink>
-
-      <div class="header-right" aria-hidden="true">
-        <button
-          v-if="menuSide === 'left'"
-          class="menu-toggle"
-          :class="{ open: isMenuOpen }"
-          :aria-expanded="isMenuOpen"
-          aria-label="Toggle navigation menu"
-          @click="isMenuOpen = !isMenuOpen"
+        <NuxtLink
+          to="/"
+          class="logo"
+          :class="{ 'logo-hidden': isHomePage }"
+          @click="closeMenu"
         >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+          <div v-if="isHomePage" class="logo-backdrop"></div>
+          <img
+            src="~/public/images/primary/spicon.png"
+            alt="Stellar Possible logo"
+          />
+        </NuxtLink>
+
+        <div class="header-right" aria-hidden="true">
+          <button
+            v-if="menuSide === 'left'"
+            class="menu-toggle"
+            :class="{ open: isMenuOpen }"
+            :aria-expanded="isMenuOpen"
+            aria-label="Toggle navigation menu"
+            @click="isMenuOpen = !isMenuOpen"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
       </div>
+      <CrossNav v-if="showCrossNav" variant="header" class="header-cross-nav" :show-contact="false" />
     </div>
 
     <!-- Backdrop and drawer teleported to body so they are never clipped -->
@@ -160,6 +163,11 @@ function syncHeaderHeight() {
 
 const isHomePage = computed(() => route.path === '/')
 
+const showCrossNav = computed(() => {
+  const path = route.path
+  return path !== '/' && !path.startsWith('/dashboard')
+})
+
 function handleEscape(e: KeyboardEvent) {
   if (e.key === 'Escape') closeMenu()
 }
@@ -237,14 +245,26 @@ async function logout() {
     position: relative;
     z-index: 2100;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    gap: 2rem;
     margin: auto;
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 1.5rem 0.25rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+  }
+
+  .header-cross-nav {
+    width: 100%;
+    justify-content: center;
   }
 
   .header-left {

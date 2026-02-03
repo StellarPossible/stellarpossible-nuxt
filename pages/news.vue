@@ -8,19 +8,30 @@
         News, updates, and highlights from StellarPossible.
       </p>
     </div>
+
     <div class="news-content">
-      <p class="placeholder">
-        Latest updates and news will appear here.
+      <p v-if="pending" class="news-status">Loading posts…</p>
+      <p v-else-if="error" class="news-status news-error">
+        Unable to load posts. Please try again later.
       </p>
+      <template v-else-if="posts.length">
+        <div class="posts-grid">
+          <BlogCard
+            v-for="post in posts"
+            :key="post.id"
+            :title="post.title"
+            :slug="post.slug"
+            :excerpt="post.excerpt ?? ''"
+            :image="post.image"
+          />
+        </div>
+      </template>
+      <p v-else class="news-status">No posts yet. Check back soon.</p>
     </div>
 
-    <nav class="news-cross-nav" aria-label="Site navigation">
-      <NuxtLink to="/services" class="news-cross-link">Services</NuxtLink>
-      <span class="news-cross-sep" aria-hidden="true">·</span>
-      <NuxtLink to="/products" class="news-cross-link">Our Work</NuxtLink>
-      <span class="news-cross-sep" aria-hidden="true">·</span>
-      <button type="button" class="news-cross-link news-cross-contact" @click="openContact">Contact</button>
-    </nav>
+    <div class="news-cross-nav-wrap">
+      <CrossNav variant="inline" />
+    </div>
   </section>
 </template>
 
@@ -29,7 +40,29 @@ definePageMeta({
   middleware: 'auth'
 })
 
-const { open: openContact } = useContactModal()
+interface WpPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string
+  featuredImage?: { node?: { sourceUrl: string; altText?: string } }
+}
+
+const { data, pending, error } = await useFetch<{ posts: WpPost[] }>('/api/posts', {
+  query: { perPage: 24 },
+  default: () => ({ posts: [] })
+})
+
+const posts = computed(() => {
+  const nodes = data.value?.posts ?? []
+  return nodes.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    excerpt: p.excerpt ?? '',
+    image: p.featuredImage?.node?.sourceUrl
+  }))
+})
 </script>
 
 <style scoped lang="scss">
@@ -72,43 +105,28 @@ const { open: openContact } = useContactModal()
 }
 
 .news-content {
-  .placeholder {
-    color: rgba(255, 255, 255, 0.8);
-    text-align: center;
-    font-size: 1rem;
-  }
+  min-height: 12rem;
 }
 
-.news-cross-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
+.news-status {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.news-status.news-error {
+  color: rgba(255, 200, 150, 0.95);
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.news-cross-nav-wrap {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.news-cross-link {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
-}
-
-.news-cross-link:hover {
-  color: $white;
-}
-
-.news-cross-sep {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.875rem;
-  user-select: none;
 }
 </style>
