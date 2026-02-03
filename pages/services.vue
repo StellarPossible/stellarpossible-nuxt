@@ -317,8 +317,7 @@ const plans = [
     features: [
       'Managed hosting',
       'Billed every month',
-      'Cancel anytime',
-      'All “Every service includes” benefits'
+      'Cancel anytime'
     ],
     cta: 'Signup'
   },
@@ -333,8 +332,7 @@ const plans = [
     features: [
       'Everything in Monthly',
       'Billed once per year',
-      'Cancel anytime',
-      'All “Every service includes” benefits'
+      'Cancel anytime'
     ],
     cta: 'Signup'
   },
