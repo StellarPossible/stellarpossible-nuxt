@@ -143,6 +143,15 @@
       </article>
       </section>
 
+      <!-- Book Covers Gallery -->
+      <section class="book-covers-section" aria-label="Book cover design work">
+        <header class="book-covers-header">
+          <h2 class="book-covers-title">Book Covers</h2>
+          <p class="book-covers-subtitle">Custom cover design for print and digital—KDP and Amazon optimized</p>
+        </header>
+        <BookCoverGallery :items="bookCovers" />
+      </section>
+
       <!-- CTA Section -->
       <section class="cta-section">
         <div class="cta-content">
@@ -172,6 +181,15 @@ interface Client {
   logoAbove?: string
   darkTheme?: boolean
 }
+
+const bookCovers = [
+  {
+    src: '/images/media/ScentOfLiesAmazonCover.png',
+    alt: 'Scent of Lies — book cover, Amazon/KDP',
+    title: 'Scent of Lies'
+  }
+  // Add more covers: { src: '/images/media/YourCover.png', alt: '...', title: 'Book Title' }
+]
 
 const clients: Client[] = [
   {
@@ -297,6 +315,29 @@ useHead({
 }
 
 .featured-section-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+}
+
+.book-covers-section {
+  margin-bottom: 5rem;
+}
+
+.book-covers-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.book-covers-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.book-covers-subtitle {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.65);
   margin: 0;
