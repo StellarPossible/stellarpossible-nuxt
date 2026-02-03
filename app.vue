@@ -22,6 +22,11 @@
   <!-- Contact modal -->
   <ContactModal />
 
+  <!-- Cross-nav bar floating above footer -->
+  <div v-if="showFloatingCrossNav" class="cross-nav-float">
+    <CrossNav variant="float" />
+  </div>
+
   <SiteFooter :scrolled="scrolledPastThreshold" />
 </template>
 
@@ -36,6 +41,11 @@ import FloatingHelp from '@/components/FloatingHelp.vue'
 const route = useRoute()
 const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
+
+const showFloatingCrossNav = computed(() => {
+  const path = route.path
+  return path !== '/' && !path.startsWith('/dashboard')
+})
 
 const scrolledPastThreshold = ref(false)
 
@@ -120,6 +130,20 @@ watch(isHomePage, (isHome) => {
 
 .homepage-overlay {
   display: none; // Not needed now, fade handled via ::after
+}
+
+/* Cross-nav bar: fixed above footer, very thin, full viewport width */
+.cross-nav-float {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  bottom: var(--site-footer-height, 4rem);
+  z-index: 2999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .main-content {
