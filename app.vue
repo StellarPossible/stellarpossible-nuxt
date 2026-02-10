@@ -4,7 +4,7 @@
     <div v-if="isHomePage" class="homepage-overlay"></div>
 
     <!-- Header with scroll prop -->
-    <SiteHeader :scrolled="!scrolledPastThreshold" />
+    <SiteHeader :scrolled="!scrolledPastThreshold" :compact="headerCompact" />
 
     <main class="main-content">
       <div class="page-content">
@@ -22,11 +22,6 @@
   <!-- Contact modal -->
   <ContactModal />
 
-  <!-- Cross-nav bar floating above footer -->
-  <div v-if="showFloatingCrossNav" class="cross-nav-float">
-    <CrossNav variant="float" />
-  </div>
-
   <SiteFooter :scrolled="scrolledPastThreshold" />
 </template>
 
@@ -42,16 +37,22 @@ const route = useRoute()
 const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
 
-const showFloatingCrossNav = computed(() => {
-  const path = route.path
-  return path !== '/' && !path.startsWith('/dashboard')
-})
-
 const scrolledPastThreshold = ref(false)
+const headerCompact = ref(false)
+let lastScrollY = 0
 
 function handleScroll() {
   const y = window.scrollY
   scrolledPastThreshold.value = y > 50
+  // Recede to toolbar when scrolling down; expand when scrolling up or near top
+  if (y <= 50) {
+    headerCompact.value = false
+  } else if (y > lastScrollY) {
+    headerCompact.value = true
+  } else {
+    headerCompact.value = false
+  }
+  lastScrollY = y
 }
 
 onMounted(() => {
@@ -59,6 +60,8 @@ onMounted(() => {
   document.body.style.overflow = isHomePage.value ? 'hidden' : 'auto'
 
   if (!isHomePage.value) {
+    lastScrollY = window.scrollY
+    handleScroll()
     window.addEventListener('scroll', handleScroll)
   }
 })
@@ -130,20 +133,6 @@ watch(isHomePage, (isHome) => {
 
 .homepage-overlay {
   display: none; // Not needed now, fade handled via ::after
-}
-
-/* Cross-nav bar: fixed above footer, very thin, full viewport width */
-.cross-nav-float {
-  position: fixed;
-  left: 0;
-  right: 0;
-  width: 100vw;
-  bottom: var(--site-footer-height, 4rem);
-  z-index: 2999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
 }
 
 .main-content {

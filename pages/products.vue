@@ -18,38 +18,83 @@
         </div>
         
         <div class="portfolio-grid">
-          <a
-            v-for="client in clients"
-            :key="client.id"
-            :href="client.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="client-card"
-            :class="{ 'client-card-dark': client.darkTheme }"
-          >
-            <div class="client-logo-wrap">
-              <img
-                v-if="client.logoAbove"
-                :src="client.logoAbove"
-                :alt="''"
-                class="client-logo-above"
-                aria-hidden="true"
-              />
-              <img :src="client.logo" :alt="client.title" class="client-logo" />
+          <template v-for="client in clients" :key="client.id">
+            <!-- Video card: overlay by default; hover/click expands, hides overlay, plays video -->
+            <div
+              v-if="client.highlightVideo"
+              class="client-card client-card-dark client-card-video"
+              :class="{ 'client-card-video-active': activeVideoId === client.id }"
+              @mouseenter="setVideoCardActive(client.id)"
+              @mouseleave="setVideoCardInactive(client.id)"
+              @click="toggleVideoCardActive(client.id)"
+            >
+              <div class="client-video-frame" aria-hidden="true">
+                <video
+                  :ref="(el) => setVideoRef(client.id, el)"
+                  class="client-highlight-video"
+                  :src="client.highlightVideo"
+                  muted
+                  loop
+                  playsinline
+                />
+              </div>
+              <div
+                class="client-card-overlay"
+                :class="{ 'client-card-overlay-hidden': activeVideoId === client.id }"
+              >
+                <div class="client-info">
+                  <h3 class="client-name">{{ client.title }}</h3>
+                  <p class="client-type">{{ client.type }}</p>
+                  <p class="client-description">{{ client.description }}</p>
+                </div>
+                <a
+                  :href="client.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="client-cta client-cta-link"
+                  @click.stop
+                >
+                  View Site
+                  <ClientOnly>
+                    <Icon icon="mdi:open-in-new" />
+                    <template #fallback><span>↗</span></template>
+                  </ClientOnly>
+                </a>
+              </div>
             </div>
-            <div class="client-info">
-              <h3 class="client-name">{{ client.title }}</h3>
-              <p class="client-type">{{ client.type }}</p>
-              <p class="client-description">{{ client.description }}</p>
-            </div>
-            <span class="client-cta">
-              View Site
-              <ClientOnly>
-                <Icon icon="mdi:open-in-new" />
-                <template #fallback><span>↗</span></template>
-              </ClientOnly>
-            </span>
-          </a>
+            <!-- Non-video card: standard link -->
+            <a
+              v-else
+              :href="client.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="client-card"
+              :class="{ 'client-card-dark': client.darkTheme }"
+            >
+              <div class="client-logo-wrap">
+                <img
+                  v-if="client.logoAbove"
+                  :src="client.logoAbove"
+                  :alt="''"
+                  class="client-logo-above"
+                  aria-hidden="true"
+                />
+                <img :src="client.logo" :alt="client.title" class="client-logo" />
+              </div>
+              <div class="client-info">
+                <h3 class="client-name">{{ client.title }}</h3>
+                <p class="client-type">{{ client.type }}</p>
+                <p class="client-description">{{ client.description }}</p>
+              </div>
+              <span class="client-cta">
+                View Site
+                <ClientOnly>
+                  <Icon icon="mdi:open-in-new" />
+                  <template #fallback><span>↗</span></template>
+                </ClientOnly>
+              </span>
+            </a>
+          </template>
         </div>
       </section>
 
@@ -143,13 +188,40 @@
       </article>
       </section>
 
-      <!-- Book Covers Gallery -->
-      <section class="book-covers-section" aria-label="Book cover design work">
-        <header class="book-covers-header">
-          <h2 class="book-covers-title">Book Covers</h2>
-          <p class="book-covers-subtitle">Custom cover design for print and digital—KDP and Amazon optimized</p>
-        </header>
-        <BookCoverGallery :items="bookCovers" />
+      <!-- Tools we use — premium stellar card -->
+      <section class="tools-card-section" aria-label="Tools we use">
+        <article class="tools-card tools-card-stellar">
+          <div class="tools-card-glow" aria-hidden="true" />
+          <header class="tools-card-header">
+            <span class="tools-card-label">Stack</span>
+            <h2 class="tools-card-title">Tools we use</h2>
+            <p class="tools-card-subtitle">Modern, reliable stack for design, development, and hosting</p>
+          </header>
+          <ul class="tools-list" aria-label="Tools and what we use them for">
+            <li v-for="tool in toolsWeUse" :key="tool.name" class="tools-list-item">
+              <a
+                :href="tool.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="tools-list-link"
+                :aria-label="`${tool.name} — ${tool.description} (opens in new tab)`"
+              >
+                <span class="tools-list-icon-wrap" aria-hidden>
+                  <span class="tools-list-icon">
+                    <svg v-if="tool.name === 'Nuxt.js'" class="nuxt-logo" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12.894 17.94L9.26 11.652 6.108 17.94H0l9.26-16 2.634 4.52L21 17.94h-8.106z" fill="currentColor"/>
+                    </svg>
+                    <Icon v-else :icon="tool.icon" aria-hidden />
+                  </span>
+                </span>
+                <span class="tools-list-text">
+                  <strong class="tools-list-name">{{ tool.name }}</strong>
+                  <span class="tools-list-desc">{{ tool.description }}</span>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </article>
       </section>
 
       <!-- CTA Section -->
@@ -179,16 +251,55 @@ interface Client {
   url: string
   logo: string
   logoAbove?: string
+  highlightVideo?: string
   darkTheme?: boolean
 }
 
-const bookCovers = [
-  {
-    src: '/images/media/ScentOfLiesAmazonCover.png',
-    alt: 'Scent of Lies — book cover, Amazon/KDP',
-    title: 'Scent of Lies'
+// Video card: play only on hover/click; overlay visible by default
+const activeVideoId = ref<string | null>(null)
+const videoRefs: Record<string, HTMLVideoElement | null> = {}
+
+function setVideoRef(id: string, el: unknown) {
+  if (el && el instanceof HTMLVideoElement) {
+    videoRefs[id] = el
   }
-  // Add more covers: { src: '/images/media/YourCover.png', alt: '...', title: 'Book Title' }
+}
+
+function setVideoCardActive(id: string) {
+  activeVideoId.value = id
+  const video = videoRefs[id]
+  if (video) {
+    video.play().catch(() => {})
+  }
+}
+
+function setVideoCardInactive(id: string) {
+  if (activeVideoId.value === id) {
+    activeVideoId.value = null
+    const video = videoRefs[id]
+    if (video) {
+      video.pause()
+    }
+  }
+}
+
+function toggleVideoCardActive(id: string) {
+  if (activeVideoId.value === id) {
+    setVideoCardInactive(id)
+  } else {
+    setVideoCardActive(id)
+  }
+}
+
+const toolsWeUse = [
+  { name: 'Nuxt.js', description: 'Vue-based framework for fast, modern web apps.', icon: 'simple-icons:nuxtdotjs', url: 'https://nuxt.com' },
+  { name: 'Visual Studio Code', description: 'Code editor we use for development.', icon: 'simple-icons:visualstudiocode', url: 'https://code.visualstudio.com' },
+  { name: 'GitHub', description: 'Version control and collaboration.', icon: 'simple-icons:github', url: 'https://github.com' },
+  { name: 'Slack', description: 'Client communication and file sharing.', icon: 'simple-icons:slack', url: 'https://slack.com' },
+  { name: 'WordPress', description: 'Content management and headless CMS.', icon: 'simple-icons:wordpress', url: 'https://wordpress.org' },
+  { name: 'Hostinger', description: 'Reliable hosting for client sites.', icon: 'simple-icons:hostinger', url: 'https://www.hostinger.com' },
+  { name: 'Unsplash', description: 'High-quality stock imagery.', icon: 'simple-icons:unsplash', url: 'https://unsplash.com' },
+  { name: 'Adobe Photoshop', description: 'Logo and visual design work.', icon: 'simple-icons:adobephotoshop', url: 'https://www.adobe.com/products/photoshop.html' },
 ]
 
 const clients: Client[] = [
@@ -198,6 +309,7 @@ const clients: Client[] = [
     type: 'Indie Rock · Annapolis, MD, USA',
     description: 'Website design, development, and hosting for the Annapolis-based indie-rock band.',
     url: 'https://kavoossi.com',
+    highlightVideo: '/videos/kavoossiPreview.mov',
     logoAbove: '/images/primary/BLUE GUY transparent.png',
     logo: '/images/primary/kavoossi logo.avif',
     darkTheme: true
@@ -320,27 +432,210 @@ useHead({
   margin: 0;
 }
 
-.book-covers-section {
-  margin-bottom: 5rem;
+// Tools we use — compact stellar card
+.tools-card-section {
+  margin-bottom: 3rem;
 }
 
-.book-covers-header {
-  text-align: center;
-  margin-bottom: 2rem;
+.tools-card-stellar {
+  position: relative;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(
+    165deg,
+    rgba(18, 49, 70, 0.88) 0%,
+    rgba(18, 49, 70, 0.78) 50%,
+    rgba(45, 69, 88, 0.75) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid rgba(84, 117, 128, 0.35);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  text-align: left;
+  overflow: hidden;
 }
 
-.book-covers-title {
-  font-size: 1.5rem;
+.tools-card-glow {
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 60%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(84, 117, 128, 0.2) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.tools-card-header {
+  position: relative;
+  margin-bottom: 0.6rem;
+}
+
+.tools-card-label {
+  display: inline-block;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.1rem;
+}
+
+.tools-card-title {
+  font-size: 0.9rem;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 0.5rem;
-  letter-spacing: -0.02em;
+  margin: 0 0 0.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.book-covers-subtitle {
-  font-size: 1rem;
+.tools-card-subtitle {
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.65);
   margin: 0;
+  line-height: 1.3;
+}
+
+.tools-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.05rem 0.75rem;
+}
+
+.tools-list-item {
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.tools-list-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tools-list-item:hover .tools-list-link {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.tools-list-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+.tools-list-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.tools-list-item:hover .tools-list-icon-wrap {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tools-list-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.tools-list-icon :deep(svg),
+.tools-list-icon .nuxt-logo {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.tools-list-icon .nuxt-logo {
+  display: block;
+}
+
+.tools-list-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.tools-list-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: inherit;
+  line-height: 1.25;
+}
+
+.tools-list-desc {
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tools-list-item:hover .tools-list-desc {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 768px) {
+  .tools-card-stellar {
+    padding: 0.7rem 0.85rem;
+  }
+  .tools-card-header {
+    margin-bottom: 0.5rem;
+  }
+  .tools-card-title {
+    font-size: 0.8rem;
+  }
+  .tools-card-subtitle {
+    font-size: 0.65rem;
+  }
+  .tools-list {
+    grid-template-columns: 1fr;
+    gap: 0.05rem;
+  }
+  .tools-list-link {
+    gap: 0.45rem;
+    padding: 0.25rem 0.35rem;
+  }
+  .tools-list-icon-wrap {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+  .tools-list-icon,
+  .tools-list-icon :deep(svg),
+  .tools-list-icon .nuxt-logo {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+  .tools-list-name {
+    font-size: 0.75rem;
+  }
+  .tools-list-desc {
+    font-size: 0.625rem;
+  }
 }
 
 .featured {
@@ -562,32 +857,40 @@ useHead({
 .portfolio-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
+// Premium client cards
 .client-card {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 24px;
   text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 8px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.32s ease,
+    border-color 0.28s ease;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
   &:hover {
-    transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.92);
-    box-shadow: 
-      0 4px 8px rgba(0, 0, 0, 0.06),
-      0 16px 32px rgba(0, 0, 0, 0.1);
+    transform: translateY(-6px);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.08),
+      0 24px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.6);
 
     .client-cta {
-      color: #667eea;
-
+      color: #4f46e5;
+      background: rgba(79, 70, 229, 0.08);
+      border-color: rgba(79, 70, 229, 0.2);
       svg {
         transform: translate(2px, -2px);
       }
@@ -597,13 +900,13 @@ useHead({
   &.client-card-dark {
     background: linear-gradient(
       165deg,
-      rgba(18, 49, 70, 0.85) 0%,
-      rgba(18, 49, 70, 0.7) 100%
+      rgba(18, 49, 70, 0.92) 0%,
+      rgba(18, 49, 70, 0.82) 100%
     );
-    border: 1px solid rgba(84, 117, 128, 0.3);
-    box-shadow: 
-      0 4px 8px rgba(0, 0, 0, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(84, 117, 128, 0.35);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
     .client-logo-wrap {
       background: transparent;
@@ -614,28 +917,129 @@ useHead({
     }
 
     .client-type {
-      color: #84a5af;
+      color: rgba(148, 163, 184, 0.95);
     }
 
     .client-description {
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(226, 232, 240, 0.88);
     }
 
     .client-cta {
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(226, 232, 240, 0.9);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     &:hover {
-      border-color: rgba(84, 117, 128, 0.45);
-      box-shadow: 
-        0 8px 16px rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(84, 117, 128, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
+      border-color: rgba(84, 117, 128, 0.5);
+      box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.22),
+        0 0 0 1px rgba(84, 117, 128, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
       .client-cta {
-        color: #84a5af;
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.2);
       }
     }
+  }
+}
+
+// Video card: overlay by default; hover/click expands 30%, hides overlay, plays video
+.client-card-video {
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.35s ease,
+    z-index 0s;
+  z-index: 0;
+
+  &.client-card-video-active {
+    transform: scale(1.3);
+    z-index: 10;
+    box-shadow:
+      0 16px 48px rgba(0, 0, 0, 0.35),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  .client-video-frame {
+    position: absolute;
+    inset: 0;
+  }
+
+  .client-highlight-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .client-card-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.5rem 1.5rem 1.25rem;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.92) 0%,
+      rgba(0, 0, 0, 0.5) 45%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    pointer-events: auto;
+  }
+
+  .client-card-overlay-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .client-info {
+    margin-bottom: 0.75rem;
+  }
+
+  .client-name,
+  .client-type,
+  .client-description {
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .client-type {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .client-description {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  .client-cta,
+  .client-cta-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.98);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .client-cta-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -644,49 +1048,56 @@ useHead({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex: 1;
-  min-height: 180px;
+  min-height: 200px;
+  padding: 1.5rem 1rem;
   background: transparent;
-  border-radius: 12px;
+  overflow: hidden;
 }
 
 .client-logo-above {
   width: auto;
   object-fit: contain;
-  width: 8rem;
+  max-width: 8rem;
+  height: auto;
 }
 
 .client-logo {
-  max-width: 90%;
+  max-width: 85%;
   width: auto;
   object-fit: contain;
+  max-height: 4rem;
 }
 
 .client-info {
   text-align: center;
+  padding: 0 1.25rem;
+  flex: 0 0 auto;
 }
 
 .client-name {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 0.2rem;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin: 0 0 0.25rem;
+  line-height: 1.3;
 }
 
 .client-type {
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-size: 0.6875rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #667eea;
+  letter-spacing: 0.12em;
+  color: #64748b;
   margin: 0 0 0.5rem;
 }
 
 .client-description {
   font-size: 0.875rem;
-  line-height: 1.5;
-  color: #64748b;
+  line-height: 1.55;
+  color: #475569;
   margin: 0;
 }
 
@@ -694,12 +1105,17 @@ useHead({
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   margin-top: 1rem;
+  padding: 0.5rem 1rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #94a3b8;
-  transition: color 0.2s ease;
+  letter-spacing: 0.02em;
+  color: #475569;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  transition: color 0.22s ease, background 0.22s ease, border-color 0.22s ease;
 
   svg {
     font-size: 0.85rem;
@@ -807,6 +1223,11 @@ useHead({
     flex-direction: row;
     align-items: center;
     gap: 1.25rem;
+  }
+
+  .client-card-video {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .client-logo-wrap {

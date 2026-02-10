@@ -13,20 +13,6 @@
         Contact
       </button>
     </template>
-    <span class="cross-nav-sep" aria-hidden="true">·</span>
-    <a
-      href="https://instagram.com/stellarpossible"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Instagram"
-      class="cross-nav-link cross-nav-ig"
-    >
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-        <path class="ig-body" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle class="ig-lens" cx="12" cy="12" r="4" stroke-width="2"/>
-        <circle class="ig-dot" cx="16.5" cy="7.5" r="1.25" fill="currentColor"/>
-      </svg>
-    </a>
   </nav>
 </template>
 
@@ -77,31 +63,6 @@ const { open: openContact } = useContactModal()
   }
 }
 
-.cross-nav-ig {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem 0.5rem;
-
-  svg {
-    display: block;
-  }
-
-  .ig-body, .ig-lens {
-    stroke: currentColor;
-    fill: none;
-  }
-  .ig-dot {
-    fill: currentColor;
-    opacity: 0.9;
-  }
-  &:hover {
-    color: #e1306c;
-    .ig-body, .ig-lens { stroke: #e1306c; }
-    .ig-dot { fill: #e1306c; }
-  }
-}
-
 .cross-nav-sep {
   color: rgba(255, 255, 255, 0.35);
   font-size: 0.75rem;
@@ -118,15 +79,6 @@ const { open: openContact } = useContactModal()
   .cross-nav-link {
     font-size: 0.875rem;
     padding: 0.28rem 0.5rem;
-  }
-
-  .cross-nav-ig {
-    padding: 0.2rem 0.4rem;
-  }
-
-  .cross-nav-ig svg {
-    width: 18px;
-    height: 18px;
   }
 
   .cross-nav-sep {
@@ -148,15 +100,6 @@ const { open: openContact } = useContactModal()
   .cross-nav-link {
     font-size: 0.8125rem;
     padding: 0.25rem 0.5rem;
-  }
-
-  .cross-nav-ig {
-    padding: 0.2rem 0.4rem;
-  }
-
-  .cross-nav-ig svg {
-    width: 18px;
-    height: 18px;
   }
 
   .cross-nav-sep {
@@ -183,17 +126,6 @@ const { open: openContact } = useContactModal()
 
   &:focus-visible {
     outline-color: rgba(26, 26, 46, 0.5);
-  }
-}
-
-.cross-nav.theme-light .cross-nav-ig {
-  color: #1a1a2e;
-  .ig-body, .ig-lens { stroke: #1a1a2e; }
-  .ig-dot { fill: #1a1a2e; }
-  &:hover {
-    color: #e1306c;
-    .ig-body, .ig-lens { stroke: #e1306c; }
-    .ig-dot { fill: #e1306c; }
   }
 }
 
