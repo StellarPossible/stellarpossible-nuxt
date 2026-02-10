@@ -1,6 +1,19 @@
 <template>
   <footer ref="footerEl" class="site-footer" :class="{ 'theme-light': theme === 'light', 'scrolled': scrolled }">
     <div class="footer-content">
+      <a
+        href="https://instagram.com/stellarpossible"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="footer-ig"
+        aria-label="Instagram (opens in new tab)"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <path class="ig-body" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="ig-lens" cx="12" cy="12" r="4" stroke-width="2"/>
+          <circle class="ig-dot" cx="16.5" cy="7.5" r="1.25" fill="currentColor"/>
+        </svg>
+      </a>
       <span class="copyright">&copy; {{ year }} StellarPossible, LLC</span>
     </div>
   </footer>
@@ -46,7 +59,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.35rem 0.5rem;
   background: $primary;
   color: $white;
   font-family: 'Montserrat', sans-serif;
@@ -87,16 +100,56 @@ onBeforeUnmount(() => {
 
   .footer-content {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0.75rem 1.25rem;
+    gap: 0.5rem;
     position: relative;
     z-index: 1;
   }
 
+  .footer-ig {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: $white;
+    padding: 0.2rem;
+    transition: color 0.2s ease, transform 0.15s ease;
+
+    .ig-body, .ig-lens {
+      stroke: currentColor;
+      fill: none;
+    }
+    .ig-dot {
+      fill: currentColor;
+      opacity: 0.9;
+    }
+    &:hover {
+      color: #e1306c;
+      transform: scale(1.08);
+      .ig-body, .ig-lens { stroke: #e1306c; }
+      .ig-dot { fill: #e1306c; }
+    }
+    &:focus-visible {
+      outline: 2px solid $white;
+      outline-offset: 2px;
+    }
+  }
+
+  &.theme-light .footer-ig {
+    color: #1a1a2e;
+    .ig-body, .ig-lens { stroke: #1a1a2e; }
+    .ig-dot { fill: #1a1a2e; }
+    &:hover {
+      color: #e1306c;
+      .ig-body, .ig-lens { stroke: #e1306c; }
+      .ig-dot { fill: #e1306c; }
+    }
+  }
+
   .copyright {
-    font-size: 1rem;
+    font-size: 0.9rem;
     letter-spacing: 0.02em;
     color: $white;
     opacity: 0.9;
@@ -108,10 +161,10 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: 768px) {
+    padding: 0.3rem 0.4rem;
     .copyright {
-      font-size: .5rem;
+      font-size: 0.7rem;
     }
-    .footer-content { gap: 0.75rem; }
   }
 }
 </style>

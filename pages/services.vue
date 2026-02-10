@@ -74,10 +74,14 @@
           v-for="service in designServices"
           :key="service.id"
           class="service-card"
+          :class="{ 'service-card-book-cover': service.id === 'book-cover' }"
         >
           <h3 class="service-name">{{ service.name }}</h3>
           <p v-if="service.price" class="service-price">{{ service.price }}</p>
           <p class="service-description">{{ service.description }}</p>
+          <div v-if="service.id === 'book-cover'" class="service-card-gallery-wrap">
+            <BookCoverGallery :items="bookCovers" />
+          </div>
           <NuxtLink
             v-if="service.orderLink && !user"
             to="/login?tab=register"
@@ -286,6 +290,14 @@ const user = useState<User | null>('auth.user', () => null)
 type TabId = 'design' | 'software' | 'hosting'
 const activeTab = ref<TabId>('hosting')
 
+const bookCovers = [
+  {
+    src: '/images/media/ScentOfLiesAmazonCover.png',
+    alt: 'Scent of Lies — book cover, Amazon/KDP',
+    title: 'Scent of Lies'
+  }
+]
+
 const designServices = [
   {
     id: 'custom-logo',
@@ -339,8 +351,8 @@ const plans = [
   {
     id: 'addon' as PlanId,
     name: 'Additional changes',
-    priceDisplay: '$150',
-    period: '/hour',
+    priceDisplay: '$37.50',
+    period: '/quarter hour',
     savings: null as string | null,
     badge: null as string | null,
     featured: false,

@@ -1,41 +1,26 @@
 <template>
-  <header ref="headerEl" :class="['site-header', { scrolled, 'menu-on-left': menuSide === 'left', 'theme-light': theme === 'light', 'menu-open': isMenuOpen }]">
+  <header ref="headerEl" :class="['site-header', { scrolled, compact: compact, 'menu-on-left': menuSide === 'left', 'theme-light': theme === 'light', 'menu-open': isMenuOpen }]">
     <div class="container" :class="{ 'home-layout': isHomePage }">
       <div class="header-top">
         <div class="header-left">
-          <button
-            v-if="menuSide === 'right'"
-            class="menu-toggle"
-            :class="{ open: isMenuOpen }"
-            :aria-expanded="isMenuOpen"
-            aria-label="Toggle navigation menu"
-            @click="isMenuOpen = !isMenuOpen"
+          <NuxtLink
+            to="/"
+            class="logo"
+            :class="{ 'logo-hidden': isHomePage }"
+            @click="closeMenu"
           >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <template v-else>
-            <!-- Spacer when menu is on right side -->
-          </template>
+            <div v-if="isHomePage" class="logo-backdrop"></div>
+            <img
+              src="~/public/images/primary/spicon.png"
+              alt="Stellar Possible logo"
+            />
+          </NuxtLink>
         </div>
-
-        <NuxtLink
-          to="/"
-          class="logo"
-          :class="{ 'logo-hidden': isHomePage }"
-          @click="closeMenu"
-        >
-          <div v-if="isHomePage" class="logo-backdrop"></div>
-          <img
-            src="~/public/images/primary/spicon.png"
-            alt="Stellar Possible logo"
-          />
-        </NuxtLink>
-
-        <div class="header-right" aria-hidden="true">
+        <div v-if="showCrossNav" class="header-center">
+          <CrossNav variant="header" class="header-cross-nav inline" :show-contact="false" />
+        </div>
+        <div class="header-right">
           <button
-            v-if="menuSide === 'left'"
             class="menu-toggle"
             :class="{ open: isMenuOpen }"
             :aria-expanded="isMenuOpen"
@@ -48,7 +33,6 @@
           </button>
         </div>
       </div>
-      <CrossNav v-if="showCrossNav" variant="header" class="header-cross-nav" :show-contact="false" />
     </div>
 
     <!-- Backdrop and drawer teleported to body so they are never clipped -->
@@ -144,7 +128,10 @@ import type { User } from '~/types/auth'
 import { useMenuSide } from '~/composables/useMenuSide'
 import { useTheme } from '~/composables/useTheme'
 
-defineProps<{ scrolled: boolean }>()
+withDefaults(
+  defineProps<{ scrolled: boolean; compact?: boolean }>(),
+  { compact: false }
+)
 
 const { menuSide, setMenuSide } = useMenuSide()
 const { theme, toggleTheme } = useTheme()
@@ -246,20 +233,46 @@ async function logout() {
     z-index: 2100;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     margin: auto;
     padding: 0.5rem 1.5rem 0.25rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    transition: padding 0.28s ease;
+  }
+
+  &.compact .container {
+    padding: 0.3rem 1.25rem;
   }
 
   .header-top {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
+    gap: 1rem;
     width: 100%;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  .header-center {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .header-cross-nav-row {
+    display: none;
   }
 
   .header-cross-nav {
@@ -267,33 +280,34 @@ async function logout() {
     justify-content: center;
   }
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    flex: 1;
-    justify-content: flex-start;
+  .header-cross-nav.inline {
+    width: auto;
   }
 
   .header-right {
-    flex: 1;
-    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    min-width: 0;
+    flex-shrink: 0;
   }
 
   .logo {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.25s ease;
     position: relative;
 
     img {
       display: block;
       width: 7rem;
+      transition: width 0.25s ease;
     }
+  }
+
+  &.compact .logo img {
+    width: 5rem;
   }
 
   .menu-toggle {
