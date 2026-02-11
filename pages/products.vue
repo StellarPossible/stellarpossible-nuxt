@@ -1,15 +1,6 @@
 <template>
   <section class="products-page">
     <div class="products-inner">
-      <!-- Hero Section -->
-      <header class="hero">
-        <span class="hero-badge">Our Work</span>
-        <h1 class="hero-title">Crafted with Purpose</h1>
-        <p class="hero-subtitle">
-          We build performant, secure, and beautifully designed digital experiences that drive results.
-        </p>
-      </header>
-
       <!-- Client Portfolio Section -->
       <section class="portfolio">
         <div class="portfolio-header">
@@ -17,18 +8,22 @@
           <p class="portfolio-subtitle">Trusted by businesses to deliver exceptional web experiences</p>
         </div>
         
-        <div class="portfolio-grid">
+        <div class="portfolio-grid" role="list">
           <template v-for="client in clients" :key="client.id">
-            <!-- Video card: overlay by default; hover/click expands, hides overlay, plays video -->
-            <div
+            <!-- Video card: overlay with clear CTA hierarchy; Watch preview expands video -->
+            <article
               v-if="client.highlightVideo"
               class="client-card client-card-dark client-card-video"
               :class="{ 'client-card-video-active': activeVideoId === client.id }"
-              @mouseenter="setVideoCardActive(client.id)"
-              @mouseleave="setVideoCardInactive(client.id)"
-              @click="toggleVideoCardActive(client.id)"
+              role="listitem"
+              :aria-labelledby="`client-name-${client.id}`"
             >
-              <div class="client-video-frame" aria-hidden="true">
+              <div
+                class="client-video-frame"
+                aria-hidden="true"
+                @mouseenter="setVideoCardActive(client.id)"
+                @mouseleave="setVideoCardInactive(client.id)"
+              >
                 <video
                   :ref="(el) => setVideoRef(client.id, el)"
                   class="client-highlight-video"
@@ -36,33 +31,49 @@
                   muted
                   loop
                   playsinline
+                  aria-hidden="true"
                 />
               </div>
               <div
                 class="client-card-overlay"
                 :class="{ 'client-card-overlay-hidden': activeVideoId === client.id }"
               >
-                <div class="client-info">
-                  <h3 class="client-name">{{ client.title }}</h3>
+                <div class="client-card-content">
+                  <h3 :id="`client-name-${client.id}`" class="client-name">{{ client.title }}</h3>
                   <p class="client-type">{{ client.type }}</p>
                   <p class="client-description">{{ client.description }}</p>
                 </div>
-                <a
-                  :href="client.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="client-cta client-cta-link"
-                  @click.stop
-                >
-                  View Site
-                  <ClientOnly>
-                    <Icon icon="mdi:open-in-new" />
-                    <template #fallback><span>↗</span></template>
-                  </ClientOnly>
-                </a>
+                <div class="client-card-actions">
+                  <button
+                    type="button"
+                    class="client-cta-secondary"
+                    aria-label="Watch preview"
+                    @click.stop="toggleVideoCardActive(client.id)"
+                  >
+                    <ClientOnly>
+                      <Icon icon="mdi:play-circle-outline" aria-hidden />
+                      <template #fallback><span>▶</span></template>
+                    </ClientOnly>
+                    Watch preview
+                  </button>
+                  <a
+                    :href="client.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="client-cta-primary"
+                    :aria-label="`Visit ${client.title} website`"
+                    @click.stop
+                  >
+                    {{ client.ctaLabel || 'Visit site' }}
+                    <ClientOnly>
+                      <Icon icon="mdi:open-in-new" aria-hidden />
+                      <template #fallback><span>↗</span></template>
+                    </ClientOnly>
+                  </a>
+                </div>
               </div>
-            </div>
-            <!-- Non-video card: standard link -->
+            </article>
+            <!-- Non-video card -->
             <a
               v-else
               :href="client.url"
@@ -70,6 +81,8 @@
               rel="noopener noreferrer"
               class="client-card"
               :class="{ 'client-card-dark': client.darkTheme }"
+              role="listitem"
+              :aria-label="`${client.title} — ${client.description}. Visit site.`"
             >
               <div class="client-logo-wrap">
                 <img
@@ -79,15 +92,15 @@
                   class="client-logo-above"
                   aria-hidden="true"
                 />
-                <img :src="client.logo" :alt="client.title" class="client-logo" />
+                <img :src="client.logo" :alt="`${client.title} logo`" class="client-logo" />
               </div>
               <div class="client-info">
                 <h3 class="client-name">{{ client.title }}</h3>
                 <p class="client-type">{{ client.type }}</p>
                 <p class="client-description">{{ client.description }}</p>
               </div>
-              <span class="client-cta">
-                View Site
+              <span class="client-cta client-cta-primary-inline">
+                {{ client.ctaLabel || 'Visit site' }}
                 <ClientOnly>
                   <Icon icon="mdi:open-in-new" />
                   <template #fallback><span>↗</span></template>
@@ -253,6 +266,8 @@ interface Client {
   logoAbove?: string
   highlightVideo?: string
   darkTheme?: boolean
+  /** Optional: primary CTA label for conversion (e.g. "Visit site") */
+  ctaLabel?: string
 }
 
 // Video card: play only on hover/click; overlay visible by default
@@ -355,57 +370,6 @@ useHead({
 .products-inner {
   max-width: 1100px;
   margin: 0 auto;
-}
-
-// Hero Section
-.hero {
-  text-align: center;
-  margin-bottom: 4rem;
-  padding: 2.5rem 1.5rem;
-  padding-top: 3rem;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 24px;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  overflow: visible;
-}
-
-.hero-badge {
-  display: inline-block;
-  padding: 0.4rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 100px;
-  margin-bottom: 1.25rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.hero-title {
-  font-size: clamp(2.5rem, 6vw, 3.5rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.35;
-  margin: 0 0 1rem;
-  padding-top: 0.15em;
-  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.9) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7)) drop-shadow(0 4px 16px rgba(0, 0, 0, 0.4));
-}
-
-.hero-subtitle {
-  font-size: 1.125rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 540px;
-  margin: 0 auto;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 // Featured Project Section
@@ -924,10 +888,18 @@ useHead({
       color: rgba(226, 232, 240, 0.88);
     }
 
-    .client-cta {
-      color: rgba(226, 232, 240, 0.9);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    .client-cta,
+    .client-cta-primary-inline {
+      color: rgba(226, 232, 240, 0.95);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .client-cta-primary-inline {
+      color: #0f172a;
+      background: #fff;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     &:hover {
@@ -936,21 +908,25 @@ useHead({
         0 12px 32px rgba(0, 0, 0, 0.22),
         0 0 0 1px rgba(84, 117, 128, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      .client-cta {
+      .client-cta:not(.client-cta-primary-inline) {
         color: #e2e8f0;
         background: rgba(255, 255, 255, 0.12);
         border-color: rgba(255, 255, 255, 0.2);
+      }
+      .client-cta-primary-inline {
+        background: #f1f5f9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-1px);
       }
     }
   }
 }
 
-// Video card: overlay by default; hover/click expands 30%, hides overlay, plays video
+// Video card: overlay by default; "Watch preview" expands video; "Visit site" = primary CTA
 .client-card-video {
   position: relative;
   overflow: hidden;
   min-height: 300px;
-  cursor: pointer;
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     box-shadow 0.35s ease,
     z-index 0s;
@@ -967,6 +943,7 @@ useHead({
   .client-video-frame {
     position: absolute;
     inset: 0;
+    cursor: pointer;
   }
 
   .client-highlight-video {
@@ -983,12 +960,12 @@ useHead({
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 1.5rem 1.5rem 1.25rem;
+    padding: 1.25rem 1.25rem 1rem;
     background: linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.92) 0%,
-      rgba(0, 0, 0, 0.5) 45%,
-      rgba(0, 0, 0, 0.2) 100%
+      rgba(0, 0, 0, 0.94) 0%,
+      rgba(0, 0, 0, 0.55) 50%,
+      rgba(0, 0, 0, 0.15) 100%
     );
     transition: opacity 0.3s ease, visibility 0.3s ease;
     pointer-events: auto;
@@ -1000,46 +977,86 @@ useHead({
     pointer-events: none;
   }
 
-  .client-info {
-    margin-bottom: 0.75rem;
+  .client-card-content {
+    margin-bottom: 1rem;
   }
 
-  .client-name,
-  .client-type,
-  .client-description {
+  .client-name {
+    font-size: 1.35rem;
+    font-weight: 700;
     color: #fff;
+    margin: 0 0 0.25rem;
+    line-height: 1.25;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   }
 
   .client-type {
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 0.4rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
 
   .client-description {
+    font-size: 0.875rem;
+    line-height: 1.45;
     color: rgba(255, 255, 255, 0.92);
+    margin: 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   }
 
-  .client-cta,
-  .client-cta-link {
+  .client-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .client-cta-secondary {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1rem;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.98);
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    text-decoration: none;
+    color: rgba(255, 255, 255, 0.9);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
     transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
   }
 
-  .client-cta-link:hover {
+  .client-cta-secondary:hover {
     color: #fff;
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .client-cta-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0f172a;
+    background: #fff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  .client-cta-primary:hover {
+    background: #f1f5f9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
   }
 }
 
@@ -1074,6 +1091,30 @@ useHead({
   text-align: center;
   padding: 0 1.25rem;
   flex: 0 0 auto;
+}
+
+// Primary CTA on non-video cards (conversion-focused)
+.client-cta-primary-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  padding: 0.6rem 1.15rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #fff;
+  background: #4f46e5;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.client-card:hover .client-cta-primary-inline {
+  background: #4338ca;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+  transform: translateY(-1px);
 }
 
 .client-name {
@@ -1230,6 +1271,16 @@ useHead({
     align-items: stretch;
   }
 
+  .client-card-video .client-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .client-card-video .client-cta-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
   .client-logo-wrap {
     width: 120px;
     min-height: 100px;
@@ -1242,7 +1293,8 @@ useHead({
     flex: 1;
   }
 
-  .client-cta {
+  .client-cta,
+  .client-cta-primary-inline {
     margin-top: 0;
     margin-left: auto;
     white-space: nowrap;
@@ -1252,10 +1304,6 @@ useHead({
 @media (max-width: 600px) {
   .products-page {
     padding: 4rem 1rem 3rem;
-  }
-
-  .hero {
-    margin-bottom: 3rem;
   }
 
   .featured {

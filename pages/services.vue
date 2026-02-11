@@ -1,12 +1,5 @@
 <template>
   <section class="services-page">
-    <div class="hero">
-      <h1>Design & hosting that gets you there</h1>
-      <p class="hero-subtitle">
-        Custom logos and book covers—plus managed hosting. Revisions for design; consult and Slack for web and software clients.
-      </p>
-    </div>
-
     <!-- Tabs: zero scroll, one panel at a time -->
     <div class="services-tabs" role="tablist" aria-label="Service categories">
       <button
@@ -149,7 +142,7 @@
         <div class="services-section hosting-section">
           <h2 class="section-title">Web Management</h2>
       <p class="section-subtitle">
-        Reliable hosting for your site. Choose monthly or save with annual billing.
+        Reliable hosting for your site. Monthly billing.
       </p>
       <div class="included-block included-web-software">
         <h3 class="included-block-title">Included for web & software clients</h3>
@@ -198,7 +191,10 @@
       </div>
 
       <!-- Website builds: fixed-price offerings -->
-      <h3 class="builds-heading">Website builds</h3>
+      <div class="builds-section">
+        <h3 class="builds-heading">Website builds</h3>
+        <p class="builds-subheading">Fixed-price options for new sites</p>
+      </div>
       <div class="builds-grid">
         <article class="plan-card build-card">
           <h3 class="plan-name">Single-page site</h3>
@@ -216,17 +212,32 @@
           </div>
           <p class="build-description">Add more pages to your site. Priced per page for clarity and scalability.</p>
         </article>
-        <article class="plan-card build-card build-card-cta">
-          <h3 class="plan-name">Nuxt.js + WordPress</h3>
-          <div class="plan-price">
-            <span class="amount">$3,500</span>
-            <span class="period">+</span>
+        <article
+          class="plan-card build-card build-card-nuxt build-card-cta"
+          aria-labelledby="nuxt-card-title"
+          aria-describedby="nuxt-card-desc"
+        >
+          <span class="build-card-badge">Starting at $2,500</span>
+          <h3 id="nuxt-card-title" class="plan-name build-card-nuxt-title">Nuxt.js sites & platforms</h3>
+          <div class="build-card-pricing-tiers" id="nuxt-card-desc">
+            <div class="pricing-tier">
+              <span class="pricing-tier-label">Headless CMS</span>
+              <span class="pricing-tier-amount">$4,500</span>
+              <span class="pricing-tier-desc">Nuxt + WordPress or other CMS. Editable content, SEO-friendly, built to scale.</span>
+            </div>
+            <div class="pricing-tier">
+              <span class="pricing-tier-label">Frontend-only</span>
+              <span class="pricing-tier-amount">$2,500</span>
+              <span class="pricing-tier-desc">Nuxt.js only—no CMS. Ideal when content is static or managed elsewhere.</span>
+            </div>
           </div>
-          <p class="build-description">
-            Full-featured Nuxt.js front end with a WordPress backend. A significant upgrade for small businesses: fast, secure, SEO-friendly sites with a familiar content editor, headless architecture for reliability, and modern tooling that scales as you grow.
-          </p>
-          <button type="button" class="cta-button cta-primary" @click="openContact">
-            Get In Touch
+          <button
+            type="button"
+            class="cta-button cta-primary build-card-nuxt-cta"
+            aria-label="Discuss your Nuxt.js project with Stellar Possible"
+            @click="openContact"
+          >
+            Discuss your project
           </button>
         </article>
       </div>
@@ -282,13 +293,39 @@
 
 <script setup lang="ts">
 import type { User } from '~/types/auth'
+import { servicesHeaderHeroKey } from '~/composables/usePageHero'
 
-type PlanId = 'monthly' | 'annual' | 'addon'
+type PlanId = 'monthly' | 'addon'
 
 const user = useState<User | null>('auth.user', () => null)
 
 type TabId = 'design' | 'software' | 'hosting'
 const activeTab = ref<TabId>('hosting')
+
+const servicesHeaderHero = useState<{ title: string; subtitle: string } | null>(servicesHeaderHeroKey, () => null)
+
+const tabHeroContent: Record<TabId, { title: string; subtitle: string }> = {
+  design: {
+    title: 'Design',
+    subtitle: 'One fixed price. No surprises. Final files ready for print and web.'
+  },
+  software: {
+    title: 'Tool Development',
+    subtitle: 'Custom software, scripts, tools, and integrations. From one-off automations to full applications—built to your specs.'
+  },
+  hosting: {
+    title: 'Web Management',
+    subtitle: 'Reliable hosting for your site. Monthly billing.'
+  }
+}
+
+watch(activeTab, (tab) => {
+  servicesHeaderHero.value = tabHeroContent[tab] ?? null
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  servicesHeaderHero.value = null
+})
 
 const bookCovers = [
   {
@@ -329,21 +366,6 @@ const plans = [
     features: [
       'Managed hosting',
       'Billed every month',
-      'Cancel anytime'
-    ],
-    cta: 'Signup'
-  },
-  {
-    id: 'annual' as PlanId,
-    name: 'Annual',
-    priceDisplay: '$324',
-    period: '/year',
-    savings: 'Save $36 with annual billing',
-    badge: 'Popular',
-    featured: true,
-    features: [
-      'Everything in Monthly',
-      'Billed once per year',
       'Cancel anytime'
     ],
     cta: 'Signup'
@@ -401,7 +423,7 @@ useHead({
 
 <style scoped lang="scss">
 .services-page {
-  padding: 3.5rem 1.5rem 4.5rem;
+  padding: 2.75rem 1.25rem 3.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -416,41 +438,19 @@ useHead({
   box-sizing: border-box;
 }
 
-.hero {
-  max-width: 42rem;
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 2.5rem;
-  box-sizing: border-box;
-
-  h1 {
-    font-size: clamp(2rem, 5vw, 2.75rem);
-    margin-bottom: 0.75rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    color: #fff;
-  }
-
-  .hero-subtitle {
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    color: rgba(255, 255, 255, 0.9);
-  }
-}
-
 .services-tabs {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  padding: 0.25rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+  padding: 0.35rem;
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.5) 0%, rgba(24, 58, 82, 0.35) 100%);
+  border: 1px solid rgba(120, 180, 220, 0.2);
   border-radius: 14px;
   width: 100%;
   max-width: 36rem;
+  box-shadow: 0 0 24px rgba(60, 120, 180, 0.06);
 }
 
 .tab-trigger {
@@ -458,7 +458,7 @@ useHead({
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1rem;
+  padding: 0.5rem 0.875rem;
   font-size: 0.9375rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
@@ -466,10 +466,10 @@ useHead({
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
   white-space: nowrap;
   flex: 1 1 auto;
-  min-width: min(7.5rem, 100%); /* prevent shrink/overlap; wrap instead */
+  min-width: min(7.5rem, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -480,9 +480,10 @@ useHead({
 }
 
 .tab-trigger.active {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 20px rgba(120, 180, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(160, 200, 255, 0.2);
 }
 
 .tab-trigger:focus-visible {
@@ -530,18 +531,6 @@ useHead({
 @media (max-width: 640px) {
   .services-page {
     padding: 2rem 1rem 3rem;
-  }
-
-  .hero {
-    margin-bottom: 1.5rem;
-  }
-
-  .hero h1 {
-    font-size: clamp(1.5rem, 5vw, 2rem);
-  }
-
-  .hero .hero-subtitle {
-    font-size: 0.9375rem;
   }
 
   .included-block {
@@ -594,13 +583,13 @@ useHead({
   max-width: 38rem;
   width: 100%;
   min-width: 0;
-  margin-bottom: 2.5rem;
-  padding: 1.5rem 1.75rem;
-  background: rgba(18, 49, 70, 0.6);
-  border: 1px solid rgba(84, 117, 128, 0.35);
+  margin-bottom: 1.5rem;
+  padding: 1.15rem 1.5rem;
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.55) 0%, rgba(24, 58, 82, 0.4) 100%);
+  border: 1px solid rgba(100, 160, 220, 0.22);
   border-radius: 14px;
   text-align: left;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 20px rgba(60, 120, 180, 0.06), 0 4px 16px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -623,7 +612,7 @@ useHead({
 }
 
 .included-web-software {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   margin-left: auto;
   margin-right: auto;
 }
@@ -654,17 +643,17 @@ useHead({
   }
 }
 
-/* Slack highlight hero card: below services, above See our work — compact, less prominent */
+/* Slack highlight hero card: below services, above See our work */
 .slack-hero-card {
   width: 100%;
   max-width: 42rem;
-  margin: 2rem auto 2.5rem;
-  padding: 1.25rem 1.5rem;
-  background: rgba(18, 49, 70, 0.5);
-  border: 1px solid rgba(84, 117, 128, 0.3);
+  margin: 1.75rem auto 2rem;
+  padding: 1.15rem 1.35rem;
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.5) 0%, rgba(24, 58, 82, 0.35) 100%);
+  border: 1px solid rgba(100, 160, 220, 0.2);
   border-radius: 16px;
   backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 24px rgba(60, 120, 180, 0.06), 0 4px 20px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -760,7 +749,7 @@ useHead({
 .services-section {
   width: 100%;
   max-width: 900px;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .software-section {
@@ -797,7 +786,7 @@ useHead({
 .section-subtitle {
   font-size: 1rem;
   color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
@@ -858,20 +847,20 @@ useHead({
 }
 
 .service-card {
-  background: rgba(18, 49, 70, 0.55);
-  border: 1px solid rgba(84, 117, 128, 0.35);
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.6) 0%, rgba(22, 54, 78, 0.5) 100%);
+  border: 1px solid rgba(100, 160, 220, 0.22);
   border-radius: 14px;
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem 1.35rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.2s;
 
   &:hover {
-    border-color: rgba(84, 117, 128, 0.55);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
-    background: rgba(18, 49, 70, 0.7);
+    border-color: rgba(120, 180, 220, 0.35);
+    box-shadow: 0 0 24px rgba(80, 140, 200, 0.08), 0 8px 28px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(145deg, rgba(20, 54, 78, 0.7) 0%, rgba(26, 60, 86, 0.6) 100%);
     transform: translateY(-2px);
   }
 }
@@ -903,10 +892,10 @@ useHead({
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1.25rem;
   max-width: 640px;
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 560px) {
@@ -915,24 +904,42 @@ useHead({
   }
 }
 
+.builds-section {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(120, 180, 220, 0.15);
+  width: 100%;
+  max-width: 900px;
+}
+
 .builds-heading {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #fff;
-  margin: 2.5rem 0 1rem;
+  margin: 0 0 0.2rem;
   letter-spacing: -0.02em;
+}
+
+.builds-subheading {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 1rem;
 }
 
 .builds-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.5rem;
+  gap: 1.25rem;
   width: 100%;
   max-width: 900px;
-  margin-top: 0.5rem;
+  margin-top: 0;
 }
 
 .build-card {
+  transition: transform 0.2s ease;
+  &:hover {
+    transform: translateY(-1px);
+  }
   .plan-price .period {
     font-size: 0.9375rem;
     color: rgba(255, 255, 255, 0.7);
@@ -952,28 +959,135 @@ useHead({
   margin-bottom: 1rem;
 }
 
+/* Nuxt card: high-end, conversion-optimized */
+.build-card-nuxt {
+  grid-column: 1 / -1;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 2rem 1.75rem;
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.75) 0%, rgba(24, 58, 82, 0.6) 100%);
+  border: 1px solid rgba(120, 180, 220, 0.25);
+  box-shadow: 0 0 32px rgba(80, 140, 200, 0.08), 0 8px 32px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    border-color: rgba(140, 200, 255, 0.35);
+    box-shadow: 0 0 40px rgba(100, 160, 220, 0.12), 0 12px 40px rgba(0, 0, 0, 0.22);
+    background: linear-gradient(145deg, rgba(20, 54, 78, 0.8) 0%, rgba(28, 62, 88, 0.65) 100%);
+  }
+}
+
+.build-card-badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(200, 230, 255, 0.95);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(160, 200, 255, 0.25);
+  padding: 0.3rem 0.65rem;
+  border-radius: 100px;
+  margin-bottom: 0.75rem;
+}
+
+.build-card-nuxt-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+  color: #fff;
+}
+
+.build-card-pricing-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.build-card-nuxt .pricing-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.build-card-nuxt .pricing-tier-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(200, 230, 255, 0.9);
+}
+
+.build-card-nuxt .pricing-tier-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.build-card-nuxt .pricing-tier-desc {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: rgba(220, 235, 255, 0.85);
+}
+
+.build-card-nuxt-cta {
+  min-width: 12rem;
+  padding: 0.6rem 1.25rem;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  }
+}
+
+@media (max-width: 640px) {
+  .build-card-nuxt {
+    padding: 1.5rem 1.25rem;
+    max-width: 100%;
+  }
+  .build-card-nuxt-title {
+    font-size: 1.3rem;
+  }
+  .build-card-nuxt .pricing-tier-amount {
+    font-size: 1.35rem;
+  }
+}
+
 .plan-card {
   position: relative;
-  background: rgba(18, 49, 70, 0.55);
-  border: 1px solid rgba(84, 117, 128, 0.3);
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.6) 0%, rgba(22, 54, 78, 0.5) 100%);
+  border: 1px solid rgba(100, 160, 220, 0.22);
   border-radius: 14px;
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem 1.35rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.2s;
 
   &:hover {
-    border-color: rgba(84, 117, 128, 0.5);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-    background: rgba(18, 49, 70, 0.65);
+    border-color: rgba(120, 180, 220, 0.35);
+    box-shadow: 0 0 24px rgba(80, 140, 200, 0.08), 0 6px 24px rgba(0, 0, 0, 0.18);
+    background: linear-gradient(145deg, rgba(20, 54, 78, 0.7) 0%, rgba(26, 60, 86, 0.6) 100%);
+    transform: translateY(-1px);
   }
 
   &.featured {
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-    background: rgba(18, 49, 70, 0.7);
+    border-color: rgba(140, 200, 255, 0.28);
+    box-shadow: 0 0 28px rgba(100, 160, 220, 0.1), 0 6px 24px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(145deg, rgba(22, 54, 78, 0.7) 0%, rgba(28, 62, 88, 0.6) 100%);
   }
 
   .plan-name {
@@ -1071,21 +1185,29 @@ useHead({
   &.cta-primary {
     background: #fff;
     color: #123146;
+    font-weight: 700;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 
     &:hover:not(:disabled) {
       background: #f0f4f8;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 3px;
     }
   }
 
   &.cta-featured {
     background: #fff;
     color: #123146;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 
     &:hover:not(:disabled) {
       background: #f0f4f8;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
     }
   }
 
@@ -1101,29 +1223,31 @@ useHead({
   }
 }
 
-/* Cross-page CTA: See our work */
+/* Cross-page CTA: See our work — conversion-focused */
 .cross-cta-section {
-  margin-top: 3.5rem;
-  padding: 2.5rem 1.5rem;
+  margin-top: 2.5rem;
+  padding: 2rem 1.35rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.45) 0%, rgba(24, 58, 82, 0.3) 100%);
+  border: 1px solid rgba(120, 180, 220, 0.2);
   border-radius: 20px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   max-width: 36rem;
+  box-shadow: 0 0 28px rgba(60, 120, 180, 0.06);
 }
 
 .cross-cta-title {
-  font-size: 1.375rem;
+  font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
 }
 
 .cross-cta-subtitle {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 0 0 1.5rem;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 1.25rem;
 }
 
 .cross-cta-button {
@@ -1131,19 +1255,20 @@ useHead({
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.7rem 1.35rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #123146;
   background: #fff;
   border-radius: 10px;
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .cross-cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
 }
 
 .cross-cta-button svg {
