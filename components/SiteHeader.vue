@@ -16,12 +16,22 @@
             />
           </NuxtLink>
         </div>
-        <div v-if="showCrossNav" class="header-center">
-          <CrossNav variant="header" class="header-cross-nav inline" :show-contact="false" />
+        <div class="header-center" :class="{ 'header-center-hero': !!(heroToShow && !isHomePage) }">
+          <template v-if="heroToShow && !isHomePage">
+            <div class="header-hero header-hero-inline">
+              <span v-if="heroToShow.badge" class="header-hero-badge">{{ heroToShow.badge }}</span>
+              <h1 class="header-hero-title">{{ heroToShow.title }}</h1>
+              <p v-if="heroToShow.subtitle" class="header-hero-subtitle" v-html="heroSubtitleHtml" />
+            </div>
+          </template>
+          <CrossNav v-else-if="showCrossNav" variant="header" class="header-cross-nav inline" :show-contact="false" />
         </div>
         <div class="header-right">
+          <nav v-if="showCrossNav" class="header-nav-column" aria-label="Main links">
+            <CrossNav variant="header" class="header-cross-nav column" :show-contact="false" />
+          </nav>
           <button
-            class="menu-toggle"
+            class="menu-toggle menu-toggle-mobile"
             :class="{ open: isMenuOpen }"
             :aria-expanded="isMenuOpen"
             aria-label="Toggle navigation menu"
@@ -149,6 +159,21 @@ function syncHeaderHeight() {
 }
 
 const isHomePage = computed(() => route.path === '/')
+const { hero: pageHero, servicesHeaderHeroKey } = usePageHero()
+const servicesHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(servicesHeaderHeroKey, () => null)
+
+const heroToShow = computed(() => {
+  if (route.path === '/services' && servicesHeaderHero.value) return servicesHeaderHero.value
+  return pageHero.value
+})
+
+const heroSubtitleHtml = computed(() => {
+  const s = heroToShow.value?.subtitle
+  if (!s) return ''
+  return s
+    .replace(/\bperformant\b/gi, '<strong>performant</strong>')
+    .replace(/\bsecure\b/gi, '<strong>secure</strong>')
+})
 
 const showCrossNav = computed(() => {
   const path = route.path
@@ -212,20 +237,56 @@ async function logout() {
   overflow: visible;
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
 
+  /* Stellar glass: deep cosmic tint + blur */
   &::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(2px);
+    background: linear-gradient(
+      180deg,
+      rgba(12, 20, 38, 0.72) 0%,
+      rgba(18, 28, 52, 0.55) 40%,
+      rgba(24, 36, 62, 0.35) 100%
+    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     z-index: -1;
-    transition: background 0.3s ease, backdrop-filter 0.3s ease, opacity 0.3s ease;
+    transition: background 0.35s ease, backdrop-filter 0.35s ease, opacity 0.35s ease;
   }
 
   &.scrolled::before {
-    background: rgba(0, 0, 0, 0.25);
-    backdrop-filter: blur(6px);
-    opacity: 0.25;
+    background: linear-gradient(
+      180deg,
+      rgba(10, 18, 34, 0.88) 0%,
+      rgba(14, 24, 44, 0.82) 100%
+    );
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0.98;
+  }
+
+  /* Subtle bottom edge: cosmic separation from content */
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(120, 160, 220, 0.2) 20%,
+      rgba(160, 120, 220, 0.25) 50%,
+      rgba(120, 160, 220, 0.2) 80%,
+      transparent 100%
+    );
+    z-index: 2099;
+    pointer-events: none;
+  }
+
+  &.scrolled::after {
+    opacity: 0.6;
   }
 
   .container {
@@ -235,7 +296,7 @@ async function logout() {
     flex-direction: column;
     align-items: stretch;
     margin: auto;
-    padding: 0.5rem 1.5rem 0.25rem;
+    padding: 0.45rem 1.25rem 0.35rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -243,7 +304,7 @@ async function logout() {
   }
 
   &.compact .container {
-    padding: 0.3rem 1.25rem;
+    padding: 0.28rem 1rem 0.25rem;
   }
 
   .header-top {
@@ -253,6 +314,7 @@ async function logout() {
     align-items: center;
     gap: 1rem;
     width: 100%;
+    flex-shrink: 0;
   }
 
   .header-left {
@@ -269,6 +331,10 @@ async function logout() {
     min-width: 0;
     justify-content: center;
     align-items: center;
+  }
+
+  .header-nav-column {
+    display: none;
   }
 
   .header-cross-nav-row {
@@ -288,8 +354,92 @@ async function logout() {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    gap: 0.75rem;
     min-width: 0;
     flex-shrink: 0;
+  }
+
+  /* Hero on same line as logo and nav: column layout (badge, title, subtitle stacked) */
+  .header-hero.header-hero-inline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem 0;
+    width: 100%;
+    min-width: 0;
+    padding: 0.35rem 0.5rem;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .header-hero-inline .header-hero-badge {
+    display: inline-block;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(200, 220, 255, 0.92);
+    margin: 0;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid rgba(160, 190, 255, 0.25);
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 0 16px rgba(120, 160, 255, 0.06);
+    flex-shrink: 0;
+  }
+
+  .header-hero-inline .header-hero-title {
+    font-family: 'OldStyle', 'Georgia', serif;
+    font-size: clamp(1rem, 2.2vw, 1.35rem);
+    font-weight: 400;
+    color: $white;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.12), 0 1px 4px rgba(0, 0, 0, 0.35);
+    flex-shrink: 0;
+  }
+
+  .header-hero-inline .header-hero-subtitle {
+    font-size: clamp(0.75rem, 1.6vw, 0.875rem);
+    line-height: 1.15;
+    font-style: italic;
+    color: rgba(220, 230, 255, 0.88);
+    margin: 0;
+    max-width: 20rem;
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+
+    strong {
+      font-weight: 700;
+      font-style: italic;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .header-center {
+      display: none;
+    }
+    .header-center.header-center-hero {
+      display: flex;
+    }
+    .header-nav-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.35rem;
+    }
+    .header-cross-nav.column {
+      flex-direction: column;
+      align-items: stretch;
+      width: auto;
+      gap: 0.25rem;
+    }
+    .header-cross-nav.column :deep(.cross-nav-sep) {
+      display: none;
+    }
   }
 
   .logo {
@@ -298,16 +448,30 @@ async function logout() {
     flex-shrink: 0;
     transition: opacity 0.3s ease, transform 0.25s ease;
     position: relative;
+    border-radius: 4px;
 
     img {
       display: block;
       width: 7rem;
-      transition: width 0.25s ease;
+      transition: width 0.25s ease, filter 0.3s ease;
+    }
+
+    &:hover img {
+      filter: drop-shadow(0 0 12px rgba(160, 190, 255, 0.35));
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(160, 190, 255, 0.5);
+      outline-offset: 4px;
     }
   }
 
   &.compact .logo img {
     width: 5rem;
+  }
+
+  &.theme-light .logo:hover img {
+    filter: drop-shadow(0 0 10px rgba(30, 58, 100, 0.2));
   }
 
   .menu-toggle {
@@ -350,6 +514,13 @@ async function logout() {
     }
   }
 
+  /* Hamburger only on mobile; hidden on desktop/tablet (769px+) */
+  @media (min-width: 769px) {
+    .menu-toggle.menu-toggle-mobile {
+      display: none;
+    }
+  }
+
   /* When menu is open, ham fades out so X in drawer reads as the same control */
   &.menu-open .menu-toggle {
     opacity: 0;
@@ -358,25 +529,87 @@ async function logout() {
 
   &.theme-light {
     &::before {
-      /* Soft blue-grey to complement light galaxy background */
-      background: rgba(226, 232, 240, 0.92);
-      backdrop-filter: blur(8px);
-      transition: opacity 0.3s ease, background 0.3s ease;
+      background: linear-gradient(
+        180deg,
+        rgba(248, 250, 252, 0.94) 0%,
+        rgba(241, 245, 249, 0.88) 100%
+      );
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    &::after {
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(30, 58, 100, 0.12) 50%,
+        transparent 100%
+      );
     }
     &.scrolled::before {
-      background: rgba(226, 232, 240, 0.92);
-      opacity: 0.25;
+      background: rgba(248, 250, 252, 0.96);
+      opacity: 0.98;
     }
     .menu-toggle span {
       background: #1a1a2e;
+    }
+    .header-hero-inline .header-hero-badge {
+      color: rgba(26, 46, 80, 0.9);
+      border-color: rgba(30, 58, 100, 0.2);
+      background: rgba(255, 255, 255, 0.7);
+      box-shadow: 0 0 16px rgba(30, 58, 100, 0.06);
+    }
+    .header-hero-inline .header-hero-title {
+      color: #1a1a2e;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    }
+    .header-hero-inline .header-hero-subtitle {
+      color: rgba(26, 46, 80, 0.88);
     }
   }
 
   /* Backdrop and drawer are teleported to body; see unscoped .site-header-backdrop / .site-header-drawer below */
 
+  @media (max-width: 768px) {
+    .header-hero-inline {
+      gap: 0.15rem 0;
+      padding: 0.25rem 0.35rem;
+    }
+    .header-hero-inline .header-hero-badge {
+      font-size: 0.5rem;
+      letter-spacing: 0.12em;
+      padding: 0.15rem 0.35rem;
+    }
+    .header-hero-inline .header-hero-title {
+      font-size: 0.9rem;
+      line-height: 1.2;
+    }
+    .header-hero-inline .header-hero-subtitle {
+      font-size: 0.6875rem;
+      line-height: 1.1;
+      max-width: 14rem;
+    }
+  }
+
   @media (max-width: 480px) {
     .logo > img {
       width: 5rem;
+    }
+    .header-hero-inline {
+      gap: 0.1rem 0;
+      padding: 0.2rem 0.25rem;
+    }
+    .header-hero-inline .header-hero-badge {
+      font-size: 0.4375rem;
+      letter-spacing: 0.1em;
+      padding: 0.12rem 0.3rem;
+    }
+    .header-hero-inline .header-hero-title {
+      font-size: 0.8rem;
+    }
+    .header-hero-inline .header-hero-subtitle {
+      font-size: 0.625rem;
+      line-height: 1.1;
+      max-width: 11rem;
     }
   }
 }
