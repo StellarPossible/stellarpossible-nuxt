@@ -15,31 +15,53 @@
               v-if="client.highlightVideo"
               class="client-card client-card-dark client-card-video"
               :class="{ 'client-card-video-active': activeVideoId === client.id }"
+              :style="videoCardStyle(client)"
               role="listitem"
               :aria-labelledby="`client-name-${client.id}`"
             >
               <div
                 class="client-video-frame"
                 aria-hidden="true"
-                @mouseenter="setVideoCardActive(client.id)"
-                @mouseleave="setVideoCardInactive(client.id)"
+                @mouseenter="setVideoCardHovered(client.id, true)"
+                @mouseleave="setVideoCardHovered(client.id, false)"
+                @click="toggleOverlayPinned(client.id)"
               >
-                <video
-                  :ref="(el) => setVideoRef(client.id, el)"
-                  class="client-highlight-video"
-                  :src="client.highlightVideo"
-                  muted
-                  loop
-                  playsinline
-                  aria-hidden="true"
-                />
+                <ClientOnly>
+                  <video
+                    :ref="(el) => setVideoRef(client.id, el)"
+                    class="client-highlight-video"
+                    :src="getVideoSrc(client.highlightVideo)"
+                    :poster="client.logo"
+                    preload="auto"
+                    :muted="!isCardUnmuted(client.id)"
+                    loop
+                    playsinline
+                    aria-hidden="true"
+                    @loadedmetadata="onVideoLoadedMetadata(client.id)"
+                    @loadeddata="onVideoLoadedData(client.id)"
+                  />
+                  <template #fallback>
+                    <div class="client-video-fallback" :style="{ backgroundImage: `url(${client.logo})` }" />
+                  </template>
+                </ClientOnly>
               </div>
               <div
                 class="client-card-overlay"
-                :class="{ 'client-card-overlay-hidden': activeVideoId === client.id }"
+                :class="{
+                  'client-card-overlay-visible': isOverlayVisible(client.id),
+                  'client-card-overlay-hidden': !isOverlayVisible(client.id)
+                }"
+                @click.stop
               >
                 <div class="client-card-content">
-                  <h3 :id="`client-name-${client.id}`" class="client-name">{{ client.title }}</h3>
+                  <img
+                    v-if="client.logo"
+                    :src="client.logo"
+                    :alt="client.title"
+                    class="client-card-logo"
+                  />
+                  <h3 v-else :id="`client-name-${client.id}`" class="client-name">{{ client.title }}</h3>
+                  <span v-if="client.logo" :id="`client-name-${client.id}`" class="visually-hidden">{{ client.title }}</span>
                   <p class="client-type">{{ client.type }}</p>
                   <p class="client-description">{{ client.description }}</p>
                 </div>
@@ -47,8 +69,8 @@
                   <button
                     type="button"
                     class="client-cta-secondary"
-                    aria-label="Watch preview"
-                    @click.stop="toggleVideoCardActive(client.id)"
+                    aria-label="Listen to preview"
+                    @click.stop="toggleOverlayPinned(client.id)"
                   >
                     <ClientOnly>
                       <Icon icon="mdi:play-circle-outline" aria-hidden />
@@ -270,9 +292,22 @@ interface Client {
   ctaLabel?: string
 }
 
-// Video card: play only on hover/click; overlay visible by default
-const activeVideoId = ref<string | null>(null)
+// Video card: autoplay (muted), unmute on hover/click; click outside closes overlay and mutes
+const hoveredVideoId = ref<string | null>(null)
+const overlayPinnedId = ref<string | null>(null)
 const videoRefs: Record<string, HTMLVideoElement | null> = {}
+const videoDimensions = ref<Record<string, { w: number; h: number }>>({})
+
+const activeVideoId = computed(() => hoveredVideoId.value ?? overlayPinnedId.value)
+
+/** Resolve video src to absolute URL on client so the video loads reliably */
+function getVideoSrc(path: string | undefined): string {
+  if (!path) return ''
+  if (typeof window !== 'undefined') {
+    return new URL(path, window.location.origin).href
+  }
+  return path
+}
 
 function setVideoRef(id: string, el: unknown) {
   if (el && el instanceof HTMLVideoElement) {
@@ -280,31 +315,65 @@ function setVideoRef(id: string, el: unknown) {
   }
 }
 
-function setVideoCardActive(id: string) {
-  activeVideoId.value = id
+function onVideoLoadedMetadata(id: string) {
+  const video = videoRefs[id]
+  if (video && video.videoWidth && video.videoHeight) {
+    videoDimensions.value = { ...videoDimensions.value, [id]: { w: video.videoWidth, h: video.videoHeight } }
+  }
+}
+
+function onVideoLoadedData(id: string) {
   const video = videoRefs[id]
   if (video) {
+    video.currentTime = 0
+    video.muted = true
     video.play().catch(() => {})
   }
 }
 
-function setVideoCardInactive(id: string) {
-  if (activeVideoId.value === id) {
-    activeVideoId.value = null
-    const video = videoRefs[id]
-    if (video) {
-      video.pause()
-    }
+function isCardUnmuted(id: string) {
+  return hoveredVideoId.value === id || overlayPinnedId.value === id
+}
+
+function videoCardStyle(client: Client) {
+  if (!client.highlightVideo) return undefined
+  const dims = videoDimensions.value[client.id]
+  if (dims && dims.w && dims.h) {
+    return { aspectRatio: `${dims.w} / ${dims.h}` }
+  }
+  return { aspectRatio: '16 / 9' }
+}
+
+function isOverlayVisible(id: string) {
+  return hoveredVideoId.value === id || overlayPinnedId.value === id
+}
+
+function setVideoCardHovered(id: string, hovered: boolean) {
+  hoveredVideoId.value = hovered ? id : null
+}
+
+function toggleOverlayPinned(id: string) {
+  overlayPinnedId.value = overlayPinnedId.value === id ? null : id
+}
+
+function handleClickOutsideVideoCard(event: MouseEvent) {
+  const target = event.target as Node
+  if (target && !(target as Element).closest?.('.client-card-video')) {
+    overlayPinnedId.value = null
   }
 }
 
-function toggleVideoCardActive(id: string) {
-  if (activeVideoId.value === id) {
-    setVideoCardInactive(id)
-  } else {
-    setVideoCardActive(id)
+onMounted(() => {
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', handleClickOutsideVideoCard)
   }
-}
+})
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('click', handleClickOutsideVideoCard)
+  }
+})
 
 const toolsWeUse = [
   { name: 'Nuxt.js', description: 'Vue-based framework for fast, modern web apps.', icon: 'simple-icons:nuxtdotjs', url: 'https://nuxt.com' },
@@ -324,9 +393,9 @@ const clients: Client[] = [
     type: 'Indie Rock · Annapolis, MD, USA',
     description: 'Website design, development, and hosting for the Annapolis-based indie-rock band.',
     url: 'https://kavoossi.com',
-    highlightVideo: '/videos/kavoossiPreview.mov',
+    highlightVideo: '/videos/kavoossiPreview.mp4',
     logoAbove: '/images/primary/BLUE GUY transparent.png',
-    logo: '/images/primary/kavoossi logo.avif',
+    logo: '/images/primary/kavoossi.png',
     darkTheme: true
   },
   {
@@ -361,6 +430,18 @@ useHead({
 </script>
 
 <style scoped lang="scss">
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .products-page {
   min-height: 100vh;
   padding: 5rem 1.5rem 4rem;
@@ -922,11 +1003,12 @@ useHead({
   }
 }
 
-// Video card: overlay by default; "Watch preview" expands video; "Visit site" = primary CTA
+// Video card: sized to video aspect ratio (from video metadata); overlay only on hover or click
 .client-card-video {
   position: relative;
   overflow: hidden;
-  min-height: 300px;
+  width: 100%;
+  min-height: 200px;
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     box-shadow 0.35s ease,
     z-index 0s;
@@ -946,11 +1028,21 @@ useHead({
     cursor: pointer;
   }
 
+  .client-video-fallback {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #000;
+  }
+
   .client-highlight-video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
+    background: #000;
   }
 
   .client-card-overlay {
@@ -963,11 +1055,19 @@ useHead({
     padding: 1.25rem 1.25rem 1rem;
     background: linear-gradient(
       to top,
-      rgba(0, 0, 0, 0.94) 0%,
-      rgba(0, 0, 0, 0.55) 50%,
-      rgba(0, 0, 0, 0.15) 100%
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0.35) 45%,
+      rgba(0, 0, 0, 0.08) 100%
     );
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .client-card-overlay-visible {
+    opacity: 1;
+    visibility: visible;
     pointer-events: auto;
   }
 
@@ -979,6 +1079,16 @@ useHead({
 
   .client-card-content {
     margin-bottom: 1rem;
+  }
+
+  .client-card-logo {
+    display: block;
+    max-width: 100%;
+    max-height: 3.5rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: 0 0 0.5rem;
   }
 
   .client-name {
