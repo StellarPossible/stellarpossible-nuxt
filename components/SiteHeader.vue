@@ -177,7 +177,7 @@ const heroSubtitleHtml = computed(() => {
 
 const showCrossNav = computed(() => {
   const path = route.path
-  return path !== '/' && !path.startsWith('/dashboard')
+  return !path.startsWith('/dashboard')
 })
 
 function handleEscape(e: KeyboardEvent) {
