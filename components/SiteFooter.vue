@@ -1,5 +1,12 @@
 <template>
   <footer ref="footerEl" class="site-footer" :class="{ 'theme-light': theme === 'light', 'scrolled': scrolled }">
+    <nav v-if="isAuthPage" class="auth-cross-nav" aria-label="Site navigation">
+      <NuxtLink to="/services" class="auth-cross-link">Services</NuxtLink>
+      <span class="auth-cross-sep" aria-hidden="true">·</span>
+      <NuxtLink to="/products" class="auth-cross-link">Our Work</NuxtLink>
+      <span class="auth-cross-sep" aria-hidden="true">·</span>
+      <button type="button" class="auth-cross-link auth-cross-contact" @click="openContact">Contact</button>
+    </nav>
     <div class="footer-content">
       <a
         href="https://instagram.com/stellarpossible"
@@ -20,13 +27,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 defineProps<{ scrolled?: boolean }>()
 
+const route = useRoute()
 const footerEl = ref<HTMLElement | null>(null)
 const year = new Date().getFullYear()
 const { theme } = useTheme()
+const { open: openContact } = useContactModal()
+
+const isAuthPage = computed(() => {
+  const p = route.path
+  return p === '/login' || p === '/register'
+})
 
 function syncFooterHeight() {
   if (import.meta.client && footerEl.value) {
@@ -96,6 +110,56 @@ onBeforeUnmount(() => {
     &.scrolled::before {
       opacity: 0.25;
     }
+  }
+
+  .auth-cross-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.5rem 0.5rem;
+    margin: 0 0 0.25rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  &.theme-light .auth-cross-nav {
+    border-bottom-color: rgba(0, 0, 0, 0.12);
+  }
+
+  .auth-cross-link {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+  }
+
+  .auth-cross-link:hover {
+    color: #fff;
+  }
+
+  &.theme-light .auth-cross-link {
+    color: rgba(26, 26, 46, 0.85);
+    &:hover {
+      color: #1a1a2e;
+    }
+  }
+
+  .auth-cross-sep {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.875rem;
+    user-select: none;
+  }
+
+  &.theme-light .auth-cross-sep {
+    color: rgba(26, 26, 46, 0.4);
   }
 
   .footer-content {

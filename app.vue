@@ -36,6 +36,7 @@ import FloatingHelp from '@/components/FloatingHelp.vue'
 const route = useRoute()
 const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
+const isServicesPage = computed(() => route.path === '/services')
 
 const scrolledPastThreshold = ref(false)
 const headerCompact = ref(false)
@@ -55,15 +56,22 @@ function handleScroll() {
   lastScrollY = y
 }
 
-onMounted(() => {
-  // Disable scroll on homepage
-  document.body.style.overflow = isHomePage.value ? 'hidden' : 'auto'
-
-  if (!isHomePage.value) {
+function setupScrollListener() {
+  const needsListener = !isHomePage.value && !isServicesPage.value
+  if (needsListener) {
     lastScrollY = window.scrollY
     handleScroll()
     window.addEventListener('scroll', handleScroll)
+  } else {
+    window.removeEventListener('scroll', handleScroll)
   }
+}
+
+onMounted(() => {
+  // Disable scroll on homepage and services page (no-scroll design)
+  const lockScroll = isHomePage.value || isServicesPage.value
+  document.body.style.overflow = lockScroll ? 'hidden' : 'auto'
+  setupScrollListener()
 })
 
 onBeforeUnmount(() => {
@@ -71,8 +79,9 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-watch(isHomePage, (isHome) => {
-  document.body.style.overflow = isHome ? 'hidden' : 'auto'
+watch([isHomePage, isServicesPage], ([isHome, isServices]) => {
+  document.body.style.overflow = isHome || isServices ? 'hidden' : 'auto'
+  setupScrollListener()
 })
 </script>
 
