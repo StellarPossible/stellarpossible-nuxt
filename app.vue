@@ -37,6 +37,7 @@ const route = useRoute()
 const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
 const isServicesPage = computed(() => route.path === '/services')
+const isProductsPage = computed(() => route.path === '/products')
 
 const scrolledPastThreshold = ref(false)
 const headerCompact = ref(false)
@@ -57,7 +58,7 @@ function handleScroll() {
 }
 
 function setupScrollListener() {
-  const needsListener = !isHomePage.value && !isServicesPage.value
+  const needsListener = !isHomePage.value && !isServicesPage.value && !isProductsPage.value
   if (needsListener) {
     lastScrollY = window.scrollY
     handleScroll()
@@ -69,7 +70,7 @@ function setupScrollListener() {
 
 onMounted(() => {
   // Disable scroll on homepage and services page (no-scroll design)
-  const lockScroll = isHomePage.value || isServicesPage.value
+  const lockScroll = isHomePage.value || isServicesPage.value || isProductsPage.value
   document.body.style.overflow = lockScroll ? 'hidden' : 'auto'
   setupScrollListener()
 })
@@ -79,8 +80,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-watch([isHomePage, isServicesPage], ([isHome, isServices]) => {
-  document.body.style.overflow = isHome || isServices ? 'hidden' : 'auto'
+watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProducts]) => {
+  document.body.style.overflow = isHome || isServices || isProducts ? 'hidden' : 'auto'
   setupScrollListener()
 })
 </script>

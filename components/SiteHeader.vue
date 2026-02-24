@@ -159,11 +159,13 @@ function syncHeaderHeight() {
 }
 
 const isHomePage = computed(() => route.path === '/')
-const { hero: pageHero, servicesHeaderHeroKey } = usePageHero()
+const { hero: pageHero, servicesHeaderHeroKey, productsHeaderHeroKey } = usePageHero()
 const servicesHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(servicesHeaderHeroKey, () => null)
+const productsHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(productsHeaderHeroKey, () => null)
 
 const heroToShow = computed(() => {
   if (route.path === '/services' && servicesHeaderHero.value) return servicesHeaderHero.value
+  if (route.path === '/products' && productsHeaderHero.value) return productsHeaderHero.value
   return pageHero.value
 })
 

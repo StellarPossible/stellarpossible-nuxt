@@ -18,10 +18,12 @@ const heroByPath: Record<string, PageHero> = {
 
 /** Set by the services page per tab; header uses this when route is /services */
 export const servicesHeaderHeroKey = 'servicesHeaderHero'
+/** Set by the products page per tab; header uses this when route is /products */
+export const productsHeaderHeroKey = 'productsHeaderHero'
 
 export function usePageHero() {
   const route = useRoute()
   const path = route.path
   const hero = computed<PageHero | null>(() => heroByPath[path] ?? null)
-  return { hero, servicesHeaderHeroKey }
+  return { hero, servicesHeaderHeroKey, productsHeaderHeroKey }
 }
