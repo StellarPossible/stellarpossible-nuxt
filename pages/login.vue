@@ -135,20 +135,11 @@
       <WordPressTest />
     </div>
     </div>
-
-    <nav class="auth-cross-nav" aria-label="Site navigation">
-      <NuxtLink to="/services" class="auth-cross-link">Services</NuxtLink>
-      <span class="auth-cross-sep" aria-hidden="true">·</span>
-      <NuxtLink to="/products" class="auth-cross-link">Our Work</NuxtLink>
-      <span class="auth-cross-sep" aria-hidden="true">·</span>
-      <button type="button" class="auth-cross-link auth-cross-contact" @click="openContact">Contact</button>
-    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
-const { open: openContact } = useContactModal()
 const isRegistering = ref(false)
 const isLoading = ref(false)
 
@@ -694,39 +685,6 @@ pre {
 
 .debug-info .test-error * {
   color: #721c24;
-}
-
-.auth-cross-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.auth-cross-link {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.2s ease;
-}
-
-.auth-cross-link:hover {
-  color: #fff;
-}
-
-.auth-cross-sep {
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.875rem;
-  user-select: none;
 }
 
 @media (max-width: 480px) {

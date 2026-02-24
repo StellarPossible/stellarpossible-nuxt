@@ -1,43 +1,92 @@
 <template>
   <section class="products-page">
-    <div class="products-inner">
-      <!-- Client Portfolio Section -->
-      <section class="portfolio">
-        <div class="portfolio-header">
-          <h2 class="portfolio-title">Client Portfolio</h2>
-          <p class="portfolio-subtitle">Trusted by businesses to deliver exceptional web experiences</p>
-        </div>
-        
-        <div class="portfolio-grid" role="list">
+    <!-- Tabs: zero scroll, one panel at a time -->
+    <div
+      class="products-tabs"
+      role="tablist"
+      aria-label="Content categories"
+      @keydown.left.prevent="navigateTab(-1)"
+      @keydown.right.prevent="navigateTab(1)"
+    >
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'portfolio'"
+        :class="['tab-trigger', { active: activeTab === 'portfolio' }]"
+        @click="activeTab = 'portfolio'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:view-grid-outline" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Portfolio</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'featured'"
+        :class="['tab-trigger', { active: activeTab === 'featured' }]"
+        @click="activeTab = 'featured'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:star" aria-hidden />
+          <template #fallback><span aria-hidden>★</span></template>
+        </ClientOnly>
+        <span>Featured</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="activeTab === 'stack'"
+        :class="['tab-trigger', { active: activeTab === 'stack' }]"
+        @click="activeTab = 'stack'"
+      >
+        <ClientOnly>
+          <Icon icon="mdi:code-tags" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Stack</span>
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <Transition name="tab-fade" mode="out-in">
+        <div :key="activeTab" role="tabpanel" class="tab-panel">
+          <!-- Portfolio panel -->
+          <div v-if="activeTab === 'portfolio'" class="products-inner portfolio-panel">
+            <div class="portfolio-grid" role="list">
           <template v-for="client in clients" :key="client.id">
-            <!-- Video card: overlay with clear CTA hierarchy; Watch preview expands video -->
+            <!-- Video card: hover or tap to play; leave or tap again to stop -->
             <article
               v-if="client.highlightVideo"
               class="client-card client-card-dark client-card-video"
-              :class="{ 'client-card-video-active': activeVideoId === client.id }"
-              :style="videoCardStyle(client)"
               role="listitem"
               :aria-labelledby="`client-name-${client.id}`"
+              @mouseenter="setVideoCardHovered(client.id, true)"
+              @mouseleave="setVideoCardHovered(client.id, false)"
+              @click="toggleVideoPinned(client.id)"
             >
-              <div
-                class="client-video-frame"
-                aria-hidden="true"
-                @mouseenter="setVideoCardHovered(client.id, true)"
-                @mouseleave="setVideoCardHovered(client.id, false)"
-                @click="toggleOverlayPinned(client.id)"
-              >
+              <div class="client-video-frame">
+                <!-- Poster: default state -->
+                <div
+                  class="client-video-poster"
+                  :class="{ 'client-video-poster-hidden': isVideoActive(client.id) }"
+                  :style="{ backgroundImage: `url(${client.logo})` }"
+                >
+                  <span class="client-video-hint">Tap or hover to preview</span>
+                </div>
+                <!-- Video: loads and plays on hover or tap -->
                 <ClientOnly>
                   <video
+                    v-if="isVideoActive(client.id)"
                     :ref="(el) => setVideoRef(client.id, el)"
                     class="client-highlight-video"
                     :src="getVideoSrc(client.highlightVideo)"
-                    :poster="client.logo"
                     preload="auto"
-                    :muted="!isCardUnmuted(client.id)"
+                    muted
                     loop
                     playsinline
                     aria-hidden="true"
-                    @loadedmetadata="onVideoLoadedMetadata(client.id)"
                     @loadeddata="onVideoLoadedData(client.id)"
                   />
                   <template #fallback>
@@ -45,54 +94,24 @@
                   </template>
                 </ClientOnly>
               </div>
-              <div
-                class="client-card-overlay"
-                :class="{
-                  'client-card-overlay-visible': isOverlayVisible(client.id),
-                  'client-card-overlay-hidden': !isOverlayVisible(client.id)
-                }"
-                @click.stop
-              >
-                <div class="client-card-content">
-                  <img
-                    v-if="client.logo"
-                    :src="client.logo"
-                    :alt="client.title"
-                    class="client-card-logo"
-                  />
-                  <h3 v-else :id="`client-name-${client.id}`" class="client-name">{{ client.title }}</h3>
-                  <span v-if="client.logo" :id="`client-name-${client.id}`" class="visually-hidden">{{ client.title }}</span>
-                  <p class="client-type">{{ client.type }}</p>
-                  <p class="client-description">{{ client.description }}</p>
-                </div>
-                <div class="client-card-actions">
-                  <button
-                    type="button"
-                    class="client-cta-secondary"
-                    aria-label="Listen to preview"
-                    @click.stop="toggleOverlayPinned(client.id)"
-                  >
-                    <ClientOnly>
-                      <Icon icon="mdi:play-circle-outline" aria-hidden />
-                      <template #fallback><span>▶</span></template>
-                    </ClientOnly>
-                    Watch preview
-                  </button>
-                  <a
-                    :href="client.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="client-cta-primary"
-                    :aria-label="`Visit ${client.title} website`"
-                    @click.stop
-                  >
-                    {{ client.ctaLabel || 'Visit site' }}
-                    <ClientOnly>
-                      <Icon icon="mdi:open-in-new" aria-hidden />
-                      <template #fallback><span>↗</span></template>
-                    </ClientOnly>
-                  </a>
-                </div>
+              <div class="client-card-footer">
+                <h3 :id="`client-name-${client.id}`" class="client-name">{{ client.title }}</h3>
+                <p class="client-type">{{ client.type }}</p>
+                <p class="client-description">{{ client.description }}</p>
+                <a
+                  :href="client.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="client-cta-primary"
+                  :aria-label="`Visit ${client.title} website`"
+                  @click.stop
+                >
+                  {{ client.ctaLabel || 'Visit site' }}
+                  <ClientOnly>
+                    <Icon icon="mdi:open-in-new" aria-hidden />
+                    <template #fallback><span>↗</span></template>
+                  </ClientOnly>
+                </a>
               </div>
             </article>
             <!-- Non-video card -->
@@ -130,16 +149,11 @@
               </span>
             </a>
           </template>
-        </div>
-      </section>
-
-      <!-- Featured Project -->
-      <section class="featured-section">
-        <header class="featured-section-header">
-          <h2 class="featured-section-title">Featured Project</h2>
-          <p class="featured-section-subtitle">A closer look at one of our flagship engagements</p>
-        </header>
-        <article class="featured">
+            </div>
+          </div>
+          <!-- Featured panel -->
+          <div v-else-if="activeTab === 'featured'" class="products-inner featured-panel">
+            <article class="featured featured-compact">
         <div class="featured-content">
           <div class="featured-badge">
             <ClientOnly>
@@ -154,49 +168,10 @@
             Full-stack platform transformation: site architecture, security hardening, 
             custom dashboard tools, and ongoing hosting with 99.9% uptime since 2022.
           </p>
-          <ul class="featured-features">
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              WordPress modernization & legacy plugin rehab
-            </li>
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              DevOps, CI/CD, and performance optimization
-            </li>
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              24/7 monitoring and managed hosting
-            </li>
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              API development & third-party integrations
-            </li>
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              Secure email and newsletter infrastructure
-            </li>
-            <li>
-              <ClientOnly>
-                <Icon icon="mdi:check-circle" />
-                <template #fallback><span class="check">✓</span></template>
-              </ClientOnly>
-              UI/UX and accessibility improvements
-            </li>
+          <ul class="featured-features featured-features-compact">
+            <li>WordPress modernization & DevOps</li>
+            <li>CI/CD, monitoring, managed hosting</li>
+            <li>API development & integrations</li>
           </ul>
           <NuxtLink to="/services" class="featured-cta">
             Start Your Project
@@ -221,10 +196,10 @@
           </div>
         </div>
       </article>
-      </section>
-
-      <!-- Tools we use — premium stellar card -->
-      <section class="tools-card-section" aria-label="Tools we use">
+          </div>
+          <!-- Stack panel -->
+          <div v-else-if="activeTab === 'stack'" class="products-inner stack-panel">
+            <section class="tools-card-section" aria-label="Tools we use">
         <article class="tools-card tools-card-stellar">
           <div class="tools-card-glow" aria-hidden="true" />
           <header class="tools-card-header">
@@ -257,27 +232,63 @@
             </li>
           </ul>
         </article>
-      </section>
-
-      <!-- CTA Section -->
-      <section class="cta-section">
-        <div class="cta-content">
-          <h2 class="cta-title">Ready to elevate your digital presence?</h2>
-          <p class="cta-subtitle">Let's discuss how we can help your business grow.</p>
-          <NuxtLink to="/services" class="cta-button">
-            View Our Services
-            <ClientOnly>
-              <Icon icon="mdi:arrow-right" />
-              <template #fallback><span>→</span></template>
-            </ClientOnly>
-          </NuxtLink>
+            </section>
+          </div>
         </div>
-      </section>
+      </Transition>
+    </div>
+
+    <!-- Slim strip -->
+    <div class="products-strip" role="complementary" aria-label="Quick links">
+      <NuxtLink to="/services" class="strip-link">
+        View Services
+        <ClientOnly>
+          <Icon icon="mdi:arrow-right" aria-hidden />
+          <template #fallback><span aria-hidden>→</span></template>
+        </ClientOnly>
+      </NuxtLink>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { productsHeaderHeroKey } from '~/composables/usePageHero'
+
+type TabId = 'portfolio' | 'featured' | 'stack'
+const activeTab = ref<TabId>('portfolio')
+const productsHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(productsHeaderHeroKey, () => null)
+
+const tabHeroContent: Record<TabId, { badge?: string; title: string; subtitle: string }> = {
+  portfolio: {
+    badge: 'Our Work',
+    title: 'Crafted with Purpose',
+    subtitle: 'We build performant, secure, and beautifully designed digital experiences that drive results.'
+  },
+  featured: {
+    title: 'Featured Project',
+    subtitle: 'A closer look at one of our flagship engagements.'
+  },
+  stack: {
+    title: 'Tools we use',
+    subtitle: 'Modern, reliable stack for design, development, and hosting.'
+  }
+}
+
+const tabOrder: TabId[] = ['portfolio', 'featured', 'stack']
+function navigateTab(delta: number) {
+  const i = tabOrder.indexOf(activeTab.value)
+  const next = (i + delta + tabOrder.length) % tabOrder.length
+  activeTab.value = tabOrder[next]
+}
+
+watch(activeTab, (tab) => {
+  productsHeaderHero.value = tabHeroContent[tab] ?? null
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  productsHeaderHero.value = null
+})
+
 interface Client {
   id: string
   title: string
@@ -292,15 +303,15 @@ interface Client {
   ctaLabel?: string
 }
 
-// Video card: autoplay (muted), unmute on hover/click; click outside closes overlay and mutes
+// Video card: hover or tap to play; leave or tap again to stop
 const hoveredVideoId = ref<string | null>(null)
-const overlayPinnedId = ref<string | null>(null)
+const pinnedVideoId = ref<string | null>(null)
 const videoRefs: Record<string, HTMLVideoElement | null> = {}
-const videoDimensions = ref<Record<string, { w: number; h: number }>>({})
 
-const activeVideoId = computed(() => hoveredVideoId.value ?? overlayPinnedId.value)
+function isVideoActive(id: string) {
+  return hoveredVideoId.value === id || pinnedVideoId.value === id
+}
 
-/** Resolve video src to absolute URL on client so the video loads reliably */
 function getVideoSrc(path: string | undefined): string {
   if (!path) return ''
   if (typeof window !== 'undefined') {
@@ -310,68 +321,66 @@ function getVideoSrc(path: string | undefined): string {
 }
 
 function setVideoRef(id: string, el: unknown) {
-  if (el && el instanceof HTMLVideoElement) {
-    videoRefs[id] = el
-  }
-}
-
-function onVideoLoadedMetadata(id: string) {
-  const video = videoRefs[id]
-  if (video && video.videoWidth && video.videoHeight) {
-    videoDimensions.value = { ...videoDimensions.value, [id]: { w: video.videoWidth, h: video.videoHeight } }
-  }
+  videoRefs[id] = el && el instanceof HTMLVideoElement ? el : null
 }
 
 function onVideoLoadedData(id: string) {
   const video = videoRefs[id]
-  if (video) {
+  if (video && isVideoActive(id)) {
     video.currentTime = 0
-    video.muted = true
+    video.muted = false
     video.play().catch(() => {})
   }
 }
 
-function isCardUnmuted(id: string) {
-  return hoveredVideoId.value === id || overlayPinnedId.value === id
-}
-
-function videoCardStyle(client: Client) {
-  if (!client.highlightVideo) return undefined
-  const dims = videoDimensions.value[client.id]
-  if (dims && dims.w && dims.h) {
-    return { aspectRatio: `${dims.w} / ${dims.h}` }
-  }
-  return { aspectRatio: '16 / 9' }
-}
-
-function isOverlayVisible(id: string) {
-  return hoveredVideoId.value === id || overlayPinnedId.value === id
-}
-
 function setVideoCardHovered(id: string, hovered: boolean) {
+  if (!hovered && pinnedVideoId.value !== id) {
+    const video = videoRefs[id]
+    if (video) {
+      video.pause()
+      video.currentTime = 0
+    }
+  }
   hoveredVideoId.value = hovered ? id : null
 }
 
-function toggleOverlayPinned(id: string) {
-  overlayPinnedId.value = overlayPinnedId.value === id ? null : id
+function toggleVideoPinned(id: string) {
+  if (pinnedVideoId.value === id) {
+    const video = videoRefs[id]
+    if (video) {
+      video.pause()
+      video.currentTime = 0
+    }
+    pinnedVideoId.value = null
+  } else {
+    pinnedVideoId.value = id
+  }
 }
 
-function handleClickOutsideVideoCard(event: MouseEvent) {
+function handleClickOutsideVideo(event: MouseEvent) {
   const target = event.target as Node
   if (target && !(target as Element).closest?.('.client-card-video')) {
-    overlayPinnedId.value = null
+    const id = pinnedVideoId.value
+    if (id) {
+      const video = videoRefs[id]
+      if (video) {
+        video.pause()
+        video.currentTime = 0
+      }
+      pinnedVideoId.value = null
+    }
   }
 }
 
 onMounted(() => {
   if (typeof document !== 'undefined') {
-    document.addEventListener('click', handleClickOutsideVideoCard)
+    document.addEventListener('click', handleClickOutsideVideo)
   }
 })
 
 onBeforeUnmount(() => {
   if (typeof document !== 'undefined') {
-    document.removeEventListener('click', handleClickOutsideVideoCard)
+    document.removeEventListener('click', handleClickOutsideVideo)
   }
 })
 
@@ -442,25 +451,175 @@ useHead({
   border: 0;
 }
 
+/* No-scroll: constrain to viewport (desktop) */
 .products-page {
-  min-height: 100vh;
-  padding: 5rem 1.5rem 4rem;
+  --products-height: calc(100vh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
+  padding: 0.75rem 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  height: var(--products-height);
+  max-height: var(--products-height);
+  overflow-y: hidden;
+}
+
+/* Tab triggers */
+.products-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem;
+  background: linear-gradient(145deg, rgba(18, 49, 70, 0.5) 0%, rgba(24, 58, 82, 0.35) 100%);
+  border: 1px solid rgba(120, 180, 220, 0.2);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.tab-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: min(7.5rem, 100%);
+}
+
+.tab-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.tab-trigger.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(120, 180, 255, 0.12);
+  border: 1px solid rgba(160, 200, 255, 0.2);
+}
+
+.tab-trigger:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.tab-trigger svg {
+  font-size: 1.125rem;
+}
+
+/* Tab transition */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.tab-fade-enter-from,
+.tab-fade-leave-to {
+  opacity: 0;
+}
+
+.tab-panels {
+  width: 100%;
+  max-width: 1100px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tab-panel {
+  margin-bottom: 0;
+  height: 100%;
+}
+
+/* Slim strip */
+.products-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  flex-shrink: 0;
+  min-height: 2.5rem;
+}
+
+.products-strip .strip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.products-strip .strip-link:hover {
   color: #fff;
 }
 
 .products-inner {
   max-width: 1100px;
   margin: 0 auto;
+  width: 100%;
 }
 
-// Featured Project Section
-.featured-section {
-  margin-bottom: 5rem;
+/* Compact featured for no-scroll */
+.featured-panel .featured-compact {
+  padding: 1.25rem;
+  gap: 1.25rem;
 }
 
-.featured-section-header {
-  text-align: center;
-  margin-bottom: 2rem;
+.featured-compact .featured-badge {
+  margin-bottom: 0.75rem;
+}
+
+.featured-compact .featured-title {
+  font-size: 1.5rem;
+}
+
+.featured-compact .featured-tagline {
+  margin-bottom: 0.75rem;
+}
+
+.featured-compact .featured-description {
+  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+}
+
+.featured-features-compact {
+  gap: 0.4rem !important;
+  margin-bottom: 1rem !important;
+  list-style: none;
+}
+
+.featured-features-compact li {
+  font-size: 0.875rem !important;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.featured-features-compact li::before {
+  content: '✓';
+  color: #10b981;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
 .featured-section-title {
@@ -477,9 +636,13 @@ useHead({
   margin: 0;
 }
 
-// Tools we use — compact stellar card
+/* Stack panel */
+.stack-panel {
+  padding-top: 0;
+}
+
 .tools-card-section {
-  margin-bottom: 3rem;
+  margin-bottom: 0;
 }
 
 .tools-card-stellar {
@@ -686,9 +849,9 @@ useHead({
 .featured {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  gap: 2rem;
   align-items: center;
-  padding: 3rem;
+  padding: 2rem;
   background: #fff;
   border-radius: 24px;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -831,8 +994,8 @@ useHead({
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 140px;
-  height: 140px;
+  width: 100px;
+  height: 100px;
   background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
   border-radius: 28px;
   border: 1px solid rgba(59, 130, 246, 0.2);
@@ -841,12 +1004,21 @@ useHead({
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 
   .featured-icon {
-    font-size: 4rem;
+    font-size: 2.5rem;
     color: #2563eb;
   }
 
   .icon-placeholder {
-    font-size: 3.5rem;
+    font-size: 2.5rem;
+  }
+}
+
+.featured-compact .featured-icon-wrap {
+  width: 80px;
+  height: 80px;
+
+  .featured-icon {
+    font-size: 2rem;
   }
 }
 
@@ -876,33 +1048,15 @@ useHead({
   letter-spacing: 0.05em;
 }
 
-// Portfolio Section
-.portfolio {
-  margin-bottom: 5rem;
-}
-
-.portfolio-header {
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.portfolio-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 0.5rem;
-}
-
-.portfolio-subtitle {
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.65);
-  margin: 0;
+/* Portfolio panel */
+.portfolio-panel {
+  padding-top: 0;
 }
 
 .portfolio-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.75rem;
+  gap: 1.25rem;
 }
 
 // Premium client cards
@@ -1003,29 +1157,46 @@ useHead({
   }
 }
 
-// Video card: sized to video aspect ratio (from video metadata); overlay only on hover or click
+// Video card: clean hover-to-play; no scale, no pin
 .client-card-video {
   position: relative;
   overflow: hidden;
   width: 100%;
-  min-height: 200px;
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    box-shadow 0.35s ease,
-    z-index 0s;
-  z-index: 0;
-
-  &.client-card-video-active {
-    transform: scale(1.3);
-    z-index: 10;
-    box-shadow:
-      0 16px 48px rgba(0, 0, 0, 0.35),
-      0 0 0 1px rgba(255, 255, 255, 0.08);
-  }
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
 
   .client-video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .client-video-poster {
     position: absolute;
     inset: 0;
-    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: opacity 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .client-video-poster-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .client-video-hint {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 40%;
   }
 
   .client-video-fallback {
@@ -1034,116 +1205,53 @@ useHead({
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    background-color: #000;
   }
 
   .client-highlight-video {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
     display: block;
-    background: #000;
   }
 
-  .client-card-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+  .client-card-footer {
     padding: 1.25rem 1.25rem 1rem;
     background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.75) 0%,
-      rgba(0, 0, 0, 0.35) 45%,
-      rgba(0, 0, 0, 0.08) 100%
+      to bottom,
+      rgba(18, 49, 70, 0.95) 0%,
+      rgba(18, 49, 70, 0.98) 100%
     );
-    transition: opacity 0.25s ease, visibility 0.25s ease;
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .client-card-overlay-visible {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-
-  .client-card-overlay-hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .client-card-content {
-    margin-bottom: 1rem;
-  }
-
-  .client-card-logo {
-    display: block;
-    max-width: 100%;
-    max-height: 3.5rem;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    margin: 0 0 0.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .client-name {
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #fff;
     margin: 0 0 0.25rem;
     line-height: 1.25;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   }
 
   .client-type {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.7);
     margin: 0 0 0.4rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   }
 
   .client-description {
     font-size: 0.875rem;
     line-height: 1.45;
-    color: rgba(255, 255, 255, 0.92);
-    margin: 0;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  }
-
-  .client-card-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 0.75rem;
-  }
-
-  .client-cta-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.65rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-  }
-
-  .client-cta-secondary:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.35);
+    margin: 0 0 1rem;
+    flex: 1;
   }
 
   .client-cta-primary {
@@ -1160,7 +1268,8 @@ useHead({
     border-radius: 10px;
     text-decoration: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: auto;
   }
 
   .client-cta-primary:hover {
@@ -1336,6 +1445,39 @@ useHead({
   }
 }
 
+/* Mobile: allow scroll, stack tabs */
+@media (max-width: 768px) {
+  .products-page {
+    height: auto;
+    min-height: var(--products-height);
+    max-height: none;
+    overflow-y: auto;
+  }
+
+  .products-tabs {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .tab-trigger {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 880px) {
+  .products-tabs {
+    flex-direction: column;
+  }
+}
+
+@media (max-height: 600px) {
+  .products-page {
+    overflow-y: auto;
+  }
+}
+
 // Responsive
 @media (max-width: 900px) {
   .featured {
@@ -1374,16 +1516,6 @@ useHead({
     flex-direction: row;
     align-items: center;
     gap: 1.25rem;
-  }
-
-  .client-card-video {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .client-card-video .client-card-actions {
-    flex-direction: column;
-    align-items: stretch;
   }
 
   .client-card-video .client-cta-primary {
