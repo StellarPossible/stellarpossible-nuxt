@@ -7,6 +7,33 @@
       <span class="auth-cross-sep" aria-hidden="true">·</span>
       <button type="button" class="auth-cross-link auth-cross-contact" @click="openContact">Contact</button>
     </nav>
+    <nav class="footer-account-nav" aria-label="Account">
+      <NuxtLink
+        v-if="user"
+        to="/dashboard"
+        class="footer-icon-link"
+        aria-label="Dashboard"
+      >
+        <Icon icon="mdi:view-dashboard" />
+      </NuxtLink>
+      <NuxtLink
+        v-if="!user"
+        to="/login"
+        class="footer-icon-link"
+        aria-label="Login"
+      >
+        <Icon icon="mdi:login" />
+      </NuxtLink>
+      <button
+        v-if="user"
+        type="button"
+        class="footer-icon-link footer-icon-btn"
+        aria-label="Logout"
+        @click="logout"
+      >
+        <Icon icon="mdi:logout" />
+      </button>
+    </nav>
     <div class="footer-content">
       <a
         href="https://instagram.com/stellarpossible"
@@ -28,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import type { User } from '~/types/auth'
 
 defineProps<{ scrolled?: boolean }>()
 
@@ -36,11 +64,22 @@ const footerEl = ref<HTMLElement | null>(null)
 const year = new Date().getFullYear()
 const { theme } = useTheme()
 const { open: openContact } = useContactModal()
+const user = useState<User | null>('auth.user', () => null)
 
 const isAuthPage = computed(() => {
   const p = route.path
   return p === '/login' || p === '/register'
 })
+
+async function logout() {
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    user.value = null
+    await navigateTo('/')
+  } catch (error) {
+    console.error('Logout failed:', error)
+  }
+}
 
 function syncFooterHeight() {
   if (import.meta.client && footerEl.value) {
@@ -160,6 +199,68 @@ onBeforeUnmount(() => {
 
   &.theme-light .auth-cross-sep {
     color: rgba(26, 26, 46, 0.4);
+  }
+
+  .footer-account-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    margin: 0 0 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    z-index: 1;
+  }
+
+  &.theme-light .footer-account-nav {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .footer-icon-link,
+  .footer-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+
+    :deep(svg) {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
+    }
+  }
+
+  &.theme-light .footer-icon-link,
+  &.theme-light .footer-icon-btn {
+    color: rgba(26, 26, 46, 0.85);
+
+    &:hover {
+      color: #1a1a2e;
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    &:focus-visible {
+      outline-color: #1a1a2e;
+    }
   }
 
   .footer-content {

@@ -30,6 +30,33 @@
           <nav v-if="showCrossNav" class="header-nav-column" aria-label="Main links">
             <CrossNav variant="header" class="header-cross-nav column" :show-contact="false" />
           </nav>
+          <nav class="header-auth-icons" aria-label="Account">
+            <NuxtLink
+              v-if="user"
+              to="/dashboard"
+              class="header-icon-btn"
+              aria-label="Dashboard"
+            >
+              <Icon icon="mdi:view-dashboard" />
+            </NuxtLink>
+            <NuxtLink
+              v-if="!user"
+              to="/login"
+              class="header-icon-btn"
+              aria-label="Login"
+            >
+              <Icon icon="mdi:login" />
+            </NuxtLink>
+            <button
+              v-if="user"
+              type="button"
+              class="header-icon-btn"
+              aria-label="Logout"
+              @click="logout"
+            >
+              <Icon icon="mdi:logout" />
+            </button>
+          </nav>
           <button
             class="menu-toggle menu-toggle-mobile"
             :class="{ open: isMenuOpen }"
@@ -359,6 +386,58 @@ async function logout() {
     gap: 0.75rem;
     min-width: 0;
     flex-shrink: 0;
+  }
+
+  .header-auth-icons {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .header-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.9);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+
+    :deep(svg) {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    &:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.5);
+      outline-offset: 2px;
+    }
+  }
+
+  &.theme-light .header-icon-btn {
+    color: rgba(26, 26, 46, 0.9);
+
+    &:hover {
+      color: #1a1a2e;
+      background: rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    &:focus-visible {
+      outline-color: #1a1a2e;
+    }
   }
 
   /* Hero on same line as logo and nav: column layout (badge, title, subtitle stacked) */

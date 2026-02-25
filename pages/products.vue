@@ -240,6 +240,14 @@
 
     <!-- Slim strip -->
     <div class="products-strip" role="complementary" aria-label="Quick links">
+      <NuxtLink to="/login?tab=register" class="strip-link">
+        Get started
+        <ClientOnly>
+          <Icon icon="mdi:arrow-right" aria-hidden />
+          <template #fallback><span aria-hidden>→</span></template>
+        </ClientOnly>
+      </NuxtLink>
+      <span class="strip-sep" aria-hidden>·</span>
       <NuxtLink to="/services" class="strip-link">
         View Services
         <ClientOnly>
@@ -393,6 +401,7 @@ const toolsWeUse = [
   { name: 'Hostinger', description: 'Reliable hosting for client sites.', icon: 'simple-icons:hostinger', url: 'https://www.hostinger.com' },
   { name: 'Unsplash', description: 'High-quality stock imagery.', icon: 'simple-icons:unsplash', url: 'https://unsplash.com' },
   { name: 'Adobe Photoshop', description: 'Logo and visual design work.', icon: 'simple-icons:adobephotoshop', url: 'https://www.adobe.com/products/photoshop.html' },
+  { name: 'Procreate', description: 'Digital illustration and design on iPad.', icon: 'simple-icons:procreate', url: 'https://procreate.art' },
 ]
 
 const clients: Client[] = [
@@ -553,9 +562,15 @@ useHead({
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem 0.75rem;
   padding: 0.5rem 1rem;
   flex-shrink: 0;
   min-height: 2.5rem;
+}
+
+.products-strip .strip-sep {
+  opacity: 0.4;
+  font-size: 0.75rem;
 }
 
 .products-strip .strip-link {

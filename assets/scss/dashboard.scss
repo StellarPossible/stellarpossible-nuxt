@@ -1,19 +1,23 @@
-.dashboard-container {
+/* Dashboard layout: sidebar + main (rendered from app.vue when route is /dashboard*) */
+.dashboard-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  min-height: 100vh;
-  background: #f8f9fa;
-}
-
-.dashboard-sidebar {
-  background: #fff;
-  border-right: 1px solid #e9ecef;
-  padding: 2rem 1rem;
+  grid-template-columns: 260px 1fr;
+  flex: 1;
+  min-height: calc(100vh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
+  padding-top: var(--site-header-height, 5rem);
 }
 
 .dashboard-main {
-  padding: 2rem;
+  padding: 1.5rem 2rem 3rem;
   overflow-y: auto;
+  min-width: 0;
+  background: linear-gradient(160deg, #4c5fd5 0%, #764ba2 50%, #2d1b4e 100%);
+  background-attachment: fixed;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .dashboard-content {
@@ -24,16 +28,17 @@
 }
 
 .dashboard-grid {
-  display: contents;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 @media (max-width: 960px) {
-  .dashboard-container {
+  .dashboard-layout {
     grid-template-columns: 1fr;
   }
-  .dashboard-sidebar {
-    position: sticky;
-    top: 64px;
-    z-index: 10;
+
+  .dashboard-main {
+    padding: 1rem 1.25rem 2rem;
   }
 }

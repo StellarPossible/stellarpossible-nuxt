@@ -7,7 +7,16 @@
     <SiteHeader :scrolled="!scrolledPastThreshold" :compact="headerCompact" />
 
     <main class="main-content">
-      <div class="page-content">
+      <template v-if="isDashboard">
+        <div class="dashboard-layout">
+          <DashboardSidebar />
+          <div class="dashboard-main">
+            <DashboardTopBar />
+            <NuxtPage />
+          </div>
+        </div>
+      </template>
+      <div v-else class="page-content">
         <!-- Render hero content only on home -->
         <HeroContent v-if="isHomePage" />
         <!-- Render all routed pages except home -->
@@ -32,12 +41,15 @@ import HeroContent from '@/components/HeroContent.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
 import ContactModal from '@/components/ContactModal.vue'
 import FloatingHelp from '@/components/FloatingHelp.vue'
+import DashboardSidebar from '@/components/DashboardSidebar.vue'
+import DashboardTopBar from '@/components/DashboardTopBar.vue'
 
 const route = useRoute()
 const { theme } = useTheme()
 const isHomePage = computed(() => route.path === '/')
 const isServicesPage = computed(() => route.path === '/services')
 const isProductsPage = computed(() => route.path === '/products')
+const isDashboard = computed(() => route.path.startsWith('/dashboard'))
 
 const scrolledPastThreshold = ref(false)
 const headerCompact = ref(false)
