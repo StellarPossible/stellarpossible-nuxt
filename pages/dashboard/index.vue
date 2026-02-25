@@ -1,16 +1,14 @@
 <template>
-  <div class="dashboard-page">
-    <div class="dashboard-container">
-      <header class="dashboard-hero">
-        <h1>Dashboard</h1>
-        <p>Welcome back, {{ user?.email || 'User' }}</p>
-      </header>
+  <div class="dashboard-overview">
+    <header class="dashboard-hero">
+      <h1>Welcome back, {{ displayName }}</h1>
+      <p>Here’s an overview of your account</p>
+    </header>
 
-      <div class="dashboard-grid">
-        <DashboardStats />
-        <DashboardQuickActions />
-        <DashboardRecentActivity />
-      </div>
+    <div class="dashboard-grid">
+      <DashboardStats />
+      <DashboardQuickActions />
+      <DashboardRecentActivity />
     </div>
   </div>
 </template>
@@ -23,53 +21,34 @@ definePageMeta({
 })
 
 const user = useState<User | null>('auth.user')
+const displayName = computed(() => user.value?.name || user.value?.username || user.value?.email?.split('@')[0] || 'User')
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/scss/variables.scss' as *;
-
-.dashboard-page {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 6rem 1rem 2rem;
+.dashboard-overview {
+  animation: fadeIn 0.3s ease;
 }
 
-.dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .dashboard-hero {
-  text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   color: white;
 
   h1 {
-    font-size: 3rem;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
     font-family: 'Evermore', 'Inter', sans-serif;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.35rem;
+    font-weight: 400;
   }
 
   p {
-    font-size: 1.2rem;
+    font-size: 1rem;
     opacity: 0.9;
-  }
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard-hero h1 {
-    font-size: 2rem;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+    margin: 0;
   }
 }
 </style>

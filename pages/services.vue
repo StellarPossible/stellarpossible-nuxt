@@ -37,6 +37,19 @@
       <button
         type="button"
         role="tab"
+        :aria-selected="activeTab === 'nuxt'"
+        :class="['tab-trigger', { active: activeTab === 'nuxt' }]"
+        @click="activeTab = 'nuxt'"
+      >
+        <ClientOnly>
+          <Icon icon="simple-icons:nuxtdotjs" aria-hidden />
+          <template #fallback><span aria-hidden>◆</span></template>
+        </ClientOnly>
+        <span>Nuxt.js</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
         :aria-selected="activeTab === 'hosting'"
         :class="['tab-trigger', { active: activeTab === 'hosting' }]"
         @click="activeTab = 'hosting'"
@@ -137,6 +150,33 @@
               </button>
             </div>
           </div>
+          <!-- Nuxt.js panel: custom platforms, fullstack vs frontend-only -->
+          <div v-else-if="activeTab === 'nuxt'" class="services-section nuxt-section">
+            <p class="nuxt-intro">
+              Custom web apps and platforms built to your needs—scoped from the start, designed to scale as you grow.
+            </p>
+            <div class="nuxt-scenarios">
+              <div class="nuxt-scenario-card">
+                <h3 class="nuxt-scenario-title">Fullstack (Nuxt + CMS)</h3>
+                <p class="nuxt-scenario-desc">When you need editable content, SEO control, and a content team that can update copy and pages without code. Ideal for marketing sites, blogs, and product launches that evolve over time.</p>
+                <p class="nuxt-scenario-price"><strong>$4,500</strong> starting</p>
+              </div>
+              <div class="nuxt-scenario-card">
+                <h3 class="nuxt-scenario-title">Frontend-only</h3>
+                <p class="nuxt-scenario-desc">When your content is static, from an external API, or managed elsewhere. Faster to ship, lower cost—still fully customized and scalable when you’re ready to add features or integrate more tools.</p>
+                <p class="nuxt-scenario-price"><strong>$2,500</strong> starting</p>
+              </div>
+            </div>
+            <p class="nuxt-scale-note">Every project is scoped to your exact needs and can grow with you—new pages, integrations, or a move to fullstack when the time is right.</p>
+            <button
+              type="button"
+              class="cta-button cta-primary nuxt-cta"
+              aria-label="Discuss your Nuxt.js project with Stellar Possible"
+              @click="openContact"
+            >
+              Discuss your project
+            </button>
+          </div>
           <!-- Web Management panel: two-column layout -->
           <div v-else-if="activeTab === 'hosting'" class="services-section hosting-section">
             <div class="included-row">
@@ -196,50 +236,22 @@
               <div class="hosting-col hosting-builds">
                 <h3 class="builds-heading">Website builds</h3>
                 <div class="builds-grid builds-grid-compact">
-        <article class="plan-card build-card">
-          <h3 class="plan-name">Single-page site</h3>
-          <div class="plan-price">
-            <span class="amount">$550</span>
-            <span class="period"></span>
-          </div>
-          <p class="build-description">One-page site for portfolios, landing pages, or focused business presence.</p>
-        </article>
-        <article class="plan-card build-card">
-          <h3 class="plan-name">Additional pages</h3>
-          <div class="plan-price">
-            <span class="amount">$400</span>
-            <span class="period">/page</span>
-          </div>
-          <p class="build-description">Add pages per need. Priced per page.</p>
-        </article>
-        <article
-          class="plan-card build-card build-card-nuxt build-card-cta"
-          aria-labelledby="nuxt-card-title"
-          aria-describedby="nuxt-card-desc"
-        >
-          <span class="build-card-badge">Starting at $2,500</span>
-          <h3 id="nuxt-card-title" class="plan-name build-card-nuxt-title">Nuxt.js sites & platforms</h3>
-          <div class="build-card-pricing-tiers" id="nuxt-card-desc">
-            <div class="pricing-tier">
-              <span class="pricing-tier-label">Headless CMS</span>
-              <span class="pricing-tier-amount">$4,500</span>
-              <span class="pricing-tier-desc">Nuxt + CMS. Editable content, SEO-ready.</span>
-            </div>
-            <div class="pricing-tier">
-              <span class="pricing-tier-label">Frontend-only</span>
-              <span class="pricing-tier-amount">$2,500</span>
-              <span class="pricing-tier-desc">Nuxt only—static or external content.</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="cta-button cta-primary build-card-nuxt-cta"
-            aria-label="Discuss your Nuxt.js project with Stellar Possible"
-            @click="openContact"
-          >
-            Discuss your project
-          </button>
-        </article>
+                  <article class="plan-card build-card">
+                    <h3 class="plan-name">Single-page site</h3>
+                    <div class="plan-price">
+                      <span class="amount">$550</span>
+                      <span class="period"></span>
+                    </div>
+                    <p class="build-description">One-page site for portfolios, landing pages, or focused business presence.</p>
+                  </article>
+                  <article class="plan-card build-card">
+                    <h3 class="plan-name">Additional pages</h3>
+                    <div class="plan-price">
+                      <span class="amount">$400</span>
+                      <span class="period">/page</span>
+                    </div>
+                    <p class="build-description">Add pages per need. Priced per page.</p>
+                  </article>
                 </div>
               </div>
             </div>
@@ -248,8 +260,16 @@
       </Transition>
     </div>
 
-    <!-- Slim strip: Slack + View portfolio -->
+    <!-- Slim strip: Get started + Slack + View portfolio -->
     <div class="services-strip" role="complementary" aria-label="Quick links">
+      <NuxtLink to="/login?tab=register" class="strip-link">
+        Get started
+        <ClientOnly>
+          <Icon icon="mdi:arrow-right" aria-hidden />
+          <template #fallback><span aria-hidden>→</span></template>
+        </ClientOnly>
+      </NuxtLink>
+      <span class="strip-sep" aria-hidden>·</span>
       <a
         href="https://stellarpossible.slack.com"
         target="_blank"
@@ -282,7 +302,7 @@ type PlanId = 'monthly' | 'addon'
 
 const user = useState<User | null>('auth.user', () => null)
 
-type TabId = 'design' | 'software' | 'hosting'
+type TabId = 'design' | 'software' | 'nuxt' | 'hosting'
 const activeTab = ref<TabId>('hosting')
 
 const servicesHeaderHero = useState<{ title: string; subtitle: string } | null>(servicesHeaderHeroKey, () => null)
@@ -296,13 +316,17 @@ const tabHeroContent: Record<TabId, { title: string; subtitle: string }> = {
     title: 'Tool Development',
     subtitle: 'Custom software, scripts, tools, and integrations. From one-off automations to full applications—built to your specs.'
   },
+  nuxt: {
+    title: 'Nuxt.js platforms',
+    subtitle: 'Custom web apps scoped to your needs—fullstack or frontend-only, built to scale over time.'
+  },
   hosting: {
     title: 'Web Management',
     subtitle: 'Reliable hosting for your site. Monthly billing.'
   }
 }
 
-const tabOrder: TabId[] = ['design', 'software', 'hosting']
+const tabOrder: TabId[] = ['design', 'software', 'nuxt', 'hosting']
 function navigateTab(delta: number) {
   const i = tabOrder.indexOf(activeTab.value)
   const next = (i + delta + tabOrder.length) % tabOrder.length
@@ -412,16 +436,20 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-/* No-scroll: constrain to viewport (desktop) */
+/* No-scroll: constrain to viewport (desktop) — high-end, polished */
 .services-page {
   --services-height: calc(100vh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
-  padding: 0.75rem 1.25rem 0;
+  --accent-glow: rgba(140, 200, 255, 0.15);
+  --card-glass: linear-gradient(160deg, rgba(18, 45, 65, 0.72) 0%, rgba(14, 38, 55, 0.58) 100%);
+  --card-border: 1px solid rgba(120, 180, 255, 0.18);
+  padding: 0.5rem 1.5rem 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   color: #fff;
-  background: rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   text-align: center;
   width: 100%;
   max-width: 100%;
@@ -443,23 +471,26 @@ useHead({
   opacity: 0;
 }
 
-/* Design chips */
+/* Design chips — compact, refined */
 .design-chips {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.4rem 0.6rem;
-  margin-bottom: 1rem;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.65rem;
+  flex-shrink: 0;
 }
 
 .chip {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(18, 49, 70, 0.5);
-  border: 1px solid rgba(120, 180, 220, 0.25);
-  padding: 0.25rem 0.6rem;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.88);
+  background: var(--card-glass);
+  border: var(--card-border);
+  padding: 0.2rem 0.5rem;
   border-radius: 100px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Book cover sample: thumbnail + link */
@@ -467,13 +498,13 @@ useHead({
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
 }
 
 .sample-thumb {
-  width: 4rem;
-  height: 6rem;
+  width: 3.5rem;
+  height: 5.25rem;
   object-fit: cover;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
@@ -497,10 +528,11 @@ useHead({
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem 0.6rem;
-  font-size: 0.8125rem;
-  color: rgba(255, 255, 255, 0.88);
-  margin-bottom: 1rem;
+  gap: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.86);
+  margin-bottom: 0.65rem;
+  flex-shrink: 0;
 }
 
 .included-row .sep {
@@ -512,14 +544,17 @@ useHead({
   opacity: 0.9;
 }
 
-/* Hosting two-column */
+/* Hosting: two-column, compact — fits viewport, no scroll */
 .hosting-two-col {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 1.25rem;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1rem;
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
 }
 
 .hosting-col {
@@ -527,37 +562,49 @@ useHead({
 }
 
 .hosting-builds .builds-heading {
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.5rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.builds-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
 }
 
 .builds-grid-compact .build-card {
-  padding: 1rem 1.1rem;
+  padding: 0.85rem 1rem;
 }
 
 .builds-grid-compact .build-description {
-  font-size: 0.8125rem;
-  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin-bottom: 0.6rem;
 }
 
-/* Slim strip: Slack + View portfolio */
+/* Slim strip: refined quick links */
 .services-strip {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem 0.75rem;
-  padding: 0.5rem 1rem;
+  gap: 0.4rem 0.6rem;
+  padding: 0.4rem 1rem;
   flex-shrink: 0;
-  min-height: 2.5rem;
+  min-height: 2.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .strip-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.875rem;
+  gap: 0.25rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.82);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -567,56 +614,58 @@ useHead({
 }
 
 .strip-sep {
-  opacity: 0.4;
-  font-size: 0.75rem;
+  opacity: 0.35;
+  font-size: 0.7rem;
 }
 
 .services-tabs {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.375rem;
-  margin-bottom: 0.75rem;
-  padding: 0.35rem;
-  background: linear-gradient(145deg, rgba(18, 49, 70, 0.5) 0%, rgba(24, 58, 82, 0.35) 100%);
-  border: 1px solid rgba(120, 180, 220, 0.2);
-  border-radius: 14px;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
+  padding: 0.3rem;
+  background: var(--card-glass);
+  border: var(--card-border);
+  border-radius: 12px;
   width: 100%;
-  max-width: 36rem;
-  box-shadow: 0 0 24px rgba(60, 120, 180, 0.06);
+  max-width: 34rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 0 1px rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
 .tab-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.9375rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.82);
   background: transparent;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
   flex: 1 1 auto;
-  min-width: min(7.5rem, 100%);
+  min-width: min(7rem, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .tab-trigger:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .tab-trigger.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   color: #fff;
-  box-shadow: 0 0 20px rgba(120, 180, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(160, 200, 255, 0.2);
+  box-shadow: 0 0 24px var(--accent-glow), 0 2px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(160, 210, 255, 0.25);
 }
 
 .tab-trigger:focus-visible {
@@ -705,16 +754,23 @@ useHead({
 
 .tab-panels {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-panel {
   margin-bottom: 0;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
 }
 
 .included-block {
@@ -783,30 +839,111 @@ useHead({
 
 .services-section {
   width: 100%;
-  max-width: 900px;
+  max-width: 960px;
   margin-bottom: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .software-section {
   .software-cta-block {
-    max-width: 36rem;
+    max-width: 34rem;
     margin: 0 auto;
-    padding: 1.75rem 1.5rem;
-    background: rgba(18, 49, 70, 0.5);
-    border: 1px solid rgba(84, 117, 128, 0.35);
-    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    background: var(--card-glass);
+    border: var(--card-border);
+    border-radius: 12px;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   }
 
   .software-intro {
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 0.9375rem;
+    line-height: 1.55;
     color: rgba(255, 255, 255, 0.88);
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.25rem;
   }
 
   .cta-software {
     margin-top: 0;
+  }
+}
+
+/* Nuxt.js panel: scenario cards + scale message */
+.nuxt-section {
+  max-width: 52rem;
+}
+
+.nuxt-intro {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 1rem;
+  max-width: 36rem;
+}
+
+.nuxt-scenarios {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.nuxt-scenario-card {
+  background: var(--card-glass);
+  border: var(--card-border);
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  text-align: left;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: rgba(120, 180, 220, 0.28);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+}
+
+.nuxt-scenario-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0 0 0.5rem;
+}
+
+.nuxt-scenario-desc {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 0.65rem;
+}
+
+.nuxt-scenario-price {
+  font-size: 0.875rem;
+  color: rgba(200, 230, 255, 0.95);
+  margin: 0;
+}
+
+.nuxt-scale-note {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 1rem;
+  max-width: 40rem;
+}
+
+.nuxt-cta {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .nuxt-scenarios {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -871,8 +1008,11 @@ useHead({
 .design-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex: 1;
+  min-height: 0;
+  align-content: start;
 }
 
 @media (max-width: 640px) {
@@ -882,55 +1022,54 @@ useHead({
 }
 
 .service-card {
-  background: linear-gradient(145deg, rgba(18, 49, 70, 0.6) 0%, rgba(22, 54, 78, 0.5) 100%);
-  border: 1px solid rgba(100, 160, 220, 0.22);
-  border-radius: 14px;
-  padding: 1.5rem 1.35rem;
+  background: var(--card-glass);
+  border: var(--card-border);
+  border-radius: 12px;
+  padding: 1.15rem 1.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 
   &:hover {
-    border-color: rgba(120, 180, 220, 0.35);
-    box-shadow: 0 0 24px rgba(80, 140, 200, 0.08), 0 8px 28px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(145deg, rgba(20, 54, 78, 0.7) 0%, rgba(26, 60, 86, 0.6) 100%);
-    transform: translateY(-2px);
+    border-color: rgba(120, 180, 220, 0.3);
+    box-shadow: 0 0 20px var(--accent-glow), 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
   }
 }
 
 .service-name {
-  font-size: 1.125rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  margin-bottom: 0.375rem;
+  margin-bottom: 0.25rem;
   letter-spacing: -0.01em;
   color: #fff;
 }
 
 .service-price {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .service-description {
-  font-size: 0.9375rem;
-  line-height: 1.55;
+  font-size: 0.875rem;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.82);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   flex: 1;
 }
 
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  max-width: 640px;
+  gap: 0.85rem;
   width: 100%;
-  margin-top: 0.75rem;
+  min-width: 0;
 }
 
 @media (max-width: 560px) {
@@ -994,67 +1133,66 @@ useHead({
   margin-bottom: 1rem;
 }
 
-/* Nuxt card: high-end, conversion-optimized */
+/* Nuxt card: compact, conversion-optimized */
 .build-card-nuxt {
   grid-column: 1 / -1;
-  max-width: 28rem;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 1.25rem 1.35rem;
-  background: linear-gradient(145deg, rgba(18, 49, 70, 0.75) 0%, rgba(24, 58, 82, 0.6) 100%);
-  border: 1px solid rgba(120, 180, 220, 0.25);
-  box-shadow: 0 0 32px rgba(80, 140, 200, 0.08), 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 1rem 1.25rem;
+  background: var(--card-glass);
+  border: var(--card-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 0 1px rgba(255, 255, 255, 0.08);
 
   &:hover {
-    border-color: rgba(140, 200, 255, 0.35);
-    box-shadow: 0 0 40px rgba(100, 160, 220, 0.12), 0 12px 40px rgba(0, 0, 0, 0.22);
-    background: linear-gradient(145deg, rgba(20, 54, 78, 0.8) 0%, rgba(28, 62, 88, 0.65) 100%);
+    border-color: rgba(140, 200, 255, 0.3);
+    box-shadow: 0 0 28px var(--accent-glow), 0 8px 28px rgba(0, 0, 0, 0.18);
   }
 }
 
 .build-card-badge {
   display: inline-block;
-  font-size: 0.6875rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(200, 230, 255, 0.95);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(160, 200, 255, 0.25);
-  padding: 0.3rem 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(160, 200, 255, 0.2);
+  padding: 0.25rem 0.5rem;
   border-radius: 100px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .build-card-nuxt-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   color: #fff;
 }
 
 .build-card-pricing-tiers {
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   width: 100%;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   text-align: left;
 }
 
 .build-card-nuxt .pricing-tier {
+  flex: 1;
+  min-width: 8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .build-card-nuxt .pricing-tier-label {
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1062,23 +1200,23 @@ useHead({
 }
 
 .build-card-nuxt .pricing-tier-amount {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
 
 .build-card-nuxt .pricing-tier-desc {
-  font-size: 0.875rem;
-  line-height: 1.45;
-  color: rgba(220, 235, 255, 0.85);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: rgba(220, 235, 255, 0.82);
 }
 
 .build-card-nuxt-cta {
-  min-width: 12rem;
-  padding: 0.6rem 1.25rem;
+  min-width: 10rem;
+  padding: 0.5rem 1rem;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.875rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 
   &:hover {
@@ -1102,87 +1240,86 @@ useHead({
 
 .plan-card {
   position: relative;
-  background: linear-gradient(145deg, rgba(18, 49, 70, 0.6) 0%, rgba(22, 54, 78, 0.5) 100%);
-  border: 1px solid rgba(100, 160, 220, 0.22);
-  border-radius: 14px;
-  padding: 1.5rem 1.35rem;
+  background: var(--card-glass);
+  border: var(--card-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s, transform 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    border-color: rgba(120, 180, 220, 0.35);
-    box-shadow: 0 0 24px rgba(80, 140, 200, 0.08), 0 6px 24px rgba(0, 0, 0, 0.18);
-    background: linear-gradient(145deg, rgba(20, 54, 78, 0.7) 0%, rgba(26, 60, 86, 0.6) 100%);
+    border-color: rgba(120, 180, 220, 0.3);
+    box-shadow: 0 0 20px var(--accent-glow), 0 6px 20px rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
   }
 
   &.featured {
     border-color: rgba(140, 200, 255, 0.28);
-    box-shadow: 0 0 28px rgba(100, 160, 220, 0.1), 0 6px 24px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(145deg, rgba(22, 54, 78, 0.7) 0%, rgba(28, 62, 88, 0.6) 100%);
+    box-shadow: 0 0 24px var(--accent-glow), 0 6px 20px rgba(0, 0, 0, 0.15);
   }
 
   .plan-name {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.25rem;
     letter-spacing: -0.01em;
   }
 
   .plan-badge {
     position: absolute;
-    top: -0.375rem;
+    top: -0.35rem;
     left: 50%;
     transform: translateX(-50%);
     background: #fff;
     color: #123146;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 0.25rem 0.65rem;
+    padding: 0.2rem 0.5rem;
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 
   .plan-price {
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.1rem;
 
     .amount {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
 
     .period {
-      font-size: 0.9375rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.68);
     }
   }
 
   .savings {
-    font-size: 0.8125rem;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 0.5rem;
     font-weight: 500;
   }
 
   .plan-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 1.25rem;
+    margin: 0 0 0.85rem;
     text-align: left;
     width: 100%;
 
     li {
-      padding: 0.3rem 0;
-      padding-left: 1.25rem;
+      padding: 0.2rem 0;
+      padding-left: 1.1rem;
       position: relative;
-      font-size: 0.9375rem;
-      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.8125rem;
+      color: rgba(255, 255, 255, 0.86);
 
       &::before {
         content: '✓';
@@ -1195,11 +1332,15 @@ useHead({
   }
 }
 
+.hosting-section {
+  width: 100%;
+}
+
 .cta-button {
   display: inline-block;
   margin-top: auto;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.9rem;
   font-weight: 600;
   border: none;
   border-radius: 10px;
@@ -1266,11 +1407,20 @@ useHead({
     max-height: none;
     overflow-y: auto;
   }
+
+  .tab-panels {
+    overflow-y: auto;
+    flex: 1 1 auto;
+  }
 }
 
 /* Short viewport fallback */
-@media (max-height: 600px) {
+@media (max-height: 700px) {
   .services-page {
+    overflow-y: auto;
+  }
+
+  .tab-panels {
     overflow-y: auto;
   }
 }
@@ -1278,6 +1428,14 @@ useHead({
 @media (max-width: 900px) {
   .hosting-two-col {
     grid-template-columns: 1fr;
+  }
+
+  .builds-grid-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .build-card-nuxt .pricing-tier {
+    min-width: 100%;
   }
 }
 </style>

@@ -1,7 +1,6 @@
 import type { User } from '~/types/auth'
 
 export default defineEventHandler(async (event) => {
-  // Read user from cookie (set by auth flow)
   const userCookie = getCookie(event, 'user-data')
   if (!userCookie) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
@@ -18,10 +17,29 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 
-  // TODO: Fetch real stats from WordPress or database
+  let totalPosts = 0
+  let totalComments = 0
+
+  const config = useRuntimeConfig()
+  const wpRest = (config.public.wpRestEndpoint as string)?.replace(/\/$/, '')
+  if (wpRest) {
+    try {
+      const [postsRes, commentsRes] = await Promise.all([
+        $fetch.raw(`${wpRest}/wp/v2/posts?per_page=1`).catch(() => null),
+        $fetch.raw(`${wpRest}/wp/v2/comments?per_page=1`).catch(() => null)
+      ])
+      const pt = postsRes?.headers?.get?.('x-wp-total')
+      const ct = commentsRes?.headers?.get?.('x-wp-total')
+      if (pt) totalPosts = parseInt(pt, 10) || 0
+      if (ct) totalComments = parseInt(ct, 10) || 0
+    } catch {
+      // WP may require auth; keep defaults
+    }
+  }
+
   return {
-    totalPosts: 0,
-    totalComments: 0,
+    totalPosts,
+    totalComments,
     lastLogin: user.lastValidated ?? null
   }
 })

@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const body = await readBody(event).catch(() => ({}))
   const plan = (body?.plan as string)?.toLowerCase()
+  const customerEmail = (body?.customer_email as string)?.trim() || undefined
 
   if (!plan || !PLAN_IDS.includes(plan as PlanId)) {
     throw createError({
@@ -48,20 +49,17 @@ export default defineEventHandler(async (event) => {
 
   const stripe = new Stripe(secretKey)
 
-  const session = await stripe.checkout.sessions.create({
+  const sessionOptions: Stripe.Checkout.SessionCreateParams = {
     mode: 'subscription',
-    line_items: [
-      {
-        price: priceId,
-        quantity: 1
-      }
-    ],
+    line_items: [{ price: priceId, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
-    subscription_data: {
-      metadata: { plan }
-    }
-  })
+    subscription_data: { metadata: { plan } }
+  }
+  if (customerEmail) {
+    sessionOptions.customer_email = customerEmail
+  }
+  const session = await stripe.checkout.sessions.create(sessionOptions)
 
   if (!session.url) {
     throw createError({

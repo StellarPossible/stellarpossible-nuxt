@@ -78,6 +78,11 @@ jspm_packages/
 # Optional REPL history
 .node_repl_history
 
+# User-uploaded avatars
+storage/avatars/*.png
+storage/avatars/*.jpg
+storage/avatars/*.jpeg
+
 # Output of 'npm pack'
 *.tgz
 

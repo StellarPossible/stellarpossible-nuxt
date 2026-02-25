@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 import type { User } from '~/types/auth'
-const { isOpen, close } = useContactModal()
+const { isOpen, close, initialSubject } = useContactModal()
 const user = useState<User | null>('auth.user')
 
 const form = reactive({
@@ -59,11 +59,16 @@ const submitting = ref(false)
 const success = ref(false)
 const error = ref('')
 
-// Pre-fill from logged in user
+// Pre-fill from logged in user and initial subject
 watchEffect(() => {
-  if (user.value && isOpen.value && !form.name && !form.email) {
-    form.name = user.value.name || user.value.username
-    form.email = user.value.email
+  if (isOpen.value) {
+    if (user.value && !form.name && !form.email) {
+      form.name = user.value.name || user.value.username
+      form.email = user.value.email
+    }
+    if (initialSubject.value) {
+      form.subject = initialSubject.value
+    }
   }
 })
 

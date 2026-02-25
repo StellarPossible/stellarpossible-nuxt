@@ -19,12 +19,12 @@
         <Icon icon="mdi:cog" />
         <span>Settings</span>
       </NuxtLink>
+      <NuxtLink to="/dashboard/services" class="nav-item" active-class="active">
+        <Icon icon="mdi:server" />
+        <span>Hosting</span>
+      </NuxtLink>
       <div v-if="isAdmin" class="admin-section">
         <h4>Admin</h4>
-        <NuxtLink to="/dashboard/users" class="nav-item" active-class="active">
-          <Icon icon="mdi:account-group" />
-          <span>Users</span>
-        </NuxtLink>
         <NuxtLink to="/dashboard/content" class="nav-item" active-class="active">
           <Icon icon="mdi:file-document" />
           <span>Content</span>
@@ -38,71 +38,99 @@
 import type { User } from '~/types/auth'
 const user = useState<User | null>('auth.user')
 const isAdmin = computed(() => user.value?.roles?.includes('administrator'))
-const avatarSrc = computed(() => user.value?.avatar || '/default-avatar.png')
+const avatarSrc = computed(() => user.value?.avatar || '/default-avatar.svg')
 </script>
 
 <style scoped lang="scss">
+.dashboard-sidebar {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1.5rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
 .user-profile {
   display: grid;
   gap: 0.5rem;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
   img {
-    width: 96px;
-    height: 96px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     object-fit: cover;
     margin: 0 auto 0.5rem;
-    border: 2px solid #e9ecef;
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
 
   h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a2e;
   }
 
   p {
     margin: 0;
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 .dashboard-nav {
   display: grid;
-  gap: 0.25rem;
+  gap: 0.2rem;
 
   .nav-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    color: #212529;
+    gap: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    color: #495057;
     text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
 
-    &.active, &:hover {
-      background: #f1f3f5;
+    &:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #4c5fd5;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%);
+      color: #4c5fd5;
     }
 
     :deep(svg) {
       width: 20px;
       height: 20px;
+      opacity: 0.9;
     }
   }
 
   .admin-section {
     margin-top: 1rem;
-    border-top: 1px solid #e9ecef;
     padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
 
     h4 {
-      margin: 0 0 0.5rem;
-      font-size: 0.9rem;
-      color: #6c757d;
+      margin: 0 0 0.5rem 0.85rem;
+      font-size: 0.7rem;
+      color: #868e96;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
+      font-weight: 600;
     }
   }
 }

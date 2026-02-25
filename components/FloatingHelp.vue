@@ -1,20 +1,19 @@
 <template>
-  <button
-    v-if="!isContactPage"
-    type="button"
+  <NuxtLink
+    v-if="!isAuthPage && !isDashboard"
+    to="/login?tab=register"
     class="floating-help"
-    aria-label="Contact or get help"
-    @click="open()"
+    aria-label="Get started - register or login"
   >
     <Icon icon="mdi:help-circle-outline" />
-  </button>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
 const route = useRoute()
-const isContactPage = computed(() => route.path === '/contact')
-const { open } = useContactModal()
+const isAuthPage = computed(() => route.path === '/login' || route.path === '/register')
+const isDashboard = computed(() => route.path.startsWith('/dashboard'))
 </script>
 
 <style scoped lang="scss">

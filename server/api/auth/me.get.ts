@@ -1,4 +1,5 @@
 import type { WordPressUser, User, AuthResponse, JWTPayload } from '~/types/auth'
+import { getAvatarMap } from '~/server/utils/avatar'
 
 export default defineEventHandler(async (event): Promise<AuthResponse> => {
   const token = getCookie(event, 'auth-token')
@@ -38,7 +39,8 @@ async function validateJWTSession(token: string, config: any): Promise<AuthRespo
     // Dynamic import for JWT
     const jwt = await import('jsonwebtoken')
     const decoded = jwt.default.verify(token, jwtSecret) as JWTPayload
-    
+    const avatar = await resolveAvatarUrl(decoded.id, decoded.avatar ?? null)
+
     return {
       success: true,
       user: {
@@ -47,7 +49,7 @@ async function validateJWTSession(token: string, config: any): Promise<AuthRespo
         email: decoded.email,
         name: decoded.name,
         roles: decoded.roles,
-        avatar: decoded.avatar ?? null,
+        avatar,
         description: decoded.description ?? null
       }
     }
@@ -108,9 +110,10 @@ async function validateSessionToken(token: string, config: any, event: any): Pro
         // Refresh user data from WordPress
         const refreshedUser = await refreshUserFromWordPress(user.id, config)
         if (refreshedUser) {
-          // Update the user data cookie with fresh data
+          const avatar = await resolveAvatarUrl(refreshedUser.id, refreshedUser.avatar)
           const updatedUser = {
             ...refreshedUser,
+            avatar,
             lastValidated: new Date().toISOString()
           }
           
@@ -132,6 +135,9 @@ async function validateSessionToken(token: string, config: any, event: any): Pro
       }
     }
     
+    // Merge custom avatar if uploaded
+    const avatar = await resolveAvatarUrl(user.id, user.avatar)
+
     // Return cached user data
     return {
       success: true,
@@ -141,7 +147,7 @@ async function validateSessionToken(token: string, config: any, event: any): Pro
         email: user.email,
         name: user.name,
         roles: user.roles,
-        avatar: user.avatar ?? null,
+        avatar,
         description: user.description ?? null,
         url: user.url ?? null,
         lastValidated: user.lastValidated ?? null
@@ -152,6 +158,18 @@ async function validateSessionToken(token: string, config: any, event: any): Pro
     console.error('Session validation error:', error)
     return { success: false, message: 'Session validation failed. Please log in again.' }
   }
+}
+
+async function resolveAvatarUrl(userId: number, wpAvatar: string | null): Promise<string | null> {
+  try {
+    const map = await getAvatarMap()
+    if (map[String(userId)]) {
+      const config = useRuntimeConfig()
+      const siteUrl = (config.public.siteUrl as string)?.replace(/\/$/, '') || ''
+      return `${siteUrl}/api/avatars/${userId}`
+    }
+  } catch {}
+  return wpAvatar ?? null
 }
 
 async function refreshUserFromWordPress(userId: number, config: any): Promise<User | null> {
@@ -170,13 +188,14 @@ async function refreshUserFromWordPress(userId: number, config: any): Promise<Us
     })
     
     if (wpUser && wpUser.id === userId) {
+      const avatar = await resolveAvatarUrl(userId, wpUser.avatar_urls?.['96'] ?? null)
       return {
         id: wpUser.id,
         username: wpUser.username,
         email: wpUser.email,
         name: wpUser.name || wpUser.username,
         roles: wpUser.roles,
-        avatar: wpUser.avatar_urls?.['96'] ?? null,
+        avatar,
         description: wpUser.description ?? null,
         url: wpUser.url ?? null
       }
