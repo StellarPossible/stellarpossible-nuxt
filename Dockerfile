@@ -17,8 +17,8 @@ RUN npm ci
 
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build Nuxt output only (skip manuscript tooling — Alpine has no bash; manuscripts aren't shipped in this image).
+RUN npm run build:nuxt
 
 # Production image, copy all the files and run nuxt
 FROM base AS runner
