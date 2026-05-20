@@ -17,10 +17,10 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
-  defineProps<{ variant?: 'header' | 'float' | 'inline'; showContact?: boolean }>(),
-  { variant: 'inline', showContact: true }
-)
+withDefaults(defineProps<{ variant?: 'header' | 'inline'; showContact?: boolean }>(), {
+  variant: 'inline',
+  showContact: true
+})
 
 const { theme } = useTheme()
 const { open: openContact } = useContactModal()
@@ -105,36 +105,6 @@ const { open: openContact } = useContactModal()
   }
 }
 
-.cross-nav.header.column {
-  gap: 0.3rem;
-
-  .cross-nav-link {
-    min-width: 6.5rem;
-    text-align: center;
-  }
-}
-
-/* Floating bar above footer: very thin, full viewport width */
-.cross-nav.float {
-  width: 100%;
-  min-height: 0;
-  padding: 0.25rem 0.5rem;
-  background: rgba(18, 49, 70, 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
-
-  .cross-nav-link {
-    font-size: 0.8125rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .cross-nav-sep {
-    font-size: 0.625rem;
-  }
-}
-
 /* Inline (e.g. news page) */
 .cross-nav.inline {
   padding: 0.5rem 0;
@@ -173,9 +143,23 @@ const { open: openContact } = useContactModal()
   color: rgba(26, 26, 46, 0.35);
 }
 
-.cross-nav.theme-light.float {
-  background: rgba(255, 255, 255, 0.88);
-  border-top-color: rgba(0, 0, 0, 0.06);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+@media (max-width: 400px) {
+  .cross-nav-link {
+    font-size: 0.8125rem;
+    padding: 0.28rem 0.5rem;
+  }
+
+  .cross-nav.header .cross-nav-link {
+    font-size: 0.75rem;
+    padding: 0.32rem 0.55rem;
+  }
+
+  .cross-nav-sep {
+    display: none;
+  }
+
+  .cross-nav {
+    gap: 0.35rem 0.4rem;
+  }
 }
 </style>

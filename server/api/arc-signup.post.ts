@@ -21,18 +21,18 @@ export default defineEventHandler(async (event) => {
   }
 
   const message = [
-    `ARC Reader Signup (mstompsword)`,
+    `ARC Reader Signup (mstompsword) — What the Cold Keeps (Aurora Peak Mysteries, Book 1)`,
     ``,
     `Name: ${name}`,
     `Email: ${email}`,
-    `Agreed to receive the free eBook pre-release in exchange for an honest review on Amazon.`,
-    `Sign up for latest from M Stompsword + more free ARC opportunities: ${signupForUpdates ? 'Yes' : 'No'}`
+    `Agreed to receive the free eBook pre-release of What the Cold Keeps in exchange for an honest review on Amazon.`,
+    `Sign up for latest from Marine Stompsword + more free ARC opportunities: ${signupForUpdates ? 'Yes' : 'No'}`
   ].join('\n')
 
   await sendContactEmail({
     name,
     email,
-    subject: 'ARC Reader Signup — mstompsword',
+    subject: 'ARC Reader Signup — What the Cold Keeps (mstompsword)',
     message
   })
 

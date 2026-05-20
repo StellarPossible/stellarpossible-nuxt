@@ -3,6 +3,16 @@ export default defineNuxtConfig({
     '@nuxt/image',
   ],
 
+  app: {
+    head: {
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+      meta: [
+        { name: 'mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' }
+      ]
+    }
+  },
+
   css: ['@/assets/scss/main.scss'],
 
   vite: {
@@ -83,7 +93,7 @@ export default defineNuxtConfig({
     stripePriceMonthly: process.env.STRIPE_PRICE_MONTHLY || '',
     stripePriceAnnual: process.env.STRIPE_PRICE_ANNUAL || '',
 
-    // Email/private server-side config
+    // Email/private server-side config (contact + ARC signup). Inquiries always include mlvalentonis@protonmail.com; EMAIL_TO adds optional extra recipients (comma-separated).
     emailFrom: process.env.EMAIL_FROM || '',
     emailTo: process.env.EMAIL_TO || '',
     resendApiKey: process.env.RESEND_API_KEY || ''

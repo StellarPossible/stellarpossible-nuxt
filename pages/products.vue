@@ -19,7 +19,7 @@
           <Icon icon="mdi:view-grid-outline" aria-hidden />
           <template #fallback><span aria-hidden>◆</span></template>
         </ClientOnly>
-        <span>Portfolio</span>
+        <span>Our Work</span>
       </button>
       <button
         type="button"
@@ -173,8 +173,8 @@
             <li>CI/CD, monitoring, managed hosting</li>
             <li>API development & integrations</li>
           </ul>
-          <NuxtLink to="/services" class="featured-cta">
-            Start Your Project
+          <NuxtLink :to="primaryCtaPath" class="featured-cta">
+            {{ primaryCtaLabel }}
             <ClientOnly>
               <Icon icon="mdi:arrow-right" />
               <template #fallback><span>→</span></template>
@@ -240,16 +240,24 @@
 
     <!-- Slim strip -->
     <div class="products-strip" role="complementary" aria-label="Quick links">
-      <NuxtLink to="/login?tab=register" class="strip-link">
-        Get started
+      <NuxtLink :to="primaryCtaPath" class="strip-link">
+        {{ primaryCtaLabel }}
         <ClientOnly>
           <Icon icon="mdi:arrow-right" aria-hidden />
           <template #fallback><span aria-hidden>→</span></template>
         </ClientOnly>
       </NuxtLink>
       <span class="strip-sep" aria-hidden>·</span>
+      <button type="button" class="strip-link strip-link-button" @click="openContact">
+        Contact
+        <ClientOnly>
+          <Icon icon="mdi:message-text-outline" aria-hidden />
+          <template #fallback><span aria-hidden>✉</span></template>
+        </ClientOnly>
+      </button>
+      <span class="strip-sep" aria-hidden>·</span>
       <NuxtLink to="/services" class="strip-link">
-        View Services
+        Services
         <ClientOnly>
           <Icon icon="mdi:arrow-right" aria-hidden />
           <template #fallback><span aria-hidden>→</span></template>
@@ -261,6 +269,9 @@
 
 <script setup lang="ts">
 import { productsHeaderHeroKey } from '~/composables/usePageHero'
+
+const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
+const { open: openContact } = useContactModal()
 
 type TabId = 'portfolio' | 'featured' | 'stack'
 const activeTab = ref<TabId>('portfolio')
@@ -462,7 +473,7 @@ useHead({
 
 /* No-scroll: constrain to viewport (desktop) */
 .products-page {
-  --products-height: calc(100vh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
+  --products-height: calc(100dvh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
   padding: 0.75rem 1.25rem 0;
   display: flex;
   flex-direction: column;
@@ -586,6 +597,18 @@ useHead({
 
 .products-strip .strip-link:hover {
   color: #fff;
+}
+
+.products-strip .strip-link-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.products-strip .strip-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
 }
 
 .products-inner {
@@ -1398,68 +1421,6 @@ useHead({
   }
 }
 
-// CTA Section
-.cta-section {
-  text-align: center;
-  padding: 3.5rem 2rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  backdrop-filter: blur(8px);
-  overflow: hidden;
-}
-
-.cta-content {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.cta-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 0.75rem;
-}
-
-.cta-subtitle {
-  font-size: 1.0625rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 2rem;
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a2e;
-  background: #fff;
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
-  max-width: 100%;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  }
-
-  svg {
-    font-size: 1.1rem;
-    transition: transform 0.2s ease;
-  }
-
-  &:hover svg {
-    transform: translateX(3px);
-  }
-}
-
 /* Mobile: allow scroll, stack tabs */
 @media (max-width: 768px) {
   .products-page {
@@ -1467,6 +1428,20 @@ useHead({
     min-height: var(--products-height);
     max-height: none;
     overflow-y: auto;
+  }
+
+  .products-strip {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.35rem;
+    column-gap: 0.5rem;
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+
+  .products-strip .strip-link {
+    font-size: clamp(0.75rem, 3.4vw, 0.8125rem);
   }
 
   .products-tabs {

@@ -75,10 +75,16 @@ function formatFrom(input: string): string {
   return raw
 }
 
+/** All contact / ARC inquiry emails are delivered here. `EMAIL_TO` may add extra recipients. */
+const INQUIRY_INBOX = 'mlvalentonis@protonmail.com'
+
 function buildRecipientList(value: unknown): string[] {
-  const defaults = ['marine@stellarpossible.com', 'mlvalentonis@protonmail.com']
   const configured = normalizeRecipients(value)
-  const combined = [...configured, ...defaults]
+  const combined = [...configured]
+  const lowerPrimary = INQUIRY_INBOX.toLowerCase()
+  if (!combined.some((a) => a.toLowerCase() === lowerPrimary)) {
+    combined.push(INQUIRY_INBOX)
+  }
   const unique = new Set<string>()
   for (const address of combined) {
     const normalized = address.trim()

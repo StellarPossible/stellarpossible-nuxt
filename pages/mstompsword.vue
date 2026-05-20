@@ -7,7 +7,7 @@
           <p class="arc-tagline">Free eBook pre-release in exchange for an honest Amazon review.</p>
         </div>
         <div class="arc-feature">
-          <span class="arc-feature-book">The Scent of Lies</span>
+          <span class="arc-feature-book">What the Cold Keeps</span>
           <span class="arc-feature-date">Feb 28</span>
           <a
             :href="amazonBookUrl"
@@ -31,15 +31,15 @@
         class="arc-preview"
       >
         <img
-          src="/images/media/ScentOfLiesAmazonCover.png"
-          alt="The Scent of Lies — Aurora Peak Mystery Book 1"
+          src="/images/media/what-the-cold-keeps-cover.png"
+          alt="What the Cold Keeps — An Aurora Peak Mystery by Marine Stompsword. A dignified Alaskan malamute silhouette standing on a rock outcrop above a black spruce treeline against a cobalt-blue field, with the hand-lettered white brush title stacked across the lower half."
           class="arc-preview-cover"
           width="140"
           height="210"
         />
         <div class="arc-preview-info">
-          <span class="arc-preview-title">The Scent of Lies</span>
-          <span class="arc-preview-subtitle">Aurora Peak Mystery Book 1</span>
+          <span class="arc-preview-title">What the Cold Keeps</span>
+          <span class="arc-preview-subtitle">An Aurora Peak Mystery · Book 1</span>
           <span class="arc-preview-date">Feb 28</span>
           <span class="arc-preview-cta">Pre-order on Amazon</span>
         </div>
@@ -72,7 +72,7 @@
             </label>
             <label class="arc-cb">
               <input v-model="form.signupForUpdates" type="checkbox" name="signupForUpdates" />
-              <span>Latest from M Stompsword + more free ARCs.</span>
+              <span>Latest from Marine Stompsword + more free ARCs.</span>
             </label>
           </div>
           <button type="submit" class="arc-submit" :disabled="loading">
@@ -133,11 +133,11 @@ async function submit() {
 }
 
 useHead({
-  title: 'ARC Readers | The Scent of Lies | mstompsword | StellarPossible',
+  title: 'ARC Readers | What the Cold Keeps | mstompsword | StellarPossible',
   meta: [
     {
       name: 'description',
-      content: 'The Scent of Lies releases February 28th. Sign up as an ARC reader to receive the eBook pre-release for free in exchange for an honest Amazon review.'
+      content: 'What the Cold Keeps releases February 28th. Sign up as an ARC reader to receive the eBook pre-release for free in exchange for an honest Amazon review.'
     }
   ]
 })
@@ -147,7 +147,7 @@ useHead({
 @use '@/assets/scss/variables.scss' as *;
 
 .arc-page {
-  --arc-available: calc(100vh - var(--site-header-height, 5rem));
+  --arc-available: calc(100dvh - var(--site-header-height, 5rem));
   min-height: var(--arc-available);
   height: var(--arc-available);
   max-height: var(--arc-available);
@@ -358,6 +358,32 @@ useHead({
   outline: none;
   border-color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 480px) {
+  .arc-fields {
+    flex-direction: column;
+  }
+
+  .arc-fields input {
+    width: 100%;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  .arc-submit {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  .arc-cb {
+    font-size: 0.8125rem;
+    align-items: flex-start;
+
+    input {
+      margin-top: 0.15rem;
+    }
+  }
 }
 
 .arc-checkboxes {

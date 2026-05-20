@@ -103,3 +103,8 @@ dist
 # Storybook build outputs
 .out
 .storybook-out
+
+# Manuscript build artifacts
+manuscript/Aurora Peak Mysteries/book-what-the-cold-keeps/build/
+manuscript/Aurora Peak Mysteries/book-what-the-heat-hides/build/
+manuscript/Wayfinder Chronicles/book-nine-lives/build/

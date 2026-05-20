@@ -1,9 +1,22 @@
 @use '@/assets/scss/dashboard.scss';
 
+/* Mobile baseline: predictable sizing, readable text scaling, notch-safe padding handled per surface */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  }
-  // Fade mask for home hero
+}
+
+// Fade mask for home hero
 .fade-to-footer::after {
   content: '';
   position: absolute;
