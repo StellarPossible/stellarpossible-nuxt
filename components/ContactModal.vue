@@ -124,19 +124,41 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .modal-overlay {
   position: fixed;
   inset: 0;
+  padding: max(0.75rem, env(safe-area-inset-top))
+    max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom))
+    max(0.75rem, env(safe-area-inset-left));
   background: rgba(0,0,0,0.5);
   backdrop-filter: blur(2px);
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  align-items: safe center;
+  justify-content: center;
+  overflow-y: auto;
   z-index: 4000; // above header and footer
 }
+
 .modal {
-  width: min(680px, 92vw);
+  width: min(680px, 100%);
+  max-width: 100%;
+  max-height: min(90dvh, calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1.5rem));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: #0e0f1a;
   color: #fff;
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 12px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+.modal-body {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 .modal-header {
   display: flex;
@@ -149,15 +171,38 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   background: transparent;
   border: 1px solid rgba(255,255,255,0.25);
   color: #fff;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
 }
-.modal-body {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem 1.25rem;
+
+@media (max-width: 480px) {
+  input,
+  textarea {
+    font-size: 16px; /* avoids iOS zoom on focus */
+  }
+
+  textarea {
+    min-height: 7rem;
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .modal {
+    border-radius: 12px;
+  }
 }
 label { display: grid; gap: 0.35rem; }
 input, textarea {
@@ -165,11 +210,14 @@ input, textarea {
   color: #fff;
   border: 1px solid rgba(255,255,255,0.18);
   border-radius: 8px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.62rem 0.75rem;
+  width: 100%;
+  font: inherit;
 }
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
@@ -178,8 +226,10 @@ input, textarea {
   color: #fff;
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 8px;
-  padding: 0.5rem 0.9rem;
+  padding: 0.62rem 1rem;
+  min-height: 44px;
   cursor: pointer;
+  font: inherit;
 }
 .btn.primary {
   background: #4f46e5;
@@ -188,7 +238,4 @@ input, textarea {
 .error { color: #ff6b6b; }
 .success { color: #2ecc71; }
 
-@media (max-width: 520px) {
-  .modal { width: 94vw; }
-}
 </style>

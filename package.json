@@ -3,7 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "npm run manuscript:build && nuxt build",
+    "build:nuxt": "nuxt build",
+    "manuscript:build": "bash ./manuscript/npm-export.sh",
+    "manuscript:build:book1": "bash \"./manuscript/Aurora Peak Mysteries/book-what-the-cold-keeps/npm-export.sh\"",
+    "manuscript:build:book2": "bash \"./manuscript/Aurora Peak Mysteries/book-what-the-heat-hides/npm-export.sh\"",
+    "manuscript:build:wayfinder": "bash \"./manuscript/Wayfinder Chronicles/book-nine-lives/npm-export.sh\"",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

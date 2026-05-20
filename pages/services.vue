@@ -11,19 +11,6 @@
       <button
         type="button"
         role="tab"
-        :aria-selected="activeTab === 'design'"
-        :class="['tab-trigger', { active: activeTab === 'design' }]"
-        @click="activeTab = 'design'"
-      >
-        <ClientOnly>
-          <Icon icon="mdi:palette-outline" aria-hidden />
-          <template #fallback><span aria-hidden>◆</span></template>
-        </ClientOnly>
-        <span>Design</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
         :aria-selected="activeTab === 'software'"
         :class="['tab-trigger', { active: activeTab === 'software' }]"
         @click="activeTab = 'software'"
@@ -70,64 +57,8 @@
           class="tab-panel"
           :aria-hidden="false"
         >
-          <!-- Design panel content -->
-          <div v-if="activeTab === 'design'" class="services-section">
-            <div class="design-chips">
-              <span class="chip">Unlimited revisions</span>
-              <span class="chip">Optimized files + hex palette</span>
-              <span class="chip">Multiple versions</span>
-              <span class="chip">Original PSD included</span>
-            </div>
-            <div class="services-grid design-grid">
-              <article
-                v-for="service in designServices"
-                :key="service.id"
-                class="service-card"
-                :class="{ 'service-card-book-cover': service.id === 'book-cover' }"
-              >
-                <h3 class="service-name">{{ service.name }}</h3>
-                <p v-if="service.price" class="service-price">{{ service.price }}</p>
-                <p class="service-description">{{ service.description }}</p>
-                <div v-if="service.id === 'book-cover'" class="service-card-sample">
-                  <NuxtImg
-                    :src="bookCovers[0].src"
-                    :alt="bookCovers[0].alt"
-                    class="sample-thumb"
-                    format="webp"
-                    width="80"
-                    height="120"
-                  />
-                  <NuxtLink to="/products" class="sample-link">View samples</NuxtLink>
-                </div>
-                <NuxtLink
-                  v-if="service.orderLink && !user"
-                  to="/login?tab=register"
-                  class="cta-button cta-primary"
-                >
-                  Get yours
-                </NuxtLink>
-                <a
-                  v-else-if="service.orderLink"
-                  :href="service.orderLink"
-                  class="cta-button cta-primary"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get yours
-                </a>
-                <button
-                  v-else
-                  type="button"
-                  class="cta-button cta-primary"
-                  @click="openContact"
-                >
-                  {{ service.cta }}
-                </button>
-              </article>
-            </div>
-          </div>
           <!-- Tool Development panel content -->
-          <div v-else-if="activeTab === 'software'" class="services-section software-section">
+          <div v-if="activeTab === 'software'" class="services-section software-section">
             <div class="included-row">
               <ClientOnly>
                 <Icon icon="mdi:video" aria-hidden />
@@ -139,14 +70,14 @@
                 <Icon icon="mdi:message-text" aria-hidden />
                 <template #fallback><span>💬</span></template>
               </ClientOnly>
-              <span>StellarPossible Slack</span>
+              <span>Slack Hub</span>
             </div>
             <div class="software-cta-block">
               <p class="software-intro">
                 Scripts, internal tools, APIs, automations—we scope, agree on a fixed price, and deliver.
               </p>
               <button type="button" class="cta-button cta-primary cta-software" @click="openContact">
-                Discuss your project
+                Contact
               </button>
             </div>
           </div>
@@ -171,10 +102,10 @@
             <button
               type="button"
               class="cta-button cta-primary nuxt-cta"
-              aria-label="Discuss your Nuxt.js project with Stellar Possible"
+              aria-label="Contact Stellar Possible about your Nuxt.js project"
               @click="openContact"
             >
-              Discuss your project
+              Contact
             </button>
           </div>
           <!-- Web Management panel: two-column layout -->
@@ -213,22 +144,12 @@
           </ul>
           <template v-if="plan.id !== 'addon'">
             <NuxtLink
-              v-if="!user"
-              to="/login?tab=register"
-              class="cta-button cta-primary"
-            >
-              Get started
-            </NuxtLink>
-            <button
-              v-else
-              type="button"
+              :to="primaryCtaPath"
               class="cta-button cta-primary"
               :class="{ 'cta-featured': plan.featured }"
-              :disabled="loadingPlan === plan.id"
-              @click="goToCheckout(plan.id)"
             >
-              {{ loadingPlan === plan.id ? 'Redirecting…' : 'Get started' }}
-            </button>
+              {{ primaryCtaLabel }}
+            </NuxtLink>
           </template>
         </article>
                 </div>
@@ -260,15 +181,23 @@
       </Transition>
     </div>
 
-    <!-- Slim strip: Get started + Slack + View portfolio -->
+    <!-- Slim strip: primary CTA + contact + Slack + Our Work -->
     <div class="services-strip" role="complementary" aria-label="Quick links">
-      <NuxtLink to="/login?tab=register" class="strip-link">
-        Get started
+      <NuxtLink :to="primaryCtaPath" class="strip-link">
+        {{ primaryCtaLabel }}
         <ClientOnly>
           <Icon icon="mdi:arrow-right" aria-hidden />
           <template #fallback><span aria-hidden>→</span></template>
         </ClientOnly>
       </NuxtLink>
+      <span class="strip-sep" aria-hidden>·</span>
+      <button type="button" class="strip-link strip-link-button" @click="openContact">
+        Contact
+        <ClientOnly>
+          <Icon icon="mdi:message-text-outline" aria-hidden />
+          <template #fallback><span aria-hidden>✉</span></template>
+        </ClientOnly>
+      </button>
       <span class="strip-sep" aria-hidden>·</span>
       <a
         href="https://stellarpossible.slack.com"
@@ -284,7 +213,7 @@
       </a>
       <span class="strip-sep" aria-hidden>·</span>
       <NuxtLink to="/products" class="strip-link">
-        View portfolio
+        Our Work
         <ClientOnly>
           <Icon icon="mdi:arrow-right" aria-hidden />
           <template #fallback><span aria-hidden>→</span></template>
@@ -295,23 +224,18 @@
 </template>
 
 <script setup lang="ts">
-import type { User } from '~/types/auth'
 import { servicesHeaderHeroKey } from '~/composables/usePageHero'
 
 type PlanId = 'monthly' | 'addon'
 
-const user = useState<User | null>('auth.user', () => null)
+const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
 
-type TabId = 'design' | 'software' | 'nuxt' | 'hosting'
+type TabId = 'software' | 'nuxt' | 'hosting'
 const activeTab = ref<TabId>('hosting')
 
 const servicesHeaderHero = useState<{ title: string; subtitle: string } | null>(servicesHeaderHeroKey, () => null)
 
 const tabHeroContent: Record<TabId, { title: string; subtitle: string }> = {
-  design: {
-    title: 'Design',
-    subtitle: 'One fixed price. No surprises. Final files ready for print and web.'
-  },
   software: {
     title: 'Tool Development',
     subtitle: 'Custom software, scripts, tools, and integrations. From one-off automations to full applications—built to your specs.'
@@ -326,7 +250,7 @@ const tabHeroContent: Record<TabId, { title: string; subtitle: string }> = {
   }
 }
 
-const tabOrder: TabId[] = ['design', 'software', 'nuxt', 'hosting']
+const tabOrder: TabId[] = ['software', 'nuxt', 'hosting']
 function navigateTab(delta: number) {
   const i = tabOrder.indexOf(activeTab.value)
   const next = (i + delta + tabOrder.length) % tabOrder.length
@@ -340,33 +264,6 @@ watch(activeTab, (tab) => {
 onBeforeUnmount(() => {
   servicesHeaderHero.value = null
 })
-
-const bookCovers = [
-  {
-    src: '/images/media/ScentOfLiesAmazonCover.png',
-    alt: 'Scent of Lies — book cover, Amazon/KDP',
-    title: 'Scent of Lies'
-  }
-]
-
-const designServices = [
-  {
-    id: 'custom-logo',
-    name: 'Custom logo',
-    price: '$450',
-    orderLink: '#' as string,
-    description: 'A distinctive logo tailored to your brand—concept, refinement, and final files ready for print and web.',
-    cta: 'Get a quote'
-  },
-  {
-    id: 'book-cover',
-    name: 'Book cover (KDP + Amazon optimized)',
-    price: '$1,350',
-    orderLink: '#' as string,
-    description: 'Professional book cover design sized and formatted for Kindle Direct Publishing and Amazon—front, spine, and back; ebook and print.',
-    cta: 'Get a quote'
-  }
-]
 
 const plans = [
   {
@@ -401,27 +298,10 @@ const plans = [
   }
 ]
 
-const loadingPlan = ref<PlanId | null>(null)
 const { open: openContactModal } = useContactModal()
 
 function openContact() {
   openContactModal()
-}
-
-async function goToCheckout(planId: PlanId) {
-  loadingPlan.value = planId
-  try {
-    const { url } = await $fetch<{ url: string }>('/api/stripe/create-checkout', {
-      method: 'POST',
-      body: { plan: planId }
-    })
-    if (url) window.location.href = url
-  } catch (e: any) {
-    console.error('Checkout error:', e)
-    alert(e?.data?.statusMessage || e?.message || 'Something went wrong. Please try again.')
-  } finally {
-    loadingPlan.value = null
-  }
 }
 
 useHead({
@@ -429,7 +309,7 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: 'Custom logo and book cover design (KDP + Amazon)—plus managed site hosting. Every service includes unlimited revisions, a consult with Marine, and optimized files.'
+      content: 'Managed hosting, website builds, custom tools and integrations, and Nuxt.js platforms—scoped with clarity. Includes consult with Marine, Slack Hub collaboration, and clear pricing.'
     }
   ]
 })
@@ -438,7 +318,7 @@ useHead({
 <style scoped lang="scss">
 /* No-scroll: constrain to viewport (desktop) — high-end, polished */
 .services-page {
-  --services-height: calc(100vh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
+  --services-height: calc(100dvh - var(--site-header-height, 5rem) - var(--site-footer-height, 3rem));
   --accent-glow: rgba(140, 200, 255, 0.15);
   --card-glass: linear-gradient(160deg, rgba(18, 45, 65, 0.72) 0%, rgba(14, 38, 55, 0.58) 100%);
   --card-border: 1px solid rgba(120, 180, 255, 0.18);
@@ -469,57 +349,6 @@ useHead({
 .tab-fade-enter-from,
 .tab-fade-leave-to {
   opacity: 0;
-}
-
-/* Design chips — compact, refined */
-.design-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem 0.5rem;
-  margin-bottom: 0.65rem;
-  flex-shrink: 0;
-}
-
-.chip {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  color: rgba(255, 255, 255, 0.88);
-  background: var(--card-glass);
-  border: var(--card-border);
-  padding: 0.2rem 0.5rem;
-  border-radius: 100px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* Book cover sample: thumbnail + link */
-.service-card-sample {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.75rem;
-}
-
-.sample-thumb {
-  width: 3.5rem;
-  height: 5.25rem;
-  object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-}
-
-.sample-link {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(200, 230, 255, 0.95);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.sample-link:hover {
-  color: #fff;
 }
 
 /* Included row: compact 1-line */
@@ -611,6 +440,18 @@ useHead({
 
 .strip-link:hover {
   color: #fff;
+}
+
+.strip-link-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.strip-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
 }
 
 .strip-sep {
@@ -737,18 +578,8 @@ useHead({
     font-size: 0.9375rem;
   }
 
-  .plan-card,
-  .service-card {
+  .plan-card {
     padding: 1.25rem 1rem;
-  }
-
-  .cross-cta-section {
-    margin-top: 2rem;
-    padding: 2rem 1rem;
-  }
-
-  .cross-cta-title {
-    font-size: 1.25rem;
   }
 }
 
@@ -962,106 +793,6 @@ useHead({
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
-}
-
-.design-deliverables {
-  max-width: 28rem;
-  margin: 0 auto 1.5rem;
-  padding: 1rem 1.25rem;
-  background: rgba(18, 49, 70, 0.4);
-  border: 1px solid rgba(84, 117, 128, 0.25);
-  border-radius: 12px;
-  text-align: left;
-}
-
-.design-deliverables-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  margin: 0 0 0.5rem;
-  letter-spacing: -0.01em;
-}
-
-.design-deliverables-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.88);
-
-  li {
-    padding: 0.2rem 0;
-    padding-left: 1.25rem;
-    position: relative;
-
-    &::before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      color: rgba(132, 165, 175, 0.95);
-      font-weight: 600;
-    }
-  }
-}
-
-.design-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-top: 0.5rem;
-  flex: 1;
-  min-height: 0;
-  align-content: start;
-}
-
-@media (max-width: 640px) {
-  .design-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.service-card {
-  background: var(--card-glass);
-  border: var(--card-border);
-  border-radius: 12px;
-  padding: 1.15rem 1.2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-
-  &:hover {
-    border-color: rgba(120, 180, 220, 0.3);
-    box-shadow: 0 0 20px var(--accent-glow), 0 6px 20px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-  }
-}
-
-.service-name {
-  font-size: 1.05rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-
-.service-price {
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 0.5rem;
-}
-
-.service-description {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.82);
-  margin-bottom: 1rem;
-  flex: 1;
 }
 
 .plans-grid {
@@ -1406,11 +1137,27 @@ useHead({
     min-height: var(--services-height);
     max-height: none;
     overflow-y: auto;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
   }
 
   .tab-panels {
     overflow-y: auto;
     flex: 1 1 auto;
+  }
+
+  .services-strip {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.35rem;
+    column-gap: 0.45rem;
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+
+  .services-strip .strip-link {
+    font-size: clamp(0.72rem, 3.5vw, 0.78rem);
   }
 }
 

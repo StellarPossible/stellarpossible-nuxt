@@ -9,9 +9,14 @@
         <NuxtLink v-if="user" to="/news" class="button latest">
           Latest from <img src="/images/primary/spicon.png" alt="Stellar Possible" class="hero-btn-icon" />
         </NuxtLink>
-        <NuxtLink v-else to="/services" class="button primary">Services</NuxtLink>
-        <NuxtLink v-if="user" to="/dashboard" class="button ghost">Manage Account</NuxtLink>
-        <NuxtLink v-else to="/login" class="button ghost">Login</NuxtLink>
+        <template v-if="user">
+          <NuxtLink :to="primaryCtaPath" class="button ghost">{{ primaryCtaLabel }}</NuxtLink>
+        </template>
+        <template v-else>
+          <NuxtLink :to="primaryCtaPath" class="button primary">{{ primaryCtaLabel }}</NuxtLink>
+          <NuxtLink to="/services" class="button ghost secondary-outline">Services</NuxtLink>
+          <NuxtLink to="/login?tab=register" class="button ghost login-link">Login</NuxtLink>
+        </template>
       </div>
     </div>
   </section>
@@ -21,6 +26,7 @@
 import type { User } from '~/types/auth'
 
 const user = useState<User | null>('auth.user', () => null)
+const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
 </script>
 
 <style scoped lang="scss">
@@ -30,15 +36,22 @@ const user = useState<User | null>('auth.user', () => null)
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 6rem 2rem 4rem;
+  padding: clamp(5rem, 14vw, 6rem)
+    max(1rem, env(safe-area-inset-right))
+    clamp(3rem, 10vw, 4rem)
+    max(1rem, env(safe-area-inset-left));
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   z-index: 2;
   box-sizing: border-box;
 
   .hero-backdrop {
     text-align: center;
-    padding: 2rem 2.5rem;
+    padding: clamp(1.75rem, 5vw, 2rem)
+      max(1.25rem, env(safe-area-inset-right))
+      clamp(1.75rem, 5vw, 2rem)
+      max(1.25rem, env(safe-area-inset-left));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     background-color: rgba(0, 0, 0, 0.5);
@@ -127,6 +140,14 @@ const user = useState<User | null>('auth.user', () => null)
         border: 1px solid rgba(255, 255, 255, 0.6);
       }
 
+      &.secondary-outline {
+        border-color: rgba(255, 255, 255, 0.45);
+      }
+
+      &.login-link {
+        font-weight: 500;
+      }
+
       &.primary:hover {
         background-color: #f5f5f5;
         transform: translateY(-2px);
@@ -163,17 +184,21 @@ const user = useState<User | null>('auth.user', () => null)
         outline: 2px solid white;
         outline-offset: 3px;
       }
+
+      @media (hover: none) and (pointer: coarse) {
+        min-height: 48px;
+      }
     }
   }
 }
 
 @media screen and (max-width: 768px) {
   .hero-content {
-    padding: 5rem 1.25rem 3rem;
+    padding: 5rem max(1rem, env(safe-area-inset-right)) 3rem max(1rem, env(safe-area-inset-left));
   }
 
   .hero-content .hero-backdrop {
-    padding: 1.5rem 1.25rem;
+    padding: 1.5rem max(1rem, env(safe-area-inset-right)) 1.5rem max(1rem, env(safe-area-inset-left));
     margin-top: -4rem;
   }
 

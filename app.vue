@@ -25,9 +25,6 @@
     </main>
   </div>
 
-  <!-- Floating help button -->
-  <FloatingHelp />
-
   <!-- Contact modal -->
   <ContactModal />
 
@@ -40,7 +37,6 @@ import { useRoute } from 'vue-router'
 import HeroContent from '@/components/HeroContent.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
 import ContactModal from '@/components/ContactModal.vue'
-import FloatingHelp from '@/components/FloatingHelp.vue'
 import DashboardSidebar from '@/components/DashboardSidebar.vue'
 import DashboardTopBar from '@/components/DashboardTopBar.vue'
 
@@ -125,6 +121,15 @@ watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProd
     background-image: url('/images/primary/galaxyBackgroundLIGHT.png');
     color: #1a1a2e;
   }
+
+  /* Fixed backgrounds are unreliable on mobile; scroll attachment reduces jank */
+  @media (max-width: 768px) {
+    &.theme-dark,
+    &.theme-light {
+      background-attachment: scroll;
+      min-height: 100dvh;
+    }
+  }
   /* Ensure main content text is readable in light mode */
   &.theme-light .main-content,
   &.theme-light .page-content {
@@ -176,10 +181,21 @@ watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProd
   z-index: 2;
   margin-bottom: 3rem;
   margin-top: 6.5rem;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 
   .show-logo & {
     max-height: 100vh;
     overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    margin-top: clamp(4.25rem, 22vw, 6rem);
+    margin-bottom: calc(2.75rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 480px) {
+    margin-top: clamp(3.85rem, 20vw, 5.25rem);
   }
 }
 

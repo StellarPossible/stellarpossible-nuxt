@@ -1,13 +1,13 @@
 <template>
   <footer ref="footerEl" class="site-footer" :class="{ 'theme-light': theme === 'light', 'scrolled': scrolled }">
-    <nav v-if="isAuthPage" class="auth-cross-nav" aria-label="Site navigation">
+    <nav v-if="isAuthPage || showMarketingCrossNav" class="auth-cross-nav" aria-label="Site navigation">
       <NuxtLink to="/services" class="auth-cross-link">Services</NuxtLink>
       <span class="auth-cross-sep" aria-hidden="true">·</span>
       <NuxtLink to="/products" class="auth-cross-link">Our Work</NuxtLink>
       <span class="auth-cross-sep" aria-hidden="true">·</span>
       <button type="button" class="auth-cross-link auth-cross-contact" @click="openContact">Contact</button>
     </nav>
-    <nav class="footer-account-nav" aria-label="Account">
+    <nav v-if="!hideFooterAccountIcons" class="footer-account-nav" aria-label="Account">
       <NuxtLink
         v-if="user"
         to="/dashboard"
@@ -18,7 +18,7 @@
       </NuxtLink>
       <NuxtLink
         v-if="!user"
-        to="/login"
+        to="/login?tab=register"
         class="footer-icon-link"
         aria-label="Login"
       >
@@ -71,6 +71,13 @@ const isAuthPage = computed(() => {
   return p === '/login' || p === '/register'
 })
 
+const showMarketingCrossNav = computed(() => {
+  const p = route.path
+  return p === '/' || p === '/services' || p === '/products'
+})
+
+const hideFooterAccountIcons = computed(() => route.path === '/services' || route.path === '/products')
+
 async function logout() {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
@@ -113,6 +120,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   width: 100%;
   padding: 0.35rem 0.5rem;
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
   background: $primary;
   color: $white;
   font-family: 'Montserrat', sans-serif;
@@ -326,7 +334,15 @@ onBeforeUnmount(() => {
   }
 
   @media (max-width: 768px) {
-    padding: 0.3rem 0.4rem;
+    padding: 0.3rem max(0.4rem, env(safe-area-inset-left))
+      calc(0.3rem + env(safe-area-inset-bottom))
+      max(0.4rem, env(safe-area-inset-right));
+
+    .auth-cross-nav {
+      padding-left: env(safe-area-inset-left, 0);
+      padding-right: env(safe-area-inset-right, 0);
+    }
+
     .copyright {
       font-size: 0.7rem;
     }

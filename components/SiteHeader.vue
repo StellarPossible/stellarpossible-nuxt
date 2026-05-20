@@ -24,12 +24,9 @@
               <p v-if="heroToShow.subtitle" class="header-hero-subtitle" v-html="heroSubtitleHtml" />
             </div>
           </template>
-          <CrossNav v-else-if="showCrossNav" variant="header" class="header-cross-nav inline" :show-contact="false" />
+          <CrossNav v-else-if="showCrossNav" variant="header" class="header-cross-nav" />
         </div>
         <div class="header-right">
-          <nav v-if="showCrossNav" class="header-nav-column" aria-label="Main links">
-            <CrossNav variant="header" class="header-cross-nav column" :show-contact="false" />
-          </nav>
           <nav class="header-auth-icons" aria-label="Account">
             <NuxtLink
               v-if="user"
@@ -41,7 +38,7 @@
             </NuxtLink>
             <NuxtLink
               v-if="!user"
-              to="/login"
+              to="/login?tab=register"
               class="header-icon-btn"
               aria-label="Login"
             >
@@ -100,45 +97,29 @@
               <span></span>
               <span></span>
             </button>
-            <div class="drawer-side-pills" role="group" aria-label="Menu side">
-              <button
-                type="button"
-                :class="{ active: menuSide === 'left' }"
-                :aria-pressed="menuSide === 'left'"
-                aria-label="Menu from left"
-                @click="setMenuSide('left')"
-              >L</button>
-              <button
-                type="button"
-                :class="{ active: menuSide === 'right' }"
-                :aria-pressed="menuSide === 'right'"
-                aria-label="Menu from right"
-                @click="setMenuSide('right')"
-              >R</button>
-            </div>
           </header>
           <div class="drawer-nav-links">
             <NuxtLink to="/products" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:package-variant" aria-hidden />
-              <span>products</span>
+              <span>Products</span>
             </NuxtLink>
             <NuxtLink to="/services" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:hand-heart" aria-hidden />
-              <span>services</span>
+              <span>Services</span>
             </NuxtLink>
             <template v-if="user">
               <NuxtLink to="/dashboard" active-class="active" class="drawer-link" @click="closeMenu">
                 <Icon icon="mdi:view-dashboard" aria-hidden />
-                <span>dashboard</span>
+                <span>Dashboard</span>
               </NuxtLink>
               <button type="button" class="drawer-link drawer-btn" @click="logout">
                 <Icon icon="mdi:logout" aria-hidden />
-                <span>logout</span>
+                <span>Logout</span>
               </button>
             </template>
-            <NuxtLink v-else to="/login" active-class="active" class="drawer-link" @click="closeMenu">
+            <NuxtLink v-else to="/login?tab=register" active-class="active" class="drawer-link" @click="closeMenu">
               <Icon icon="mdi:login" aria-hidden />
-              <span>login</span>
+              <span>Login</span>
             </NuxtLink>
           </div>
 
@@ -170,7 +151,7 @@ withDefaults(
   { compact: false }
 )
 
-const { menuSide, setMenuSide } = useMenuSide()
+const { menuSide } = useMenuSide()
 const { theme, toggleTheme } = useTheme()
 const headerEl = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | null = null
@@ -245,7 +226,7 @@ async function logout() {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
     user.value = null
-    await navigateTo('/services')
+    await navigateTo('/')
   } catch (error) {
     console.error('Logout failed:', error)
   }
@@ -325,7 +306,7 @@ async function logout() {
     flex-direction: column;
     align-items: stretch;
     margin: auto;
-    padding: 0.45rem 1.25rem 0.35rem;
+    padding: calc(0.45rem + env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) 0.35rem max(1.25rem, env(safe-area-inset-left, 0px));
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -333,7 +314,7 @@ async function logout() {
   }
 
   &.compact .container {
-    padding: 0.28rem 1rem 0.25rem;
+    padding: calc(0.28rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 0.25rem max(1rem, env(safe-area-inset-left, 0px));
   }
 
   .header-top {
@@ -362,21 +343,15 @@ async function logout() {
     align-items: center;
   }
 
-  .header-nav-column {
-    display: none;
-  }
-
   .header-cross-nav-row {
     display: none;
   }
 
   .header-cross-nav {
     width: 100%;
+    max-width: 100%;
     justify-content: center;
-  }
-
-  .header-cross-nav.inline {
-    width: auto;
+    flex-wrap: wrap;
   }
 
   .header-right {
@@ -440,6 +415,20 @@ async function logout() {
     }
   }
 
+  @media (hover: none) and (pointer: coarse) {
+    .header-icon-btn {
+      width: 2.75rem;
+      height: 2.75rem;
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    .menu-toggle.menu-toggle-mobile {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+
   /* Hero on same line as logo and nav: column layout (badge, title, subtitle stacked) */
   .header-hero.header-hero-inline {
     display: flex;
@@ -496,30 +485,6 @@ async function logout() {
     strong {
       font-weight: 700;
       font-style: italic;
-    }
-  }
-
-  @media (min-width: 769px) {
-    .header-center {
-      display: none;
-    }
-    .header-center.header-center-hero {
-      display: flex;
-    }
-    .header-nav-column {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.35rem;
-    }
-    .header-cross-nav.column {
-      flex-direction: column;
-      align-items: stretch;
-      width: auto;
-      gap: 0.25rem;
-    }
-    .header-cross-nav.column :deep(.cross-nav-sep) {
-      display: none;
     }
   }
 
