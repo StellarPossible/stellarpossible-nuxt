@@ -17,6 +17,8 @@ on:
           - staging
 
 env:
+  # Opt JavaScript actions into Node.js 24 before GitHub makes it default (Node 20 deprecation).
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   DOCKER_IMAGE_NAME: stellarpossible-nuxt
   CONTAINER_NAME: stellarpossible-app
   DEPLOY_PATH: /var/www/stellarpossible.com
@@ -31,7 +33,7 @@ jobs:
     
     steps:
       - name: 📋 Patchy checks out the code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
