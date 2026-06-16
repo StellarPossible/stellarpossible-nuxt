@@ -88,7 +88,7 @@ ssh-keygen -lf "$DEPLOY_KEY" || print_warning "Could not get key fingerprint"
 
 # Test SSH connection (explicit host block picks IdentityFile + IdentitiesOnly from config)
 print_info "Testing SSH connection to $VPS_USERNAME@$VPS_SERVER..."
-SSH_OPTS=(-o ConnectTimeout=15 BatchMode=yes)
+SSH_OPTS=(-o ConnectTimeout=15 -o BatchMode=yes)
 if [ "${SSH_DEBUG:-}" = "1" ]; then
   SSH_OPTS+=(-vvv)
 fi
