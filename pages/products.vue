@@ -133,7 +133,16 @@
                   class="client-logo-above"
                   aria-hidden="true"
                 />
-                <img :src="client.logo" :alt="`${client.title} logo`" class="client-logo" />
+                <img
+                  v-if="client.logo"
+                  :src="client.logo"
+                  :alt="`${client.title} logo`"
+                  class="client-logo"
+                />
+                <ClientOnly v-else-if="client.logoIcon">
+                  <Icon :icon="client.logoIcon" class="client-logo-icon" aria-hidden />
+                  <template #fallback><span class="client-logo-icon-fallback" aria-hidden>◆</span></template>
+                </ClientOnly>
               </div>
               <div class="client-info">
                 <h3 class="client-name">{{ client.title }}</h3>
@@ -314,7 +323,8 @@ interface Client {
   type: string
   description: string
   url: string
-  logo: string
+  logo?: string
+  logoIcon?: string
   logoAbove?: string
   highlightVideo?: string
   darkTheme?: boolean
@@ -444,6 +454,16 @@ const clients: Client[] = [
     url: 'https://vivariumsalon.com',
     logo: '/images/primary/vivariumlogo.png',
     darkTheme: true
+  },
+  {
+    id: 'rollcall',
+    title: 'RollCall',
+    type: 'StellarPossible Product · Tabletop RPG',
+    description: 'Party handler platform — organize and schedule tabletop games, build parties and characters.',
+    url: 'https://rollcall.stellarpossible.com',
+    logoIcon: 'mdi:cards-playing-outline',
+    ctaLabel: 'Open RollCall',
+    darkTheme: true
   }
 ]
 
@@ -452,7 +472,7 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: 'See our portfolio of successful web projects including HIPAA compliance platforms, business websites, and custom digital solutions.'
+      content: 'See our portfolio of successful web projects including RollCall, HIPAA compliance platforms, business websites, and custom digital solutions.'
     }
   ]
 })
@@ -1093,7 +1113,7 @@ useHead({
 
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: 1.25rem;
 }
 
@@ -1342,6 +1362,21 @@ useHead({
   width: auto;
   object-fit: contain;
   max-height: 4rem;
+}
+
+.client-logo-icon {
+  font-size: 4rem;
+  color: rgba(79, 70, 229, 0.85);
+}
+
+.client-card-dark .client-logo-icon {
+  color: rgba(148, 163, 255, 0.95);
+}
+
+.client-logo-icon-fallback {
+  font-size: 3rem;
+  line-height: 1;
+  opacity: 0.7;
 }
 
 .client-info {

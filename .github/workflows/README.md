@@ -73,23 +73,34 @@ The deployment workflow now uses `simple-ssh-setup.sh` which is specifically des
 
 #### SSH Connection Problems
 
-If you see errors like `ssh: handshake failed` or `ssh: unable to authenticate`:
+If you see **`Permission denied (publickey,password)`** or **`ssh: handshake failed`**:
 
-1. Verify your SSH keys are correctly set up:
-   ```bash
-   # On your local machine
-   ssh-keyscan -t rsa YOUR_SERVER_IP > known_hosts_entry.txt
-   # Add the content as SSH_HOST_KEY secret
-   ```
+1. **Matching key pair** — The **`SSH_PRIVATE_KEY`** secret must be the **private** half of the key whose **public** line is in **`~/.ssh/authorized_keys`** on the server for **`VPS_USERNAME`** (often `ssh-copy-id user@host` from your laptop).
 
-2. Make sure your SSH private key is correctly formatted, including the BEGIN and END lines:
+2. **No passphrase in CI** — Keys used in Actions must **not** use a passphrase (batch login cannot prompt).
+
+3. **Secret formatting** — Paste the **full** key, including headers/footers and **line breaks**, into **`SSH_PRIVATE_KEY`**:
    ```
    -----BEGIN OPENSSH PRIVATE KEY-----
    ...key content...
    -----END OPENSSH PRIVATE KEY-----
    ```
+   Or legacy PEM:
+   ```
+   -----BEGIN RSA PRIVATE KEY-----
+   ...
+   -----END RSA PRIVATE KEY-----
+   ```
 
-3. Check that your public key is in the `~/.ssh/authorized_keys` file on the server.
+4. **`SSH_HOST_KEY` (optional)** — Prefer `ssh-keyscan` output without duplicating the hostname if your secret already includes it:
+   ```bash
+   ssh-keyscan -t rsa,ecdsa,ed25519 YOUR_SERVER_HOST_OR_IP
+   ```
+   Put either the whole line as **`SSH_HOST_KEY`** (and rely on script prefix `VPS_SERVER`) **or** only the algorithm + base64 blob—avoid **`hostname hostname`** duplication.
+
+5. **Debug in Actions** — Add repo variable **`SSH_DEBUG`** = **`1`** on the workflow env **or** run locally with the same secrets to see **`ssh -vvv`** output (`simple-ssh-setup.sh` respects **`SSH_DEBUG=1`**).
+
+6. **Server-side** — On the VPS: **`chmod 700 ~/.ssh`**, **`chmod 600 ~/.ssh/authorized_keys`**, **`PermitRootLogin`** / **`PasswordAuthentication`** don’t fix missing pubkey—confirm **`authorized_keys`** has the matching public key.
 
 #### Docker Container Issues
 
