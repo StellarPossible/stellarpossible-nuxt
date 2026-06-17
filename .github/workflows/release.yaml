@@ -16,21 +16,51 @@ on:
           - production
           - staging
 
+concurrency:
+  group: stellarpossible-production-deploy
+  cancel-in-progress: false
+
 env:
-  # Opt JavaScript actions into Node.js 24 before GitHub makes it default (Node 20 deprecation).
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   DOCKER_IMAGE_NAME: stellarpossible-nuxt
   CONTAINER_NAME: stellarpossible-app
   DEPLOY_PATH: /var/www/stellarpossible.com
-  SERVER_USER: stellaruser
+  APP_DIR: nuxt-app
+  APP_PORT: "3000"
+  EXTERNAL_URL: https://stellarpossible.com/
 
 jobs:
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Quality gate (typecheck, lint)
+        run: |
+          npm ci
+          npm run type-check || echo "::warning::type-check failed (non-blocking)"
+          npm run lint || echo "::warning::lint failed (non-blocking)"
+
   deploy:
     name: 🚀 Patchy's Deployment Mission
-    runs-on: ubuntu-latest
+    needs: quality
+    runs-on: [self-hosted, linux, stellarpossible]
     environment: ${{ github.event.inputs.environment || 'production' }}
-    timeout-minutes: 30
-    
+    timeout-minutes: 45
+
     steps:
       - name: 📋 Patchy checks out the code
         uses: actions/checkout@v5
@@ -41,7 +71,6 @@ jobs:
         run: |
           chmod +x .github/scripts/*.sh
           chmod +x .github/scripts/utils/*.sh
-          ls -la .github/scripts/
 
       - name: 🤖 Patchy announces the mission
         run: |
@@ -54,31 +83,27 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
+      - name: Preflight (Docker on VPS)
+        run: |
+          docker info >/dev/null 2>&1 && echo "Docker OK" || sudo docker info
+          echo "Deploy user: $(whoami)"
+          echo "Deploy path: ${{ env.DEPLOY_PATH }}/${{ env.APP_DIR }}"
+
       - name: 🔍 Patchy inspects the codebase
         run: |
           echo "🤖 Patchy says: Let me see what we're working with here..."
-          echo "📁 Repository structure:"
-          ls -la
-          echo ""
-          echo "📦 Package.json check:"
-          if [[ -f "package.json" ]]; then
-            echo "✅ Package.json found - Patchy approves!"
-          else
+          if [[ ! -f "package.json" ]]; then
             echo "❌ No package.json? Patchy is confused!"
             exit 1
           fi
-          echo ""
-          echo "🐳 Docker setup check:"
-          if [[ -f "Dockerfile" ]]; then
-            echo "✅ Dockerfile found - Patchy loves containers!"
-          else
+          if [[ ! -f "Dockerfile" ]]; then
             echo "❌ No Dockerfile? Patchy needs his containers!"
             exit 1
           fi
+          echo "✅ Package.json and Dockerfile found — Patchy approves!"
 
       - name: 🏗️ Patchy builds the Docker image
-        run: |
-          .github/scripts/build-image.sh
+        run: .github/scripts/build-image.sh
         env:
           IMAGE_NAME: ${{ env.DOCKER_IMAGE_NAME }}
           TAG: latest
@@ -86,86 +111,37 @@ jobs:
           SAVE_IMAGE: "true"
 
       - name: 🧪 Patchy tests the container
-        run: |
-          .github/scripts/test-container.sh
+        run: .github/scripts/test-container.sh
         env:
           IMAGE_NAME: ${{ env.DOCKER_IMAGE_NAME }}
           TAG: latest
           TEST_PORT: 3001
           WAIT_TIME: 15
           MAX_RETRIES: 3
-          WP_USER: "admin"
-          WP_APP_PASSWORD: "test-password"
-          WP_GRAPHQL_ENDPOINT: "https://stellarpossible.com/cms/graphql"
-          WP_REST_ENDPOINT: "https://stellarpossible.com/cms/wp-json"
-          WP_API_URL: "https://stellarpossible.com/cms"
+          WP_USER: admin
+          WP_APP_PASSWORD: test-password
+          WP_GRAPHQL_ENDPOINT: https://stellarpossible.com/cms/graphql
+          WP_REST_ENDPOINT: https://stellarpossible.com/cms/wp-json
+          WP_API_URL: https://stellarpossible.com/cms
           USE_JWT: ${{ secrets.USE_JWT }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      - name: 🔑 Patchy sets up SSH
-        run: |
-          .github/scripts/simple-ssh-setup.sh
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          VPS_SERVER: ${{ secrets.VPS_SERVER }}
-          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-          SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}
-
-      - name: 🚚 Patchy prepares the server
-        run: |
-          # Copy the prepare-server.sh script to the server directly
-          scp .github/scripts/prepare-server.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/prepare-server.sh
-          
-          # Create a simple wrapper script
-          cat > docker-wrapper.sh << 'EOL'
-          #!/bin/bash
-          
-          # Check if Docker socket exists and user has access
-          if [ -e /var/run/docker.sock ]; then
-            if [ -w /var/run/docker.sock ]; then
-              echo "✅ User has direct access to Docker socket"
-            elif groups | grep -q docker; then
-              echo "✅ User is in docker group"
-            else
-              echo "⚠️ Docker permission issue detected, trying to continue anyway..."
-            fi
-          fi
-          
-          # Set DOCKER_CMD for use in the script
-          export DOCKER_CMD="docker"
-          
-          # Execute the prepare-server script with environment variables
-          bash /tmp/prepare-server.sh
-          EOL
-          
-          # Make the wrapper executable and send it to the server
-          chmod +x docker-wrapper.sh
-          scp docker-wrapper.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
-          
-          # Execute the wrapper on the remote server
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
-            export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
-            export IMAGE_NAME=${{ env.DOCKER_IMAGE_NAME }}
-            export DEPLOY_PATH=${{ env.DEPLOY_PATH }}
-            export APP_DIR=nuxt-app
-            
-            bash /tmp/docker-wrapper.sh
-          "
-          
-          # Clean up
-          rm docker-wrapper.sh
-
-      - name: 📤 Patchy uploads the new image
+      - name: Stage image tarball
         run: |
           TARFILE="${{ env.DOCKER_IMAGE_NAME }}-${{ github.sha }}.tar.gz"
-          echo "🤖 Patchy is uploading the Docker image to the server..."
-          scp -v "$TARFILE" ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:${{ env.DEPLOY_PATH }}/nuxt-app/
-          echo "✅ Image upload complete!"
+          mkdir -p "${{ env.DEPLOY_PATH }}/${{ env.APP_DIR }}"
+          if [ ! -f "$TARFILE" ]; then
+            echo "::error::Missing $TARFILE after build"
+            ls -la
+            exit 1
+          fi
+          cp -f "$TARFILE" "${{ env.DEPLOY_PATH }}/${{ env.APP_DIR }}/"
+          ls -lh "${{ env.DEPLOY_PATH }}/${{ env.APP_DIR }}/$TARFILE"
 
       - name: 🔐 Patchy verifies Stripe secrets
         run: |
           if [ -z "$STRIPE_SECRET_KEY" ]; then
-            echo "::error::STRIPE_SECRET_KEY is not set. Add it in Settings → Secrets and variables → Actions (Repository secrets)."
+            echo "::error::STRIPE_SECRET_KEY is not set. Add it in Settings → Secrets and variables → Actions."
             exit 1
           fi
           if [ -z "$STRIPE_PRICE_MONTHLY" ] || [ -z "$STRIPE_PRICE_ANNUAL" ]; then
@@ -177,198 +153,64 @@ jobs:
           STRIPE_PRICE_MONTHLY: ${{ secrets.STRIPE_PRICE_MONTHLY }}
           STRIPE_PRICE_ANNUAL: ${{ secrets.STRIPE_PRICE_ANNUAL }}
 
+      - name: 🚚 Patchy prepares the server
+        run: bash .github/scripts/prepare-server.sh
+        env:
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          IMAGE_NAME: ${{ env.DOCKER_IMAGE_NAME }}
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+          APP_DIR: ${{ env.APP_DIR }}
+
       - name: 🎯 Patchy deploys the application
-        run: |
-          # Copy our utility scripts to the server
-          echo "🤖 Patchy says: Copying utility scripts to the server..."
-          scp .github/scripts/utils/extract-docker-image.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/ || echo "⚠️ Failed to copy extraction utility (not critical)"
-          
-          # Copy the deploy-app.sh script to the server directly
-          scp .github/scripts/deploy-app.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/deploy-app.sh
-          
-          # Create a simple wrapper script
-          cat > deploy-wrapper.sh << 'EOL'
-          #!/bin/bash
-          
-          # Check if Docker socket exists and user has access
-          if [ -e /var/run/docker.sock ]; then
-            if [ -w /var/run/docker.sock ]; then
-              echo "✅ User has direct access to Docker socket"
-              export DOCKER_CMD="docker"
-              export DEPLOY_METHOD="docker"
-            elif groups | grep -q docker; then
-              echo "✅ User is in docker group"
-              export DOCKER_CMD="docker" 
-              export DEPLOY_METHOD="docker"
-            else
-              echo "⚠️ Docker permission issue detected, will use manual deployment method"
-              export DEPLOY_METHOD="manual"
-            fi
-          else
-            echo "⚠️ Docker socket not found, will use manual deployment method"
-            export DEPLOY_METHOD="manual"
-          fi
-          
-          echo "Using deployment method: $DEPLOY_METHOD"
-          
-          # Execute the deploy-app script with all environment variables
-          bash /tmp/deploy-app.sh
-          EOL
-          
-          # Make the wrapper executable and send it to the server
-          chmod +x deploy-wrapper.sh
-          scp deploy-wrapper.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
-          
-          # Execute the wrapper on the remote server
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
-            export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
-            export IMAGE_NAME=${{ env.DOCKER_IMAGE_NAME }}
-            export TAG=latest
-            export DEPLOY_PATH=${{ env.DEPLOY_PATH }}
-            export APP_DIR=nuxt-app
-            export TAR_FILE=${{ env.DOCKER_IMAGE_NAME }}-${{ github.sha }}.tar.gz
-            
-            # Set environment variables
-            export WP_USER=admin
-            export WP_APP_PASSWORD='${{ secrets.WP_APP_PASSWORD }}'
-            export WP_GRAPHQL_ENDPOINT=https://stellarpossible.com/cms/graphql
-            export WP_REST_ENDPOINT=https://stellarpossible.com/cms/wp-json
-            export WP_API_URL=https://stellarpossible.com/cms
-            export USE_JWT='${{ secrets.USE_JWT }}'
-            export JWT_SECRET='${{ secrets.JWT_SECRET }}'
-            export ADMIN_EMAIL='${{ secrets.ADMIN_EMAIL }}'
-            export STRIPE_SECRET_KEY='${{ secrets.STRIPE_SECRET_KEY }}'
-            export STRIPE_PRICE_MONTHLY='${{ secrets.STRIPE_PRICE_MONTHLY }}'
-            export STRIPE_PRICE_ANNUAL='${{ secrets.STRIPE_PRICE_ANNUAL }}'
-            export NUXT_PUBLIC_SITE_URL='${{ secrets.NUXT_PUBLIC_SITE_URL }}'
-            
-            bash /tmp/deploy-wrapper.sh
-          "
-          
-          # Clean up
-          rm deploy-wrapper.sh
+        run: bash .github/scripts/deploy-app.sh
+        env:
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          IMAGE_NAME: ${{ env.DOCKER_IMAGE_NAME }}
+          TAG: latest
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+          APP_DIR: ${{ env.APP_DIR }}
+          TAR_FILE: ${{ env.DOCKER_IMAGE_NAME }}-${{ github.sha }}.tar.gz
+          WP_USER: admin
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          WP_GRAPHQL_ENDPOINT: https://stellarpossible.com/cms/graphql
+          WP_REST_ENDPOINT: https://stellarpossible.com/cms/wp-json
+          WP_API_URL: https://stellarpossible.com/cms
+          USE_JWT: ${{ secrets.USE_JWT }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_PRICE_MONTHLY: ${{ secrets.STRIPE_PRICE_MONTHLY }}
+          STRIPE_PRICE_ANNUAL: ${{ secrets.STRIPE_PRICE_ANNUAL }}
+          NUXT_PUBLIC_SITE_URL: ${{ secrets.NUXT_PUBLIC_SITE_URL }}
 
       - name: 🏥 Patchy performs health checks
-        run: |
-          # Copy the health-check.sh script to the server directly
-          scp .github/scripts/health-check.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/health-check.sh
-          
-          # Create a simple wrapper script
-          cat > health-wrapper.sh << 'EOL'
-          #!/bin/bash
-          
-          # Check if Docker socket exists and user has access
-          if [ -e /var/run/docker.sock ]; then
-            if [ -w /var/run/docker.sock ]; then
-              echo "✅ User has direct access to Docker socket"
-              export DOCKER_CMD="docker"
-              export DEPLOY_METHOD="docker"
-            elif groups | grep -q docker; then
-              echo "✅ User is in docker group"
-              export DOCKER_CMD="docker" 
-              export DEPLOY_METHOD="docker"
-            else
-              echo "⚠️ Docker permission issue detected, using manual checks"
-              export DEPLOY_METHOD="manual"
-            fi
-          else
-            echo "⚠️ Docker socket not found, using manual checks"
-            export DEPLOY_METHOD="manual"
-          fi
-          
-          echo "Using health check method: $DEPLOY_METHOD"
-          
-          # Execute the health-check script with environment variables
-          bash /tmp/health-check.sh
-          EOL
-          
-          # Make the wrapper executable and send it to the server
-          chmod +x health-wrapper.sh
-          scp health-wrapper.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
-          
-          # Execute the wrapper on the remote server
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
-            export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
-            export HOST=localhost
-            export PORT=3000
-            export RETRIES=5
-            export DELAY=10
-            
-            bash /tmp/health-wrapper.sh
-          "
-          
-          # Clean up
-          rm health-wrapper.sh
+        run: bash .github/scripts/health-check.sh
+        env:
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          HOST: localhost
+          PORT: ${{ env.APP_PORT }}
+          RETRIES: 5
+          DELAY: 10
 
       - name: 🌐 Patchy tests external access
         run: |
           echo "🤖 Patchy says: Let's see if the world can reach us!"
-          
-          # Test external access with retries
-          for i in {1..3}; do
-            RESPONSE=$(curl -s -o /dev/null -w '%{http_code}' https://stellarpossible.com/ -m 30)
-            
+          for i in 1 2 3; do
+            RESPONSE=$(curl -s -o /dev/null -w '%{http_code}' "${{ env.EXTERNAL_URL }}" -m 30 || echo "000")
             if [[ "$RESPONSE" == "200" ]]; then
               echo "✅ Patchy celebrates: External access is working perfectly!"
-              break
-            elif [[ $i -eq 3 ]]; then
-              echo "⚠️ Patchy notes: External access returned HTTP $RESPONSE"
-              echo "🤖 This might be due to reverse proxy configuration - checking if app is running locally..."
-              # Don't fail the deployment for external access issues
-            else
-              echo "⏳ Patchy tries again... (Attempt $i, HTTP: $RESPONSE)"
-              sleep 15
+              exit 0
             fi
+            echo "⏳ Patchy tries again... (Attempt $i, HTTP: $RESPONSE)"
+            sleep 15
           done
+          echo "::warning::External URL did not return 200 (nginx/DNS may still be propagating)"
 
       - name: 🔍 Patchy runs final diagnostics
-        run: |
-          # Copy the diagnostics.sh script to the server directly
-          scp .github/scripts/diagnostics.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/diagnostics.sh
-          
-          # Create a simple wrapper script
-          cat > diagnostics-wrapper.sh << 'EOL'
-          #!/bin/bash
-          
-          # Check if Docker socket exists and user has access
-          if [ -e /var/run/docker.sock ]; then
-            if [ -w /var/run/docker.sock ]; then
-              echo "✅ User has direct access to Docker socket"
-              export DOCKER_CMD="docker"
-              export DEPLOY_METHOD="docker"
-            elif groups | grep -q docker; then
-              echo "✅ User is in docker group"
-              export DOCKER_CMD="docker" 
-              export DEPLOY_METHOD="docker"
-            else
-              echo "⚠️ Docker permission issue detected, using alternative diagnostics"
-              export DEPLOY_METHOD="manual"
-            fi
-          else
-            echo "⚠️ Docker socket not found, using alternative diagnostics"
-            export DEPLOY_METHOD="manual"
-          fi
-          
-          echo "Using diagnostics method: $DEPLOY_METHOD"
-          
-          # Execute the diagnostics script with environment variables
-          bash /tmp/diagnostics.sh
-          EOL
-          
-          # Make the wrapper executable and send it to the server
-          chmod +x diagnostics-wrapper.sh
-          scp diagnostics-wrapper.sh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }}:/tmp/
-          
-          # Execute the wrapper on the remote server
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_SERVER }} "
-            export CONTAINER_NAME=${{ env.CONTAINER_NAME }}
-            export PORT=3000
-            
-            bash /tmp/diagnostics-wrapper.sh
-          "
-          
-          # Clean up
-          rm diagnostics-wrapper.sh
+        run: bash .github/scripts/diagnostics.sh
+        env:
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          PORT: ${{ env.APP_PORT }}
 
       - name: 🎉 Patchy celebrates success
         if: success()

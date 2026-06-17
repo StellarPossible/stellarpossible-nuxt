@@ -1,35 +1,34 @@
-# SSH Authentication Guide for GitHub Actions
+# SSH Authentication Guide (optional diagnostics)
 
-To fix the SSH authentication issues in the GitHub Actions workflow, you need to set up the following secrets in your GitHub repository:
+Production deploy **does not use SSH**. Deploy runs on a [self-hosted runner](self-hosted-runner-setup.md) on the VPS, which connects outbound to GitHub over HTTPS.
 
-## Required Secrets
+SSH secrets are only needed if you run the optional [ssh-diagnose.yml](../.github/workflows/ssh-diagnose.yml) workflow to test connectivity from GitHub-hosted runners (often blocked by Hostinger).
 
-1. **VPS_SERVER** - The hostname or IP address of your server
-2. **VPS_USERNAME** - The SSH username for connecting to the server
-3. **SSH_PRIVATE_KEY** - Your private SSH key (full key content including headers)
-4. **SSH_HOST_KEY** - The SSH host key fingerprint of your server
+## Optional secrets (diagnostics only)
 
-## How to get the SSH Host Key
+1. **VPS_SERVER** — VPS origin IP address (not `stellarpossible.com`; Cloudflare does not proxy SSH)
+2. **VPS_USERNAME** — SSH username (e.g. `stellaruser`)
+3. **SSH_PRIVATE_KEY** — Private deploy key (full content including headers, no passphrase)
+4. **SSH_HOST_KEY** — Server host key (optional)
+5. **VPS_PORT** — SSH port (default `22`)
 
-To obtain your server's SSH host key, run the following command from your local machine:
+## How to get the SSH host key
+
+From your local machine:
 
 ```bash
-ssh-keyscan -t rsa YOUR_SERVER_IP_OR_HOSTNAME
+ssh-keyscan -t ed25519,rsa,ecdsa YOUR_SERVER_IP_OR_HOSTNAME
 ```
 
-Take the output of this command (excluding the IP/hostname part) and add it as the `SSH_HOST_KEY` secret.
+Use only the algorithm + base64 blob (without the hostname) as `SSH_HOST_KEY` — the setup script prepends `VPS_SERVER`.
 
-## Troubleshooting
+## Troubleshooting SSH diagnostics
 
-If you continue experiencing SSH issues:
+1. Ensure the deploy key has no passphrase
+2. Verify the public key is in `~/.ssh/authorized_keys` on the server for `VPS_USERNAME`
+3. Use the VPS origin IP, not the Cloudflare-proxied domain
+4. Connection timeouts from GitHub Actions are a firewall/network issue — use the self-hosted runner for deploy instead
 
-1. Ensure your SSH key has the correct permissions on your local machine (`chmod 600 ~/.ssh/id_rsa`)
-2. Verify that your SSH public key is added to the `~/.ssh/authorized_keys` file on the server
-3. Check that your server user has permission to run Docker commands
-4. Make sure the paths in the workflow match your actual server configuration
+## Production deploy
 
-## Additional Notes
-
-- The workflow now uses direct SSH commands instead of action plugins for improved control and debugging
-- All escape sequences in quoted command strings are properly handled
-- The SSH key is securely stored as a GitHub secret and set up with the correct permissions during the workflow run
+See [self-hosted-runner-setup.md](self-hosted-runner-setup.md) for installing the VPS runner (label `stellarpossible`).

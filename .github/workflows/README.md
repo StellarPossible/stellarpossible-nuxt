@@ -2,171 +2,130 @@
 
 This directory contains GitHub Actions workflows for automating deployment and other tasks.
 
-## 🚀 Deployment Workflow
+## Workflows
 
-The `release.yaml` workflow automates the deployment of the StellarPossible Nuxt.js application to a production or staging server.
+| Workflow | File | Triggers |
+|----------|------|----------|
+| Production deploy | `release.yaml` | Push to `main`, GitHub release, manual dispatch |
+| SSH diagnose | `ssh-diagnose.yml` | Manual only — test SSH from GitHub-hosted runner (optional) |
 
-## 📁 Project Structure
+## Production deploy flow
 
-The deployment system uses a modular approach with separate scripts for different parts of the workflow:
+Production deploy uses a **self-hosted runner** on the VPS (labels: `self-hosted`, `linux`, `stellarpossible`). Install once: [docs/self-hosted-runner-setup.md](../../docs/self-hosted-runner-setup.md).
+
+| Job | Runner | Steps |
+|-----|--------|--------|
+| `quality` | `ubuntu-latest` | Typecheck, lint |
+| `deploy` | `self-hosted` on VPS | Build Docker image, smoke test, prepare server, deploy, health checks |
+
+The deploy job runs **on the VPS** — no `scp` or `ssh` from GitHub cloud runners (Hostinger often blocks inbound SSH from Actions).
+
+If the VPS runner is missing or offline, the `deploy` job stays on **Waiting for a runner** until an online runner with label `stellarpossible` is available. Confirm **Settings → Actions → Runners** shows **Idle** before expecting deploy to start.
+
+Overlapping deploys are **queued** (`concurrency: stellarpossible-production-deploy`).
+
+## Project structure
 
 ```
 .github/
 ├── workflows/
 │   ├── release.yaml         # Main workflow file
-│   └── README.md            # Documentation
+│   ├── ssh-diagnose.yml     # Optional SSH connectivity test
+│   └── README.md
 └── scripts/
-    ├── setup-ssh.sh         # SSH setup script (original)
-    ├── simple-ssh-setup.sh  # Simplified SSH setup script
-    ├── build-image.sh       # Docker build script
-    ├── test-container.sh    # Container testing script
-    ├── prepare-server.sh    # Server preparation script
-    ├── deploy-app.sh        # Application deployment script
-    ├── health-check.sh      # Health check script
+    ├── simple-ssh-setup.sh  # SSH setup (diagnostics only)
+    ├── build-image.sh
+    ├── test-container.sh
+    ├── prepare-server.sh
+    ├── deploy-app.sh
+    ├── health-check.sh
     └── utils/
-        ├── slack-notify.sh  # Slack notification utilities
-        └── docker-utils.sh  # Docker-related utilities
+        └── slack-notify.sh
+scripts/
+└── install-actions-runner.sh  # One-time VPS runner install
 ```
 
-This modular structure offers several benefits:
-- Each script has a single responsibility, making the code more maintainable
-- Scripts can be tested individually, both locally and in CI/CD
-- Common functionality is shared across scripts
-- Better error handling and debugging capabilities
-- Scripts can be reused in other workflows or development processes
+## What "Patchy" does
 
-## 🤖 What "Patchy" Does
+1. **Quality gate** (GitHub cloud): checkout, `npm ci`, typecheck, lint
+2. **Deploy** (VPS runner): Slack notification, Docker build, container test
+3. Stage image tarball to `/var/www/stellarpossible.com/nuxt-app`
+4. Prepare server, deploy application, health checks
+5. External URL test and diagnostics
+6. Slack success or failure notification
 
-The workflow, named "Patchy's Docker Deployment Adventure," performs the following steps:
+## Required GitHub secrets
 
-1. **Code Checkout**: Retrieves the latest code from the repository
-2. **Slack Notification**: Sends a deployment start notification to Slack
-3. **Codebase Inspection**: Verifies that all required files exist
-4. **Docker Build**: Builds a Docker image for the Nuxt.js application
-5. **Container Testing**: Tests the container locally to ensure it works
-6. **Image Packaging**: Saves the Docker image as a tar file
-7. **Server Preparation**: Connects to the server and prepares it for deployment
-8. **Image Upload**: Uploads the Docker image to the server
-9. **Application Deployment**: Deploys the application on the server
-10. **Health Checks**: Performs health checks to verify the deployment
-11. **External Testing**: Tests the application from outside the server
-12. **Diagnostics**: Runs final diagnostics to ensure everything is working
-13. **Slack Notification**: Sends a success or failure notification to Slack
+Configure under **Settings → Secrets and variables → Actions** (or the `production` / `staging` environment).
 
-### 🔑 Required Secrets
+| Secret | Description |
+|--------|-------------|
+| `WP_APP_PASSWORD` | WordPress application password |
+| `USE_JWT` | Whether to use JWT authentication |
+| `JWT_SECRET` | JWT secret for authentication |
+| `ADMIN_EMAIL` | Admin email address |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_PRICE_MONTHLY` | Stripe monthly price ID |
+| `STRIPE_PRICE_ANNUAL` | Stripe annual price ID |
+| `NUXT_PUBLIC_SITE_URL` | Public site URL |
+| `SLACK_WEBHOOK_URL` | Optional deploy notifications |
 
-The workflow requires the following secrets to be set in your GitHub repository:
+SSH secrets (`VPS_SERVER`, `VPS_USERNAME`, `SSH_PRIVATE_KEY`, `SSH_HOST_KEY`, `VPS_PORT`) are **optional** — only needed for the [ssh-diagnose.yml](ssh-diagnose.yml) workflow.
 
-- `VPS_SERVER`: The hostname or IP address of your server (used in simple-ssh-setup.sh)
-- `VPS_USERNAME`: The SSH username for connecting to the server (used in simple-ssh-setup.sh)
-- `SSH_PRIVATE_KEY`: Your private SSH key (full key content including headers)
-- `SSH_HOST_KEY`: Your server's SSH host key (optional, get it using `ssh-keyscan`)
-- `SLACK_WEBHOOK_URL`: The Slack webhook URL for notifications
-- `WP_APP_PASSWORD`: The WordPress application password
-- `USE_JWT`: Whether to use JWT authentication
-- `JWT_SECRET`: The JWT secret for authentication
-- `ADMIN_EMAIL`: The admin email address
+## VPS one-time bootstrap
 
-The deployment workflow now uses `simple-ssh-setup.sh` which is specifically designed to work with the `VPS_SERVER` and `VPS_USERNAME` environment variables as they are named in your GitHub repository.
+1. Ensure deploy tree exists at `/var/www/stellarpossible.com/nuxt-app` and user has Docker access
+2. Install self-hosted runner: [docs/self-hosted-runner-setup.md](../../docs/self-hosted-runner-setup.md)
+3. Confirm runner is **Idle** with label `stellarpossible`
+4. Run **Patchy's Docker Deployment Adventure** manually or push to `main`
 
-### 🐛 Troubleshooting Common Issues
+## Troubleshooting
 
-#### SSH Connection Problems
+### Deploy stuck "Waiting for a runner"
 
-If you see **`Permission denied (publickey,password)`** or **`ssh: handshake failed`**:
-
-1. **Matching key pair** — The **`SSH_PRIVATE_KEY`** secret must be the **private** half of the key whose **public** line is in **`~/.ssh/authorized_keys`** on the server for **`VPS_USERNAME`** (often `ssh-copy-id user@host` from your laptop).
-
-2. **No passphrase in CI** — Keys used in Actions must **not** use a passphrase (batch login cannot prompt).
-
-3. **Secret formatting** — Paste the **full** key, including headers/footers and **line breaks**, into **`SSH_PRIVATE_KEY`**:
-   ```
-   -----BEGIN OPENSSH PRIVATE KEY-----
-   ...key content...
-   -----END OPENSSH PRIVATE KEY-----
-   ```
-   Or legacy PEM:
-   ```
-   -----BEGIN RSA PRIVATE KEY-----
-   ...
-   -----END RSA PRIVATE KEY-----
-   ```
-
-4. **`SSH_HOST_KEY` (optional)** — Prefer `ssh-keyscan` output without duplicating the hostname if your secret already includes it:
-   ```bash
-   ssh-keyscan -t rsa,ecdsa,ed25519 YOUR_SERVER_HOST_OR_IP
-   ```
-   Put either the whole line as **`SSH_HOST_KEY`** (and rely on script prefix `VPS_SERVER`) **or** only the algorithm + base64 blob—avoid **`hostname hostname`** duplication.
-
-5. **Debug in Actions** — Add repo variable **`SSH_DEBUG`** = **`1`** on the workflow env **or** run locally with the same secrets to see **`ssh -vvv`** output (`simple-ssh-setup.sh` respects **`SSH_DEBUG=1`**).
-
-6. **Server-side** — On the VPS: **`chmod 700 ~/.ssh`**, **`chmod 600 ~/.ssh/authorized_keys`**, **`PermitRootLogin`** / **`PasswordAuthentication`** don’t fix missing pubkey—confirm **`authorized_keys`** has the matching public key.
-
-#### Docker Container Issues
-
-If the container fails to start:
-
-1. Check for port conflicts on the server:
-   ```bash
-   sudo netstat -tlnp | grep :3000
-   ```
-
-2. View Docker logs:
-   ```bash
-   docker logs stellarpossible-app
-   ```
-
-3. Verify Docker permissions:
-   ```bash
-   sudo usermod -aG docker YOUR_USERNAME
-   ```
-
-#### Application Not Responding
-
-If the application deploys but doesn't respond:
-
-1. Check Nuxt.js server logs:
-   ```bash
-   docker logs stellarpossible-app
-   ```
-
-2. Verify environment variables:
-   ```bash
-   docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' stellarpossible-app
-   ```
-
-3. Test network connectivity:
-   ```bash
-   curl -v http://localhost:3000/
-   ```
-
-### 🧪 Testing the Workflow
-
-You can manually trigger the workflow from the GitHub Actions tab by selecting "Run workflow" and choosing your target environment.
-
-### 🔄 Customizing the Workflow
-
-To customize the workflow:
-
-1. Edit the `.github/workflows/release.yaml` file for workflow structure changes
-2. Modify individual scripts in `.github/scripts/` for specific functionality changes
-3. Update utility scripts in `.github/scripts/utils/` for shared functionality
-4. Modify the environment variables at the top of the workflow file
-
-### 🧩 Working with the Modular Scripts
-
-Each script is designed to be self-contained and can be run individually:
+Runner not installed or offline. On the VPS:
 
 ```bash
-# Running scripts locally (for testing)
+cd ~/actions-runner-stellarpossible
+sudo ./svc.sh status
+sudo ./svc.sh start
+```
+
+Re-install if needed: [scripts/install-actions-runner.sh](../../scripts/install-actions-runner.sh)
+
+### SSH (diagnostics only)
+
+Run **SSH connectivity diagnose** manually. If you see connection timeouts from GitHub-hosted runners, that is expected on Hostinger — production deploy does not use SSH.
+
+For SSH secret setup and host keys, see [docs/ssh-authentication-guide.md](../../docs/ssh-authentication-guide.md).
+
+Set `SSH_DEBUG=1` in the workflow env to get `ssh -vvv` output from `simple-ssh-setup.sh`.
+
+### Docker container issues
+
+```bash
+sudo netstat -tlnp | grep :3000
+docker logs stellarpossible-app
+sudo usermod -aG docker stellaruser
+```
+
+### Application not responding
+
+```bash
+docker logs stellarpossible-app
+docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' stellarpossible-app
+curl -v http://localhost:3000/
+```
+
+## Manual deploy
+
+Actions → **Patchy's Docker Deployment Adventure** → **Run workflow** (requires idle self-hosted runner).
+
+## Working with scripts locally
+
+```bash
 .github/scripts/build-image.sh
 .github/scripts/test-container.sh
 ```
-
-To add new functionality:
-
-1. Create a new script in the `.github/scripts/` directory
-2. Make it executable with `chmod +x .github/scripts/your-script.sh`
-3. Add a new step in the workflow file that calls your script
 
 For more advanced customization, refer to the [GitHub Actions documentation](https://docs.github.com/en/actions).
