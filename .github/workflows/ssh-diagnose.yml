@@ -1,0 +1,49 @@
+name: SSH connectivity diagnose
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    name: Test SSH from GitHub-hosted runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Make scripts executable
+        run: chmod +x .github/scripts/simple-ssh-setup.sh
+
+      - name: Runner egress IP
+        run: |
+          echo "Runner public IP (whitelist test in Hostinger):"
+          curl -s https://api.ipify.org || true
+          echo ""
+
+      - name: TCP probe port 22
+        env:
+          VPS_SERVER: ${{ secrets.VPS_SERVER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          HOST="${VPS_SERVER#https://}"
+          HOST="${HOST#http://}"
+          HOST="${HOST%%/*}"
+          PORT="${VPS_PORT:-22}"
+          echo "Probing ${HOST}:${PORT} ..."
+          if command -v nc >/dev/null 2>&1; then
+            nc -zv -w 10 "$HOST" "$PORT" || true
+          else
+            timeout 10 bash -c "echo >/dev/tcp/${HOST}/${PORT}" 2>/dev/null && echo "TCP open" || echo "TCP failed"
+          fi
+
+      - name: Setup SSH (optional full test)
+        run: .github/scripts/simple-ssh-setup.sh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_SERVER: ${{ secrets.VPS_SERVER }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          SSH_HOST_KEY: ${{ secrets.SSH_HOST_KEY }}

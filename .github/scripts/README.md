@@ -7,7 +7,7 @@ This directory contains modular scripts used in the GitHub Actions deployment wo
 ### Core Scripts
 
 - **setup-ssh.sh.obsolete**: [OBSOLETE] Former SSH setup script (kept for reference)
-- **simple-ssh-setup.sh**: Simplified SSH setup that works with standard GitHub Actions secrets
+- **simple-ssh-setup.sh**: SSH setup for optional diagnostics (not used in production deploy)
 - **build-image.sh**: Builds the Docker image for the Nuxt.js application
 - **test-container.sh**: Tests the built Docker container to ensure it works correctly
 - **prepare-server.sh**: Prepares the server for deployment (backup, cleanup, etc.)
@@ -37,19 +37,17 @@ In the GitHub Actions workflow, scripts are called directly:
     # Additional environment variables...
 ```
 
-### On Remote Servers
+### On the VPS (self-hosted runner)
 
-For scripts that need to run on remote servers, the pattern is:
+Deploy scripts run directly on the VPS via the self-hosted runner:
 
 ```yaml
-- name: 🚚 Patchy prepares the server
-  run: |
-    ssh username@server "
-      export VAR1=value1
-      export VAR2=value2
-      
-      $(cat .github/scripts/prepare-server.sh)
-    "
+- name: Prepare server
+  run: bash .github/scripts/prepare-server.sh
+  env:
+    CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+    DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+    APP_DIR: ${{ env.APP_DIR }}
 ```
 
 ### Locally
@@ -79,11 +77,12 @@ Each script requires specific environment variables. Here's a summary:
 - `SERVER_USER`: SSH username (no longer used)
 - `SSH_HOST_KEY`: (Optional) Host key for verification
 
-### simple-ssh-setup.sh
+### simple-ssh-setup.sh (diagnostics only)
 - `SSH_PRIVATE_KEY`: The SSH private key
-- `VPS_SERVER`: Hostname or IP of the server (matches GitHub secret name)
-- `VPS_USERNAME`: SSH username (matches GitHub secret name)
+- `VPS_SERVER`: Hostname or IP of the server
+- `VPS_USERNAME`: SSH username
 - `SSH_HOST_KEY`: (Optional) Host key for verification
+- `VPS_PORT`: (Optional) SSH port, default 22
 
 ### build-image.sh
 - `IMAGE_NAME`: Name of the Docker image
