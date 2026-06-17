@@ -13,6 +13,8 @@ TEST_PORT=${TEST_PORT:-"3001"}
 WAIT_TIME=${WAIT_TIME:-15}
 MAX_RETRIES=${MAX_RETRIES:-3}
 TEST_CONTAINER_NAME="test-container-$(date +%s)"
+TEST_PORT_START=${TEST_PORT_START:-3002}
+TEST_PORT_END=${TEST_PORT_END:-3099}
 
 # Environment variables needed for testing
 WP_USER=${WP_USER:-"admin"}
@@ -73,6 +75,40 @@ fi
 # Export the Docker command for use in the rest of the script
 export DOCKER_CMD
 
+port_in_use() {
+  local port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -tln | awk '{print $4}' | grep -qE ":${port}$"
+    return $?
+  fi
+  if command -v nc >/dev/null 2>&1; then
+    nc -z 127.0.0.1 "$port" >/dev/null 2>&1
+    return $?
+  fi
+  (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1
+}
+
+find_available_test_port() {
+  local port
+  for port in $(seq "$TEST_PORT_START" "$TEST_PORT_END"); do
+    if ! port_in_use "$port"; then
+      echo "$port"
+      return 0
+    fi
+  done
+  return 1
+}
+
+cleanup_stale_test_containers() {
+  local ids
+  ids=$($DOCKER_CMD ps -aq -f "name=test-container-" 2>/dev/null || true)
+  if [ -n "$ids" ]; then
+    print_warning "Removing stale test containers from previous runs..."
+    # shellcheck disable=SC2086
+    $DOCKER_CMD rm -f $ids 2>/dev/null || true
+  fi
+}
+
 # Clean up function to ensure we always remove the test container
 cleanup() {
   print_info "Cleaning up test container..."
@@ -84,6 +120,14 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 print_info "Starting container testing for $IMAGE_NAME:$TAG"
+
+cleanup_stale_test_containers
+
+if port_in_use "$TEST_PORT"; then
+  chosen_port=$(find_available_test_port) || print_error "No free port in range ${TEST_PORT_START}-${TEST_PORT_END} for smoke test!"
+  print_warning "Port $TEST_PORT is in use — using $chosen_port instead"
+  TEST_PORT="$chosen_port"
+fi
 
 # Check if image exists
 if ! $DOCKER_CMD image inspect "$IMAGE_NAME:$TAG" &>/dev/null; then
