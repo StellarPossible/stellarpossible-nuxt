@@ -5,7 +5,7 @@ export function usePrimaryCta() {
   const path = useGetStartedPath()
 
   /** Button / link label for the primary CTA path */
-  const label = computed(() => (path.value === '/dashboard' ? 'Dashboard' : 'Get started'))
+  const label = computed(() => (path.value === '/dashboard' ? 'Dashboard' : 'Create Account'))
 
   return { path, label }
 }

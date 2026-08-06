@@ -12,11 +12,11 @@
         <span class="action-text">Subscribe to Hosting</span>
         <Icon icon="mdi:chevron-right" class="action-arrow" />
       </NuxtLink>
-      <NuxtLink to="/write" class="action">
+      <NuxtLink to="/dashboard/profile" class="action">
         <span class="action-icon">
-          <Icon icon="mdi:book-open-page-variant" />
+          <Icon icon="mdi:account-circle" />
         </span>
-        <span class="action-text">Read Author Updates</span>
+        <span class="action-text">Edit profile</span>
         <Icon icon="mdi:chevron-right" class="action-arrow" />
       </NuxtLink>
       <a

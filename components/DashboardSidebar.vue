@@ -108,8 +108,14 @@ const avatarSrc = computed(() => user.value?.avatar || '/default-avatar.svg')
     }
 
     &.active {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%);
-      color: #4c5fd5;
+      background: linear-gradient(135deg, rgba(76, 95, 213, 0.2) 0%, rgba(118, 75, 162, 0.15) 100%);
+      color: var(--dash-primary);
+      box-shadow: inset 3px 0 0 var(--dash-primary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--dash-primary);
+      outline-offset: 2px;
     }
 
     :deep(svg) {

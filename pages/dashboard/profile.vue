@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-profile-page">
+  <div class="dashboard-profile-page dashboard-page">
     <header class="page-hero">
       <h1>Profile</h1>
       <p>Your account details</p>
@@ -118,33 +118,6 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-.dashboard-profile-page {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.page-hero {
-  margin-bottom: 1.5rem;
-  color: white;
-
-  h1 {
-    font-size: clamp(1.5rem, 2.5vw, 1.9rem);
-    font-family: 'Evermore', 'Inter', sans-serif;
-    margin: 0 0 0.35rem;
-    font-weight: 400;
-  }
-
-  p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0;
-  }
-}
-
 .profile-card {
   max-width: 480px;
   padding: 2rem;

@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-content-page">
+  <div class="dashboard-content-page dashboard-page">
     <header class="page-hero">
       <h1>Content</h1>
       <p>Manage your site content</p>
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: 'auth'
+  middleware: ['auth', 'admin']
 })
 
 const config = useRuntimeConfig()
@@ -48,52 +48,9 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-.dashboard-content-page {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.page-hero {
-  margin-bottom: 1.5rem;
-  color: white;
-
-  h1 {
-    font-size: clamp(1.5rem, 2.5vw, 1.9rem);
-    font-family: 'Evermore', 'Inter', sans-serif;
-    margin: 0 0 0.35rem;
-    font-weight: 400;
-  }
-
-  p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0;
-  }
-}
-
 .content-card {
   max-width: 480px;
   padding: 2rem;
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.card-icon {
-  width: 20px;
-  height: 20px;
-  color: #4c5fd5;
 }
 
 .content-desc {
@@ -101,29 +58,5 @@ useHead({
   font-size: 0.95rem;
   color: #495057;
   line-height: 1.5;
-}
-
-.content-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
-  text-decoration: none;
-  transition: opacity 0.2s, transform 0.15s;
-
-  &:hover {
-    opacity: 0.95;
-    transform: translateY(-1px);
-  }
-
-  :deep(svg) {
-    width: 18px;
-    height: 18px;
-  }
 }
 </style>

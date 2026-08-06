@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-settings-page">
+  <div class="dashboard-settings-page dashboard-page">
     <header class="page-hero">
       <h1>Settings</h1>
       <p>Configure your preferences</p>
@@ -93,33 +93,6 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-.dashboard-settings-page {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.page-hero {
-  margin-bottom: 1.5rem;
-  color: white;
-
-  h1 {
-    font-size: clamp(1.5rem, 2.5vw, 1.9rem);
-    font-family: 'Evermore', 'Inter', sans-serif;
-    margin: 0 0 0.35rem;
-    font-weight: 400;
-  }
-
-  p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0;
-  }
-}
-
 .settings-card {
   max-width: 480px;
   padding: 2rem;
@@ -184,9 +157,9 @@ useHead({
   }
 
   &.active {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: rgba(102, 126, 234, 0.3);
-    color: #4c5fd5;
+    background: rgba(76, 95, 213, 0.15);
+    border-color: rgba(76, 95, 213, 0.3);
+    color: var(--dash-primary);
   }
 
   :deep(svg) {
@@ -212,7 +185,7 @@ useHead({
   transition: background 0.2s;
 
   &.on {
-    background: #4c5fd5;
+    background: var(--dash-primary);
   }
 }
 

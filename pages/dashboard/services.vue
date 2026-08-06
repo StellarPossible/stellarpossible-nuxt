@@ -1,9 +1,11 @@
 <template>
-  <div class="dashboard-services">
+  <div class="dashboard-services dashboard-page">
     <header class="page-hero">
       <h1>Hosting</h1>
       <p>Manage your site hosting subscription</p>
     </header>
+
+    <p v-if="actionError" class="dashboard-error" role="alert">{{ actionError }}</p>
 
     <div class="services-grid">
       <section class="dashboard-card status-card">
@@ -111,6 +113,7 @@ const statusLoading = ref(true)
 const portalLoading = ref(false)
 const hasSubscription = ref(false)
 const nextBillingDate = ref<string | null>(null)
+const actionError = ref('')
 
 async function fetchStatus() {
   const email = user.value?.email
@@ -145,6 +148,7 @@ async function openPortal() {
   const email = user.value?.email
   if (!email) return
   portalLoading.value = true
+  actionError.value = ''
   try {
     const { url } = await $fetch<{ url: string }>('/api/stripe/create-portal', {
       method: 'POST',
@@ -153,7 +157,7 @@ async function openPortal() {
     if (url) window.location.href = url
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string }; message?: string }
-    alert(err?.data?.statusMessage || err?.message || 'Could not open billing portal.')
+    actionError.value = err?.data?.statusMessage || err?.message || 'Could not open billing portal.'
   } finally {
     portalLoading.value = false
   }
@@ -161,6 +165,7 @@ async function openPortal() {
 
 async function goToCheckout(plan: 'monthly' | 'annual') {
   loading.value = plan
+  actionError.value = ''
   try {
     const { url } = await $fetch<{ url: string }>('/api/stripe/create-checkout', {
       method: 'POST',
@@ -173,7 +178,7 @@ async function goToCheckout(plan: 'monthly' | 'annual') {
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string }; message?: string }
     console.error('Checkout error:', err)
-    alert(err?.data?.statusMessage || err?.message || 'Something went wrong. Please try again.')
+    actionError.value = err?.data?.statusMessage || err?.message || 'Something went wrong. Please try again.'
   } finally {
     loading.value = null
   }
@@ -186,31 +191,13 @@ useHead({
 </script>
 
 <style scoped lang="scss">
-.dashboard-services {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.page-hero {
-  margin-bottom: 1.5rem;
-  color: white;
-
-  h1 {
-    font-size: clamp(1.5rem, 2.5vw, 1.9rem);
-    font-family: 'Evermore', 'Inter', sans-serif;
-    margin: 0 0 0.35rem;
-    font-weight: 400;
-  }
-
-  p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0;
-  }
+.dashboard-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+  font-size: 0.9375rem;
 }
 
 .services-grid {
@@ -226,54 +213,8 @@ useHead({
   }
 }
 
-.dashboard-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.5);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dashboard-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.5);
-}
-
-.card-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a2e;
-}
-
-.card-icon {
-  width: 20px;
-  height: 20px;
-  color: #4c5fd5;
-}
-
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
   margin-bottom: 0.75rem;
-}
-
-.status-badge-active {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
-}
-
-.status-badge-inactive {
-  background: rgba(102, 126, 234, 0.1);
-  color: #4c5fd5;
 }
 
 .status-loading {
@@ -286,28 +227,6 @@ useHead({
   font-size: 0.9rem;
   color: #495057;
   line-height: 1.5;
-}
-
-.link-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.9rem;
-  color: #4c5fd5;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:disabled {
-    color: #adb5bd;
-    cursor: default;
-  }
-
-  :deep(svg) {
-    width: 16px;
-    height: 16px;
-  }
 }
 
 .services-subtitle {
@@ -331,27 +250,15 @@ useHead({
 }
 
 .plan-card {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  padding: 1.25rem;
   position: relative;
-}
-
-.plan-card-featured {
-  border-color: rgba(102, 126, 234, 0.3);
-  background: rgba(102, 126, 234, 0.04);
 }
 
 .plan-badge {
   position: absolute;
   top: -0.5rem;
   right: 0.75rem;
-  font-size: 0.7rem;
-  font-weight: 600;
   color: #16a34a;
   background: rgba(34, 197, 94, 0.12);
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
 }
 
 .plan-name {
@@ -388,36 +295,13 @@ useHead({
   }
 }
 
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+:deep(.cta-button) {
   width: 100%;
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-
-  &:hover:not(:disabled) {
-    opacity: 0.95;
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
 }
 
 .services-footer {
   margin: 0;
   font-size: 0.8rem;
-  color: #6c757d;
-  line-height: 1.5;
+  color: #868e96;
 }
 </style>

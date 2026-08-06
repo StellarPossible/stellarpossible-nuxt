@@ -3,12 +3,27 @@ export default defineNuxtConfig({
     '@nuxt/image',
   ],
 
+  components: {
+    dirs: [
+      {
+        path: '~/components/ui',
+        pathPrefix: false,
+      },
+      {
+        path: '~/components',
+        ignore: ['ui/**'],
+      },
+    ],
+  },
+
   app: {
     head: {
       viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       meta: [
         { name: 'mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-capable', content: 'yes' }
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'theme-color', content: '#0b0d17' },
+        { property: 'og:site_name', content: 'StellarPossible' }
       ]
     }
   },
@@ -37,11 +52,12 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { prerender: true }, // Home page (HeroContent in app.vue)
     '/products': { prerender: true },
+    '/about': { prerender: true },
     '/services': { prerender: true },
     '/services/success': { prerender: true },
     '/services/cancel': { prerender: true },
     '/login': { ssr: false },
-    '/dashboard': { ssr: true }, // Requires auth, not prerendered
+    '/dashboard/**': { ssr: true }, // Requires auth, not prerendered
     
     // API routes (server-side only)
     '/api/**': { 
@@ -96,7 +112,13 @@ export default defineNuxtConfig({
     // Email/private server-side config (contact + ARC signup). Inquiries always include mlvalentonis@protonmail.com; EMAIL_TO adds optional extra recipients (comma-separated).
     emailFrom: process.env.EMAIL_FROM || '',
     emailTo: process.env.EMAIL_TO || '',
-    resendApiKey: process.env.RESEND_API_KEY || ''
+    resendApiKey: process.env.RESEND_API_KEY || '',
+
+    // Amazon Product Advertising API (author book metadata)
+    amazonAccessKey: process.env.AMAZON_ACCESS_KEY || '',
+    amazonSecretKey: process.env.AMAZON_SECRET_KEY || '',
+    amazonPartnerTag: process.env.AMAZON_PARTNER_TAG || '',
+    amazonMarketplace: process.env.AMAZON_MARKETPLACE || 'www.amazon.com'
   },
 
   experimental: {

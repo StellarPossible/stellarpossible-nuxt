@@ -16,17 +16,19 @@
             />
           </NuxtLink>
         </div>
-        <div class="header-center" :class="{ 'header-center-hero': !!(heroToShow && !isHomePage) }">
-          <template v-if="heroToShow && !isHomePage">
-            <div class="header-hero header-hero-inline">
-              <span v-if="heroToShow.badge" class="header-hero-badge">{{ heroToShow.badge }}</span>
-              <h1 class="header-hero-title">{{ heroToShow.title }}</h1>
-              <p v-if="heroToShow.subtitle" class="header-hero-subtitle" v-html="heroSubtitleHtml" />
-            </div>
-          </template>
-          <CrossNav v-else-if="showCrossNav" variant="header" class="header-cross-nav" />
+        <div v-if="showCrossNav" class="header-center">
+          <CrossNav variant="header" class="header-cross-nav" :show-contact="false" />
         </div>
         <div class="header-right">
+          <AppButton
+            v-if="!user && showHeaderCta && !hideCta"
+            :to="primaryCtaPath"
+            variant="primary"
+            size="sm"
+            class="header-cta-btn"
+          >
+            {{ primaryCtaLabel }}
+          </AppButton>
           <nav class="header-auth-icons" aria-label="Account">
             <NuxtLink
               v-if="user"
@@ -80,6 +82,7 @@
           @click="closeMenu"
         />
         <nav
+          ref="drawerEl"
           class="nav-drawer site-header-drawer"
           :class="{ open: isMenuOpen, 'drawer-left': menuSide === 'left', 'drawer-right': menuSide === 'right', 'drawer-theme-light': theme === 'light' }"
           aria-label="Main navigation"
@@ -107,6 +110,14 @@
               <Icon icon="mdi:hand-heart" aria-hidden />
               <span>Services</span>
             </NuxtLink>
+            <NuxtLink to="/about" active-class="active" class="drawer-link" @click="closeMenu">
+              <Icon icon="mdi:account-group" aria-hidden />
+              <span>About Us</span>
+            </NuxtLink>
+            <button type="button" class="drawer-link drawer-btn" @click="openContactFromDrawer">
+              <Icon icon="mdi:email-outline" aria-hidden />
+              <span>Contact</span>
+            </button>
             <template v-if="user">
               <NuxtLink to="/dashboard" active-class="active" class="drawer-link" @click="closeMenu">
                 <Icon icon="mdi:view-dashboard" aria-hidden />
@@ -141,19 +152,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import type { User } from '~/types/auth'
 import { useMenuSide } from '~/composables/useMenuSide'
 import { useTheme } from '~/composables/useTheme'
 
-withDefaults(
-  defineProps<{ scrolled: boolean; compact?: boolean }>(),
-  { compact: false }
+const props = withDefaults(
+  defineProps<{ scrolled: boolean; compact?: boolean; hideCta?: boolean }>(),
+  { compact: false, hideCta: false }
 )
+
+const hideCta = computed(() => props.hideCta)
 
 const { menuSide } = useMenuSide()
 const { theme, toggleTheme } = useTheme()
+const { open: openContactModal } = useContactModal()
 const headerEl = ref<HTMLElement | null>(null)
+const drawerEl = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | null = null
 const isMenuOpen = ref(false)
 const route = useRoute()
@@ -167,23 +182,8 @@ function syncHeaderHeight() {
 }
 
 const isHomePage = computed(() => route.path === '/')
-const { hero: pageHero, servicesHeaderHeroKey, productsHeaderHeroKey } = usePageHero()
-const servicesHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(servicesHeaderHeroKey, () => null)
-const productsHeaderHero = useState<{ badge?: string; title: string; subtitle?: string } | null>(productsHeaderHeroKey, () => null)
-
-const heroToShow = computed(() => {
-  if (route.path === '/services' && servicesHeaderHero.value) return servicesHeaderHero.value
-  if (route.path === '/products' && productsHeaderHero.value) return productsHeaderHero.value
-  return pageHero.value
-})
-
-const heroSubtitleHtml = computed(() => {
-  const s = heroToShow.value?.subtitle
-  if (!s) return ''
-  return s
-    .replace(/\bperformant\b/gi, '<strong>performant</strong>')
-    .replace(/\bsecure\b/gi, '<strong>secure</strong>')
-})
+const showHeaderCta = computed(() => !route.path.startsWith('/dashboard'))
+const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
 
 const showCrossNav = computed(() => {
   const path = route.path
@@ -199,13 +199,25 @@ onMounted(() => {
     syncHeaderHeight()
     resizeObserver = new ResizeObserver(syncHeaderHeight)
     if (headerEl.value) resizeObserver.observe(headerEl.value)
+    watch([() => route.path, () => props.compact], () => {
+      nextTick(syncHeaderHeight)
+    })
     watch(isMenuOpen, (open) => {
       document.body.classList.toggle('menu-open', open)
       if (open) {
         syncHeaderHeight()
+        previousFocus = document.activeElement as HTMLElement | null
         window.addEventListener('keydown', handleEscape)
+        window.addEventListener('keydown', trapDrawerFocus)
+        nextTick(() => {
+          const focusable = drawerEl.value ? getFocusableElements(drawerEl.value) : []
+          focusable[0]?.focus()
+        })
       } else {
         window.removeEventListener('keydown', handleEscape)
+        window.removeEventListener('keydown', trapDrawerFocus)
+        previousFocus?.focus()
+        previousFocus = null
       }
     }, { immediate: true })
   }
@@ -214,6 +226,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (process.client) {
     window.removeEventListener('keydown', handleEscape)
+    window.removeEventListener('keydown', trapDrawerFocus)
     if (resizeObserver && headerEl.value) resizeObserver.unobserve(headerEl.value)
   }
 })
@@ -221,6 +234,39 @@ onBeforeUnmount(() => {
 function closeMenu() {
   isMenuOpen.value = false
 }
+
+function openContactFromDrawer() {
+  closeMenu()
+  openContactModal()
+}
+
+function getFocusableElements(container: HTMLElement): HTMLElement[] {
+  return Array.from(
+    container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => !el.hasAttribute('disabled') && el.offsetParent !== null)
+}
+
+function trapDrawerFocus(e: KeyboardEvent) {
+  if (!isMenuOpen.value || !drawerEl.value || e.key !== 'Tab') return
+
+  const focusable = getFocusableElements(drawerEl.value)
+  if (!focusable.length) return
+
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
+let previousFocus: HTMLElement | null = null
 
 async function logout() {
   try {
@@ -238,13 +284,14 @@ async function logout() {
 @use '@/assets/scss/variables.scss' as *;
 
 .site-header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
   width: 100%;
   z-index: 2000;
   overflow: visible;
+  flex-shrink: 0;
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
 
   /* Stellar glass: deep cosmic tint + blur */
@@ -429,65 +476,6 @@ async function logout() {
     }
   }
 
-  /* Hero on same line as logo and nav: column layout (badge, title, subtitle stacked) */
-  .header-hero.header-hero-inline {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.2rem 0;
-    width: 100%;
-    min-width: 0;
-    padding: 0.35rem 0.5rem;
-    text-align: center;
-    box-sizing: border-box;
-  }
-
-  .header-hero-inline .header-hero-badge {
-    display: inline-block;
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(200, 220, 255, 0.92);
-    margin: 0;
-    padding: 0.2rem 0.5rem;
-    border: 1px solid rgba(160, 190, 255, 0.25);
-    border-radius: 100px;
-    background: rgba(255, 255, 255, 0.04);
-    box-shadow: 0 0 16px rgba(120, 160, 255, 0.06);
-    flex-shrink: 0;
-  }
-
-  .header-hero-inline .header-hero-title {
-    font-family: 'OldStyle', 'Georgia', serif;
-    font-size: clamp(1rem, 2.2vw, 1.35rem);
-    font-weight: 400;
-    color: $white;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: 0.02em;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.12), 0 1px 4px rgba(0, 0, 0, 0.35);
-    flex-shrink: 0;
-  }
-
-  .header-hero-inline .header-hero-subtitle {
-    font-size: clamp(0.75rem, 1.6vw, 0.875rem);
-    line-height: 1.15;
-    font-style: italic;
-    color: rgba(220, 230, 255, 0.88);
-    margin: 0;
-    max-width: 20rem;
-    text-align: center;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-
-    strong {
-      font-weight: 700;
-      font-style: italic;
-    }
-  }
-
   .logo {
     display: flex;
     align-items: center;
@@ -598,41 +586,19 @@ async function logout() {
     .menu-toggle span {
       background: #1a1a2e;
     }
-    .header-hero-inline .header-hero-badge {
-      color: rgba(26, 46, 80, 0.9);
-      border-color: rgba(30, 58, 100, 0.2);
-      background: rgba(255, 255, 255, 0.7);
-      box-shadow: 0 0 16px rgba(30, 58, 100, 0.06);
-    }
-    .header-hero-inline .header-hero-title {
-      color: #1a1a2e;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-    }
-    .header-hero-inline .header-hero-subtitle {
-      color: rgba(26, 46, 80, 0.88);
-    }
   }
 
-  /* Backdrop and drawer are teleported to body; see unscoped .site-header-backdrop / .site-header-drawer below */
-
   @media (max-width: 768px) {
-    .header-hero-inline {
-      gap: 0.15rem 0;
-      padding: 0.25rem 0.35rem;
+    .header-center {
+      display: none;
     }
-    .header-hero-inline .header-hero-badge {
-      font-size: 0.5rem;
-      letter-spacing: 0.12em;
-      padding: 0.15rem 0.35rem;
+
+    .header-top {
+      gap: 0.5rem;
     }
-    .header-hero-inline .header-hero-title {
-      font-size: 0.9rem;
-      line-height: 1.2;
-    }
-    .header-hero-inline .header-hero-subtitle {
-      font-size: 0.6875rem;
-      line-height: 1.1;
-      max-width: 14rem;
+
+    .container {
+      padding-inline: max(0.75rem, env(safe-area-inset-left, 0px)) max(0.75rem, env(safe-area-inset-right, 0px));
     }
   }
 
@@ -640,22 +606,13 @@ async function logout() {
     .logo > img {
       width: 5rem;
     }
-    .header-hero-inline {
-      gap: 0.1rem 0;
-      padding: 0.2rem 0.25rem;
+
+    .header-right {
+      gap: 0.35rem;
     }
-    .header-hero-inline .header-hero-badge {
-      font-size: 0.4375rem;
-      letter-spacing: 0.1em;
-      padding: 0.12rem 0.3rem;
-    }
-    .header-hero-inline .header-hero-title {
-      font-size: 0.8rem;
-    }
-    .header-hero-inline .header-hero-subtitle {
-      font-size: 0.625rem;
-      line-height: 1.1;
-      max-width: 11rem;
+
+    .header-top {
+      gap: 0.35rem;
     }
   }
 }
@@ -694,7 +651,7 @@ async function logout() {
   max-height: calc(100vh - var(--header-height));
   padding: 0 1.125rem 0.875rem;
   padding-top: 0.5rem;
-  background: rgba(18, 49, 70, 0.78);
+  background: color-mix(in srgb, var(--color-glass-solid) 78%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   font-family: 'Chocolates', serif;
@@ -917,7 +874,7 @@ async function logout() {
   justify-content: center;
   gap: 0.4375rem;
   padding: 0.5625rem 0.75rem;
-  min-height: 2.5rem;
+  min-height: 44px;
   font-size: 0.9375rem;
   font-weight: 500;
   font-family: 'Chocolates', serif;
@@ -985,10 +942,10 @@ async function logout() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  min-width: 2rem;
-  min-height: 2rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.88);

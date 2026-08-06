@@ -89,6 +89,17 @@ async function logout() {
   flex-wrap: wrap;
   gap: 0.25rem;
   font-size: 0.875rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.breadcrumb-current {
+  color: #fff;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 12rem;
 }
 
 .breadcrumb-link {
@@ -104,11 +115,6 @@ async function logout() {
 .breadcrumb-sep {
   color: rgba(255, 255, 255, 0.4);
   user-select: none;
-}
-
-.breadcrumb-current {
-  color: #fff;
-  font-weight: 500;
 }
 
 .topbar-actions {
@@ -144,9 +150,29 @@ async function logout() {
     border-color: rgba(255, 255, 255, 0.3);
   }
 
-  :deep(svg) {
-    width: 18px;
-    height: 18px;
+  &:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .user-email {
+    display: none;
+  }
+
+  .topbar-actions {
+    justify-content: flex-end;
+  }
+
+  .logout-btn {
+    min-height: 44px;
   }
 }
 </style>

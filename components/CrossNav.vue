@@ -6,7 +6,9 @@
   >
     <NuxtLink to="/services" class="cross-nav-link">Services</NuxtLink>
     <span class="cross-nav-sep" aria-hidden="true">·</span>
-    <NuxtLink to="/products" class="cross-nav-link">Our Work</NuxtLink>
+    <NuxtLink to="/products" class="cross-nav-link">Products</NuxtLink>
+    <span class="cross-nav-sep" aria-hidden="true">·</span>
+    <NuxtLink to="/about" class="cross-nav-link">About Us</NuxtLink>
     <template v-if="showContact">
       <span class="cross-nav-sep" aria-hidden="true">·</span>
       <button type="button" class="cross-nav-link cross-nav-contact" @click="openContact">
@@ -27,8 +29,6 @@ const { open: openContact } = useContactModal()
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/scss/variables.scss' as *;
-
 .cross-nav {
   display: flex;
   flex-wrap: wrap;
@@ -39,23 +39,23 @@ const { open: openContact } = useContactModal()
 
 /* Match former footer contact button: pill style */
 .cross-nav-link {
-  font-family: 'Evermore', 'Georgia', serif;
-  font-size: 0.9375rem;
+  font-family: var(--font-nav);
+  font-size: var(--fs-200);
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: $white;
+  color: var(--color-text);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  padding: 0.3rem 0.65rem;
-  border-radius: 10px;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  transition: background var(--dur-med) var(--ease-out), border-color var(--dur-med), box-shadow var(--dur-med);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: var(--color-border-strong);
+    box-shadow: var(--shadow-glow);
   }
 
   &:focus-visible {
