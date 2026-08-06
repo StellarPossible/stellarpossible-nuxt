@@ -1,12 +1,17 @@
 <template>
-  <div class="layout-wrapper" :class="{ 'show-logo': isHomePage, 'theme-dark': theme === 'dark', 'theme-light': theme === 'light' }">
-    <!-- Homepage background overlay fade -->
-    <div v-if="isHomePage" class="homepage-overlay"></div>
+  <div class="layout-wrapper" :class="{ 'theme-dark': theme === 'dark', 'theme-light': theme === 'light' }">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
 
-    <!-- Header with scroll prop -->
-    <SiteHeader :scrolled="!scrolledPastThreshold" :compact="headerCompact" />
+    <CosmicBackground v-if="!isDashboard" />
 
-    <main class="main-content">
+    <SiteHeader
+      v-if="!isDashboard"
+      :scrolled="scrolledPastThreshold"
+      :compact="headerCompact"
+      :hide-cta="showStickyCta"
+    />
+
+    <main id="main-content" class="main-content" tabindex="-1">
       <template v-if="isDashboard">
         <div class="dashboard-layout">
           <DashboardSidebar />
@@ -16,25 +21,21 @@
           </div>
         </div>
       </template>
-      <div v-else class="page-content">
-        <!-- Render hero content only on home -->
-        <HeroContent v-if="isHomePage" />
-        <!-- Render all routed pages except home -->
-        <NuxtPage v-else />
+      <div v-else class="page-content" :class="{ 'page-content--sticky-cta': showStickyCta }">
+        <NuxtPage />
       </div>
     </main>
+
+    <StickyCtaBar v-if="showStickyCta" />
+    <SiteFooter v-if="!isDashboard" />
   </div>
 
-  <!-- Contact modal -->
-  <ContactModal />
-
-  <SiteFooter :scrolled="scrolledPastThreshold" />
+  <ContactModal v-if="!isDashboard" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import HeroContent from '@/components/HeroContent.vue'
 import SiteHeader from '@/components/SiteHeader.vue'
 import ContactModal from '@/components/ContactModal.vue'
 import DashboardSidebar from '@/components/DashboardSidebar.vue'
@@ -42,10 +43,10 @@ import DashboardTopBar from '@/components/DashboardTopBar.vue'
 
 const route = useRoute()
 const { theme } = useTheme()
-const isHomePage = computed(() => route.path === '/')
-const isServicesPage = computed(() => route.path === '/services')
-const isProductsPage = computed(() => route.path === '/products')
 const isDashboard = computed(() => route.path.startsWith('/dashboard'))
+
+const longFormRoutes = ['/', '/services', '/products']
+const showStickyCta = computed(() => longFormRoutes.includes(route.path))
 
 const scrolledPastThreshold = ref(false)
 const headerCompact = ref(false)
@@ -54,7 +55,6 @@ let lastScrollY = 0
 function handleScroll() {
   const y = window.scrollY
   scrolledPastThreshold.value = y > 50
-  // Recede to toolbar when scrolling down; expand when scrolling up or near top
   if (y <= 50) {
     headerCompact.value = false
   } else if (y > lastScrollY) {
@@ -65,32 +65,16 @@ function handleScroll() {
   lastScrollY = y
 }
 
-function setupScrollListener() {
-  const needsListener = !isHomePage.value && !isServicesPage.value && !isProductsPage.value
-  if (needsListener) {
-    lastScrollY = window.scrollY
-    handleScroll()
-    window.addEventListener('scroll', handleScroll)
-  } else {
-    window.removeEventListener('scroll', handleScroll)
-  }
-}
-
 onMounted(() => {
-  // Disable scroll on homepage and services page (no-scroll design)
-  const lockScroll = isHomePage.value || isServicesPage.value || isProductsPage.value
-  document.body.style.overflow = lockScroll ? 'hidden' : 'auto'
-  setupScrollListener()
+  document.body.style.overflow = 'auto'
+  lastScrollY = window.scrollY
+  handleScroll()
+  window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
 onBeforeUnmount(() => {
   document.body.style.overflow = 'auto'
   window.removeEventListener('scroll', handleScroll)
-})
-
-watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProducts]) => {
-  document.body.style.overflow = isHome || isServices || isProducts ? 'hidden' : 'auto'
-  setupScrollListener()
 })
 </script>
 
@@ -101,65 +85,31 @@ watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProd
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', sans-serif;
-  color: $white;
+  font-family: var(--font-ui);
+  color: var(--color-text);
   position: relative;
-  background-size: cover;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-  background-position: center center;
-  /* overflow: visible so fixed nav-drawer (hamburger slide-out) is not clipped on home/dashboard */
   overflow: visible;
-
-  &.theme-dark {
-    background-color: var(--primary-color, #0e0f1a);
-    background-image: url('/images/primary/galaxyBackgroundV2.png');
-  }
-
-  &.theme-light {
-    background-color: #f0f4f8;
-    background-image: url('/images/primary/galaxyBackgroundLIGHT.png');
-    color: #1a1a2e;
-  }
-
-  /* Fixed backgrounds are unreliable on mobile; scroll attachment reduces jank */
-  @media (max-width: 768px) {
-    &.theme-dark,
-    &.theme-light {
-      background-attachment: scroll;
-      min-height: 100dvh;
-    }
-  }
-  /* Ensure main content text is readable in light mode */
-  &.theme-light .main-content,
-  &.theme-light .page-content {
-    color: #1a1a2e;
-  }
-
-  &.show-logo::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 60%,
-      rgba(0, 0, 0, 0.95) 100%
-    );
-  }
-
-  &.theme-light.show-logo::after {
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(240, 244, 248, 0.9) 100%
-    );
-  }
+  background: transparent;
 }
 
-.homepage-overlay {
-  display: none; // Not needed now, fade handled via ::after
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 10000;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-accent);
+  color: var(--color-space-deep);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: top var(--dur-fast) var(--ease-out);
+
+  &:focus {
+    top: var(--space-4);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
 .main-content {
@@ -176,71 +126,71 @@ watch([isHomePage, isServicesPage, isProductsPage], ([isHome, isServices, isProd
   display: flex;
   flex-direction: column;
   background-color: transparent;
-  justify-content: center;
   position: relative;
   z-index: 2;
-  margin-bottom: 3rem;
-  margin-top: 6.5rem;
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
-  .show-logo & {
-    max-height: 100vh;
-    overflow: hidden;
-  }
-
-  @media (max-width: 768px) {
-    margin-top: clamp(4.25rem, 22vw, 6rem);
-    margin-bottom: calc(2.75rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  @media (max-width: 480px) {
-    margin-top: clamp(3.85rem, 20vw, 5.25rem);
+@media (max-width: 768px) {
+  .page-content--sticky-cta {
+    padding-bottom: calc(var(--site-footer-height, 4rem) + 4.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* WordPress content global styles */
+/* WordPress content — theme-aware */
 .wp-content {
-  color: #333;
-  
+  color: var(--color-text);
+
   p {
     display: block;
     margin-bottom: 1rem;
     line-height: 1.6;
+    color: var(--color-text-muted);
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     display: block;
     margin-top: 1.5rem;
     margin-bottom: 1rem;
     font-weight: 600;
-    color: #222;
+    color: var(--color-text);
+    font-family: var(--font-display);
   }
-  
+
   ul, ol {
     display: block;
     margin-left: 1.5rem;
     margin-bottom: 1rem;
-    
+    color: var(--color-text-muted);
+
     li {
       display: list-item;
       margin-bottom: 0.5rem;
     }
   }
-  
+
   img {
     max-width: 100%;
     height: auto;
     display: block;
     margin: 1rem 0;
+    border-radius: var(--radius-md);
   }
-  
+
   a {
-    color: #0066cc;
+    color: var(--color-accent);
     text-decoration: underline;
-    
+    text-underline-offset: 2px;
+
     &:hover {
-      color: #004499;
+      color: var(--color-text);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
     }
   }
 }

@@ -1,51 +1,74 @@
 <template>
   <Teleport to="body">
-    <div v-if="isOpen" class="modal-overlay" @click.self="onClose" role="dialog" aria-modal="true" aria-labelledby="contact-title">
-      <div class="modal">
+    <div
+      v-if="isOpen"
+      class="modal-overlay"
+      :class="{ 'theme-light': theme === 'light', 'theme-dark': theme === 'dark' }"
+      @click.self="onClose"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="contact-title"
+    >
+      <GlassCard class="modal" :hover="false" :pad="false">
         <header class="modal-header">
-          <h2 id="contact-title">Contact Us</h2>
-          <button class="icon-btn" aria-label="Close" @click="onClose">×</button>
+          <h2 id="contact-title" class="modal-title">Contact Us</h2>
+          <button type="button" class="icon-btn" aria-label="Close" @click="onClose">
+            <Icon icon="mdi:close" aria-hidden="true" />
+          </button>
         </header>
 
         <form class="modal-body" @submit.prevent="onSubmit" novalidate>
-          <label>
-            <span>Name</span>
-            <input v-model.trim="form.name" type="text" required :disabled="submitting" />
-          </label>
-          <label>
-            <span>Email</span>
-            <input v-model.trim="form.email" type="email" required :disabled="submitting" />
-          </label>
-          <label>
-            <span>Subject</span>
-            <input v-model.trim="form.subject" type="text" :disabled="submitting" />
-          </label>
-          <label>
-            <span>Message</span>
-            <textarea v-model.trim="form.message" rows="5" required :disabled="submitting"></textarea>
-          </label>
+          <FormField
+            v-model="form.name"
+            label="Name"
+            type="text"
+            required
+            :disabled="submitting"
+          />
+          <FormField
+            v-model="form.email"
+            label="Email"
+            type="email"
+            required
+            :disabled="submitting"
+          />
+          <FormField
+            v-model="form.subject"
+            label="Subject"
+            type="text"
+            :disabled="submitting"
+          />
+          <FormField
+            v-model="form.message"
+            label="Message"
+            multiline
+            :rows="5"
+            required
+            :disabled="submitting"
+          />
 
-          <p v-if="error" class="error">{{ error }}</p>
-          <p v-if="success" class="success">Thanks! Your message has been sent.</p>
+          <p v-if="error" class="form-message form-message--error" role="alert">{{ error }}</p>
 
           <footer class="modal-footer">
-            <button type="button" class="btn" @click="onClose" :disabled="submitting">Cancel</button>
-            <button type="submit" class="btn primary" :disabled="submitting || !isValid">
-              <span v-if="submitting">Sending…</span>
-              <span v-else>Send</span>
-            </button>
+            <AppButton type="button" variant="ghost" :disabled="submitting" @click="onClose">
+              Cancel
+            </AppButton>
+            <AppButton type="submit" variant="primary" :disabled="submitting || !isValid">
+              {{ submitting ? 'Sending…' : 'Send' }}
+            </AppButton>
           </footer>
         </form>
-      </div>
+      </GlassCard>
     </div>
   </Teleport>
-  
 </template>
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount } from 'vue'
 import type { User } from '~/types/auth'
-const { isOpen, close, initialSubject } = useContactModal()
+
+const { isOpen, close, initialSubject, initialMessage } = useContactModal()
+const { theme } = useTheme()
 const user = useState<User | null>('auth.user')
 
 const form = reactive({
@@ -56,38 +79,39 @@ const form = reactive({
 })
 
 const submitting = ref(false)
-const success = ref(false)
 const error = ref('')
 
-// Pre-fill from logged in user and initial subject
-watchEffect(() => {
-  if (isOpen.value) {
-    if (user.value && !form.name && !form.email) {
-      form.name = user.value.name || user.value.username
-      form.email = user.value.email
-    }
-    if (initialSubject.value) {
-      form.subject = initialSubject.value
-    }
+watch(isOpen, (open) => {
+  if (!open) return
+  if (user.value && !form.name && !form.email) {
+    form.name = user.value.name || user.value.username
+    form.email = user.value.email
   }
+  form.subject = initialSubject.value ?? ''
+  form.message = initialMessage.value ?? ''
 })
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isValid = computed(() => !!form.name && emailRegex.test(form.email) && !!form.message)
 
+function resetForm() {
+  form.name = ''
+  form.email = ''
+  form.subject = ''
+  form.message = ''
+}
+
 function onClose() {
   close()
-  // Reset after close so we can show success next time
   setTimeout(() => {
-    success.value = false
     error.value = ''
     submitting.value = false
+    resetForm()
   }, 150)
 }
 
 async function onSubmit() {
   error.value = ''
-  success.value = false
   if (!isValid.value) {
     error.value = 'Please fill all required fields with a valid email.'
     return
@@ -98,12 +122,7 @@ async function onSubmit() {
       method: 'POST',
       body: { ...form }
     })
-    success.value = true
-    // Optionally clear message/subject only
-    form.subject = ''
-    form.message = ''
-    // Auto-close after a short delay
-    setTimeout(() => onClose(), 1200)
+    onClose()
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to send message. Please try again.'
   } finally {
@@ -111,13 +130,11 @@ async function onSubmit() {
   }
 }
 
-// Close on Escape
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && isOpen.value) onClose()
 }
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
-
 </script>
 
 <style scoped lang="scss">
@@ -128,14 +145,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     max(0.75rem, env(safe-area-inset-right))
     max(0.75rem, env(safe-area-inset-bottom))
     max(0.75rem, env(safe-area-inset-left));
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(2px);
+  background: var(--color-overlay);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
-  align-items: safe center;
   justify-content: center;
   overflow-y: auto;
-  z-index: 4000; // above header and footer
+  z-index: 4000;
 }
 
 .modal {
@@ -145,34 +161,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #0e0f1a;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
 
-.modal-body {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem 1.25rem;
-  overflow-y: auto;
-  flex: 1;
-  min-height: 0;
-}
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-500);
+  font-weight: 500;
+  margin: 0;
+}
+
 .icon-btn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.25);
-  color: #fff;
-  width: 40px;
-  height: 40px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  width: 2.75rem;
+  height: 2.75rem;
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
@@ -180,62 +191,56 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.35rem;
-  line-height: 1;
-}
+  transition:
+    background var(--dur-med) var(--ease-out),
+    border-color var(--dur-med) var(--ease-out);
 
-@media (max-width: 480px) {
-  input,
-  textarea {
-    font-size: 16px; /* avoids iOS zoom on focus */
+  &:hover {
+    background: var(--color-accent-soft);
+    border-color: var(--color-border-strong);
   }
 
-  textarea {
-    min-height: 7rem;
-  }
-
-  .modal-header {
-    padding: 0.85rem 1rem;
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 }
 
-@media (max-width: 520px) {
-  .modal {
-    border-radius: 12px;
+.modal-body {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+
+  :deep(.form-field) {
+    margin-bottom: var(--space-3);
   }
 }
-label { display: grid; gap: 0.35rem; }
-input, textarea {
-  background: rgba(255,255,255,0.06);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 8px;
-  padding: 0.62rem 0.75rem;
-  width: 100%;
-  font: inherit;
-}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
 }
-.btn {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  padding: 0.62rem 1rem;
-  min-height: 44px;
-  cursor: pointer;
-  font: inherit;
-}
-.btn.primary {
-  background: #4f46e5;
-  border-color: #4f46e5;
-}
-.error { color: #ff6b6b; }
-.success { color: #2ecc71; }
 
+.form-message {
+  margin: 0;
+  font-size: var(--fs-200);
+  text-align: center;
+}
+
+.form-message--error {
+  color: var(--color-error);
+}
+
+@media (max-width: 520px) {
+  .modal-header,
+  .modal-body {
+    padding-inline: var(--space-4);
+  }
+}
 </style>

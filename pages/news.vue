@@ -1,12 +1,12 @@
 <template>
-  <section class="news-page">
-    <div class="news-content">
-      <p v-if="pending" class="news-status">Loading posts…</p>
-      <p v-else-if="error" class="news-status news-error">
-        Unable to load posts. Please try again later.
-      </p>
-      <template v-else-if="posts.length">
-        <div class="posts-grid">
+  <PageShell>
+    <SectionShell>
+      <Reveal>
+        <p v-if="pending" class="news-status">Loading posts…</p>
+        <p v-else-if="error" class="news-status news-status--error">
+          Unable to load posts. Please try again later.
+        </p>
+        <div v-else-if="posts.length" class="posts-grid">
           <BlogCard
             v-for="post in posts"
             :key="post.id"
@@ -16,36 +16,32 @@
             :image="post.image"
           />
         </div>
-      </template>
-      <p v-else class="news-status">No posts yet. Check back soon.</p>
-    </div>
+        <GlassCard v-else :hover="false" class="news-empty">
+          <p class="news-status">No posts yet. Check back soon.</p>
+        </GlassCard>
+      </Reveal>
+    </SectionShell>
 
-    <div class="news-cross-nav-wrap">
+    <nav class="news-cross-nav" aria-label="Site navigation">
       <CrossNav variant="inline" />
-    </div>
-  </section>
+    </nav>
+  </PageShell>
 </template>
 
 <script setup lang="ts">
+import type { WordPressPostListItem, WordPressPostsResponse } from '~/types/wordpress'
+
 definePageMeta({
   middleware: 'auth'
 })
 
-interface WpPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string
-  featuredImage?: { node?: { sourceUrl: string; altText?: string } }
-}
-
-const { data, pending, error } = await useFetch<{ posts: WpPost[] }>('/api/posts', {
+const { data, pending, error } = await useFetch<WordPressPostsResponse>('/api/posts', {
   query: { perPage: 24 },
   default: () => ({ posts: [] })
 })
 
 const posts = computed(() => {
-  const nodes = data.value?.posts ?? []
+  const nodes: WordPressPostListItem[] = data.value?.posts ?? []
   return nodes.map((p) => ({
     id: p.id,
     title: p.title,
@@ -54,40 +50,52 @@ const posts = computed(() => {
     image: p.featuredImage?.node?.sourceUrl
   }))
 })
+
+useSeo({
+  title: 'Latest News | StellarPossible',
+  description: 'News, updates, and highlights from StellarPossible.',
+  path: '/news'
+})
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/scss/variables.scss' as *;
-
-.news-page {
-  padding: 2rem 1.5rem 4rem;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.news-content {
-  min-height: 12rem;
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-6);
 }
 
 .news-status {
-  color: rgba(255, 255, 255, 0.8);
   text-align: center;
-  font-size: 1rem;
+  font-size: var(--fs-300);
+  color: var(--color-text-muted);
+  margin: 0;
 }
 
-.news-status.news-error {
-  color: rgba(255, 200, 150, 0.95);
+.news-status--error {
+  color: var(--color-warning);
 }
 
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+.news-empty {
+  text-align: center;
+  max-width: 28rem;
+  margin-inline: auto;
 }
 
-.news-cross-nav-wrap {
-  margin-top: 2.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
+.news-cross-nav {
+  padding: var(--space-8) var(--space-6) var(--space-4);
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .news-cross-nav {
+    padding-inline: var(--space-4);
+  }
 }
 </style>

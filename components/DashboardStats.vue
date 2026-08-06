@@ -10,11 +10,11 @@
     <div v-else class="stats-grid">
       <div class="stat-item">
         <span class="stat-value">{{ data?.totalPosts ?? '—' }}</span>
-        <span class="stat-label">Posts</span>
+        <span class="stat-label">Site posts</span>
       </div>
       <div class="stat-item">
         <span class="stat-value">{{ data?.totalComments ?? '—' }}</span>
-        <span class="stat-label">Comments</span>
+        <span class="stat-label">Site comments</span>
       </div>
       <div class="stat-item">
         <span class="stat-value stat-value-sm">{{ lastLoginDisplay }}</span>

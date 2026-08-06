@@ -9,11 +9,11 @@ set -e # Exit on any error
 # Default values
 IMAGE_NAME=${IMAGE_NAME:-"stellarpossible-nuxt"}
 TAG=${TAG:-"latest"}
-TEST_PORT=${TEST_PORT:-"3001"}
+TEST_PORT=${TEST_PORT:-"3006"}
 WAIT_TIME=${WAIT_TIME:-15}
 MAX_RETRIES=${MAX_RETRIES:-3}
 TEST_CONTAINER_NAME="test-container-$(date +%s)"
-TEST_PORT_START=${TEST_PORT_START:-3002}
+TEST_PORT_START=${TEST_PORT_START:-3006}
 TEST_PORT_END=${TEST_PORT_END:-3099}
 
 # Environment variables needed for testing

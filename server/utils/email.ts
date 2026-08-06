@@ -7,7 +7,21 @@ export type ContactEmail = {
   message: string
 }
 
+export type EmailAttachment = {
+  filename: string
+  content: Buffer
+  contentType?: string
+}
+
 export async function sendContactEmail(payload: ContactEmail) {
+  return sendInquiryEmail(payload)
+}
+
+export async function sendInquiryEmailWithAttachment(payload: ContactEmail & { attachment: EmailAttachment }) {
+  return sendInquiryEmail(payload, payload.attachment)
+}
+
+async function sendInquiryEmail(payload: ContactEmail, attachment?: EmailAttachment) {
   const config = useRuntimeConfig()
   const from = formatFrom(config.emailFrom)
   const to = buildRecipientList(config.emailTo)
@@ -16,12 +30,18 @@ export async function sendContactEmail(payload: ContactEmail) {
   if (!from || to.length === 0) {
     console.warn('[email] EMAIL_FROM or recipient list not configured; printing message to console instead.')
     console.info('[email] Contact message:', payload)
+    if (attachment) {
+      console.info('[email] Attachment:', attachment.filename, `(${attachment.content.length} bytes)`)
+    }
     return { simulated: true }
   }
 
   if (!apiKey) {
     console.warn('[email] RESEND_API_KEY not set; printing message to console instead.')
     console.info('[email] Contact message:', payload)
+    if (attachment) {
+      console.info('[email] Attachment:', attachment.filename, `(${attachment.content.length} bytes)`)
+    }
     return { simulated: true }
   }
 
@@ -43,7 +63,15 @@ export async function sendContactEmail(payload: ContactEmail) {
     from,
     to,
     subject,
-    html
+    html,
+    attachments: attachment
+      ? [
+          {
+            filename: attachment.filename,
+            content: attachment.content
+          }
+        ]
+      : undefined
   })
 
   return { success: true }

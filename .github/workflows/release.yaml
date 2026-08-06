@@ -115,7 +115,7 @@ jobs:
         env:
           IMAGE_NAME: ${{ env.DOCKER_IMAGE_NAME }}
           TAG: latest
-          TEST_PORT: 3001
+          TEST_PORT: 3006
           WAIT_TIME: 15
           MAX_RETRIES: 3
           WP_USER: admin

@@ -1,3 +1,4 @@
+@use '@/assets/scss/_tokens.scss';
 @use '@/assets/scss/dashboard.scss';
 
 /* Mobile baseline: predictable sizing, readable text scaling, notch-safe padding handled per surface */
@@ -14,16 +15,25 @@ html {
 
 body {
   margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: transparent;
 }
 
-// Fade mask for home hero
+p {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
 .fade-to-footer::after {
   content: '';
   position: absolute;
   bottom: 0;
   height: 200px;
   width: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, #000 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, var(--color-space-deep) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -31,10 +41,18 @@ body {
 // Dashboard styles are loaded via @use at the top of this file
 
 // Sticky nav at top (darkest state): 0.25 opacity
+.site-header {
+  transition: background-color var(--dur-med) var(--ease-out), backdrop-filter var(--dur-med) var(--ease-out);
+}
+
 .site-header.scrolled {
-  background-color: rgba(0, 0, 0, 0.25);
+  background-color: color-mix(in srgb, var(--color-space-deep) 75%, transparent);
   backdrop-filter: blur(6px);
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.layout-wrapper.theme-light .site-header.scrolled {
+  background-color: color-mix(in srgb, var(--color-glass-solid) 85%, transparent);
 }
 
 // Disable scroll for home
@@ -46,12 +64,4 @@ body {
 // Disable scroll when mobile menu is open
 .menu-open {
   overflow: hidden;
-}
-
-p {
-  font-family: 'Chocolates', serif;
-}
-
-h1,h2, h3, h4, h5, h6 {
-  font-family: 'OldStyle', sans-serif;
 }
