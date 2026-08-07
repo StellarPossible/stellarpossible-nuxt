@@ -14,11 +14,6 @@
           <AppButton to="/services" variant="ghost" size="lg" block class="home-hero__btn home-hero__btn--secondary">Services</AppButton>
           <AppButton v-if="!user" to="/login?tab=register" variant="ghost" size="sm" block class="home-hero__btn home-hero__btn--secondary">Login</AppButton>
         </div>
-        <div class="home-hero__trust">
-          <StatBadge value="99.9%" label="Uptime since 2022" />
-          <StatBadge value="4+" label="Client platforms" />
-          <StatBadge value="2022" label="Serving since" />
-        </div>
       </GlassCard>
     </Reveal>
   </section>
@@ -90,16 +85,6 @@ const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-10);
-}
-
-.home-hero__trust {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-4);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 768px) {
@@ -116,13 +101,6 @@ const { path: primaryCtaPath, label: primaryCtaLabel } = usePrimaryCta()
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-2);
-    margin-bottom: var(--space-8);
-  }
-
-  .home-hero__trust {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
   }
 }
 

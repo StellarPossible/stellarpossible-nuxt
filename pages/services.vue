@@ -37,7 +37,6 @@
           <div class="pricing-block">
             <div class="pricing-block__header">
               <span class="services-label">Website &amp; hosting</span>
-              <p class="pricing-block__lead">Transparent build pricing — every site includes managed hosting and migration to the StellarPossible server.</p>
             </div>
 
             <div class="pricing-grid">
@@ -326,13 +325,6 @@ useSeo({
 
 .pricing-block__header {
   margin-bottom: var(--space-5);
-}
-
-.pricing-block__lead {
-  margin: 0;
-  font-size: var(--fs-200);
-  color: var(--color-text-muted);
-  line-height: 1.55;
 }
 
 .pricing-grid {
