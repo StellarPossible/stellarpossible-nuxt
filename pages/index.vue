@@ -2,17 +2,6 @@
   <PageShell flush-top class="landing">
     <HomeHero />
 
-    <SectionShell>
-      <Reveal>
-        <div class="proof-grid">
-          <StatBadge value="99.9%" label="Platform uptime" />
-          <StatBadge value="HIPAA" label="Compliance expertise" />
-          <StatBadge value="Nuxt" label="Modern stack" />
-          <StatBadge value="Slack" label="Collaborative delivery" />
-        </div>
-      </Reveal>
-    </SectionShell>
-
     <SectionShell id="offerings">
       <Reveal>
         <div class="offerings-grid">
@@ -25,26 +14,6 @@
             </GlassCard>
           </Reveal>
         </div>
-      </Reveal>
-    </SectionShell>
-
-    <SectionShell>
-      <Reveal>
-        <GlassCard class="featured-card" :hover="false">
-          <div class="featured-inner">
-            <div class="featured-copy">
-              <ul class="featured-list">
-                <li>WordPress modernization & DevOps</li>
-                <li>CI/CD, monitoring, managed hosting</li>
-                <li>API development & integrations</li>
-              </ul>
-              <AppButton to="/products" variant="secondary">View products</AppButton>
-            </div>
-            <div class="featured-stat">
-              <StatBadge value="99.9%" label="Uptime since 2022" />
-            </div>
-          </div>
-        </GlassCard>
       </Reveal>
     </SectionShell>
 
@@ -102,13 +71,6 @@ useSeo({
   padding-bottom: var(--space-4);
 }
 
-.proof-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: var(--space-4);
-  justify-items: center;
-}
-
 .offerings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
@@ -155,25 +117,6 @@ useSeo({
   color: var(--color-accent);
 }
 
-.featured-card {
-  padding: var(--space-8) !important;
-}
-
-.featured-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-8);
-}
-
-.featured-list {
-  margin: 0 0 var(--space-6);
-  padding-left: var(--space-6);
-  color: var(--color-text-muted);
-  line-height: 1.7;
-}
-
 .final-cta__card {
   text-align: center;
   padding: var(--space-10) !important;
@@ -199,23 +142,8 @@ useSeo({
 }
 
 @media (max-width: 480px) {
-  .proof-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
-  }
-
   .offerings-grid {
     grid-template-columns: 1fr;
-  }
-
-  .featured-inner {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .featured-stat {
-    display: flex;
-    justify-content: center;
   }
 
   .final-cta__card {

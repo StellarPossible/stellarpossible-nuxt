@@ -99,6 +99,7 @@ const toolsWeUse = [
   { name: 'Nuxt.js', description: 'Vue-based framework for fast, modern web apps.', icon: 'simple-icons:nuxtdotjs', url: 'https://nuxt.com' },
   { name: 'Visual Studio Code', description: 'Code editor we use for development.', icon: 'simple-icons:visualstudiocode', url: 'https://code.visualstudio.com' },
   { name: 'GitHub', description: 'Version control and collaboration.', icon: 'simple-icons:github', url: 'https://github.com' },
+  { name: 'Playwright', description: 'End-to-end browser testing for reliable web apps.', icon: 'simple-icons:playwright', url: 'https://playwright.dev' },
   { name: 'Slack', description: 'Client communication and file sharing.', icon: 'simple-icons:slack', url: 'https://slack.com' },
   { name: 'WordPress', description: 'Content management and headless CMS.', icon: 'simple-icons:wordpress', url: 'https://wordpress.org' },
   { name: 'Hostinger', description: 'Reliable hosting for client sites.', icon: 'simple-icons:hostinger', url: 'https://www.hostinger.com' }
