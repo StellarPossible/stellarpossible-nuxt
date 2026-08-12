@@ -8,7 +8,7 @@ const heroByPath: Record<string, PageHero> = {
   '/services': {
     badge: 'Services',
     title: 'Scoped with clarity. Delivered with care.',
-    subtitle: 'Managed hosting, website builds, custom tools, and Nuxt.js platforms — with a free 60-minute consult for new clients.'
+    subtitle: 'Managed hosting, website builds, custom tools, and Nuxt.js platforms.'
   },
   '/products': {
     badge: 'Products',

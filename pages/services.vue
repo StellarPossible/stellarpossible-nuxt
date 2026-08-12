@@ -7,20 +7,6 @@
 
     <SectionShell class="services-content">
       <Reveal>
-        <GlassCard :hover="false" :pad="false" class="consult-banner">
-          <div class="consult-banner__icon-wrap" aria-hidden="true">
-            <Icon :icon="included.icon" class="consult-banner__icon" />
-          </div>
-          <div class="consult-banner__copy">
-            <span class="services-label">Included for new clients</span>
-            <h2 class="consult-banner__title">{{ included.title }}</h2>
-            <p class="consult-banner__desc">{{ included.description }}</p>
-            <AppButton variant="primary" class="consult-banner__cta" @click="openConsultRequest">
-              Request free consult
-            </AppButton>
-          </div>
-        </GlassCard>
-
         <div class="services-grid">
           <GlassCard :hover="false" :pad="false" class="service-panel">
             <span class="services-label">Custom development</span>
@@ -102,18 +88,6 @@ function openContact() {
   openContactModal()
 }
 
-const consultRequestMessage = "I'd like to schedule my free consult."
-
-function openConsultRequest() {
-  openContactModal({ message: consultRequestMessage })
-}
-
-const included = {
-  icon: 'mdi:video-account',
-  title: '60-min free consult',
-  description: 'New clients kick off with Marine — align on goals, scope, and timeline at no cost.'
-}
-
 const toolFeatures = [
   'Internal tools, scripts, and API integrations',
   'Fixed-price quotes after scoping',
@@ -166,7 +140,7 @@ const siteUrl = ((config.public.siteUrl as string) || 'https://stellarpossible.c
 
 useSeo({
   title: 'Services | StellarPossible',
-  description: 'Managed hosting, website builds, and custom tools — scoped with clarity. Includes a free 60-minute consult for new clients.',
+  description: 'Managed hosting, website builds, and custom tools — scoped with clarity.',
   path: '/services',
   jsonLd: [
     organizationJsonLd(siteUrl),
@@ -226,57 +200,6 @@ useSeo({
   text-transform: uppercase;
   color: var(--color-gold);
   margin-bottom: var(--space-3);
-}
-
-.consult-banner {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-8);
-  margin-bottom: var(--space-8);
-  border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-md), var(--shadow-glow);
-}
-
-.consult-banner__icon-wrap {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: var(--color-accent-soft);
-  border: 1px solid var(--color-border);
-}
-
-.consult-banner__icon {
-  font-size: 1.75rem;
-  color: var(--color-accent);
-}
-
-.consult-banner__copy {
-  min-width: 0;
-}
-
-.consult-banner__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-400);
-  margin: 0 0 var(--space-2);
-  line-height: 1.2;
-}
-
-.consult-banner__desc {
-  margin: 0;
-  font-size: var(--fs-200);
-  color: var(--color-text-muted);
-  line-height: 1.55;
-}
-
-.consult-banner__cta {
-  margin-top: var(--space-4);
 }
 
 .services-grid {
@@ -542,16 +465,6 @@ useSeo({
 }
 
 @media (max-width: 768px) {
-  .consult-banner {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--space-6);
-  }
-
-  .consult-banner__cta {
-    align-self: center;
-  }
-
   .service-panel {
     padding: var(--space-6);
   }
